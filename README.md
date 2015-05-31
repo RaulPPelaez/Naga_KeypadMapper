@@ -14,9 +14,9 @@ And place it wherever you like, you can run it automatically at startup if you w
 
 #USAGE
 
-Init the mapper by calling: $ ./naga /dev/input/by-id/<NAGA_KEYPAD>
+Init the mapper by calling: $ ./naga /dev/input/by-id/[NAGA_KEYPAD]
 
-where <NAGA_KEYPAD> is the name of the keypad in this folder. 
+where [NAGA_KEYPAD] is the name of the keypad in this folder. 
 In my case:   /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd
 
 In order to get rid of the original bindings you have to disable the keypad using xinput as follows:
