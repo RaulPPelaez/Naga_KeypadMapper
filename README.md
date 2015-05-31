@@ -14,7 +14,8 @@ And place it wherever you like, you can run it automatically at startup if you w
 
 #USAGE
 
-Init the mapper by calling: $ ./naga /dev/input/by-id/[NAGA_KEYPAD]
+Init the mapper by calling: $ sudo ./naga /dev/input/by-id/[NAGA_KEYPAD]
+I dont know how to overcome the need for sudo, if you know let me know please!
 
 where [NAGA_KEYPAD] is the name of the keypad in this folder. 
 In my case:   /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd
