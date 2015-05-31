@@ -3,7 +3,8 @@ This little linux xorg daemon allows you to map the side keypad of the Razer Nag
 
 #INSTALLATION
 
-It does not need any dependencies besides having installed xtools (in the oficial ubuntu repositories) and g++
+It does not need any dependencies besides having installed xdotools http://www.semicomplete.com/projects/xdotool/  (in the oficial ubuntu repositories)
+and g++
 
 Just compile the code using $ g++ -O3 -o naga naga.cpp
 And place it wherever you like, you can run it automatically at startup if you want.
