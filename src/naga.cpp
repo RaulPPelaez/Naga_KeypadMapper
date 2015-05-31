@@ -1,3 +1,12 @@
+/*
+Apocatarsis 2015
+Released with absolutely no warranty, use with your own responsability.
+
+The differences between the naga and any other input keyboard-like device in 
+this code is in the number of keys (line 25)
+And the code of each button (in the Naga this is Code=2 for button 1 and all the way to Code=13 for button 12)
+you can change line 91 to adapt it to other devices.
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
