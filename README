@@ -14,7 +14,7 @@ The configuration file mapping.txt has the following syntax:
   For run: a system command like top or a custom script like bash /usr/local/bin/custom.bash
   
 
-if the mapping.txt file is missing the default mapping.txt corresponds to the numbers 0-11 assigned to the buttons: (the program will NOT autocreate this file)
+if the mapping.txt file is missing the default mapping.txt corresponds to the numbers 0-11 assigned to the buttons: (the program will NOT autocreate this file, the install.sh script will though)
 
 An example mapping.txt configuration file is the following:
 --------------------------
@@ -35,25 +35,46 @@ An example mapping.txt configuration file is the following:
 (Do not include the ---- in the actual file) 
 
 CAUTION, in this first alpha version the run option wont work for text enviroment commands, like for example top.
-
-INSTALLATION
-It does not need any dependencies besides having installed xtools (in the oficial ubuntu repositories) and g++
-
-Just compile the code using $ g++ -O3 -o naga naga.cpp
-And place it wherever you like, you can run it automatically at startup if you want.
+As an alpha version, it is very prone to bugs and other sorts of faliure, use under your own responsability.
 
 
-USAGE
+Be adviced that I release this project without any sort of warranty. So use under your own responsability.
 
-Init the mapper by calling: $ ./naga /dev/input/by-id/<NAGA_KEYPAD>
+This daemon does not, in any case modify any system file nor propertie of any device. So the process is totally reversible just by deleting the files.
 
-where <NAGA_KEYPAD> is the name of the keypad in this folder. 
+
+#INSTALLATION
+
+It does not need any dependencies besides having installed xdotool http://www.semicomplete.com/projects/xdotool/  (in the oficial ubuntu repositories)
+and g++
+
+Just run install.sh as sudo.
+This will compile the source and copy the necesary files (see install.sh for more info)
+
+
+#USAGE
+The instalation process automatically executes the daemon in the background and set it to start at boot for you. But you can still run it manually as follows:
+
+nagastart.sh does the below process automatically:
+
+naga executable has to be called as sudo or have the s bit up with chmod u+s at least.
+
+Init the mapper by calling: $./naga /dev/input/by-id/[NAGA_KEYPAD]
+I dont know how to overcome the need for sudo privileges, if you know let me know please!
+
+where [NAGA_KEYPAD] is the name of the keypad in this folder. 
 In my case:   /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd
 
 In order to get rid of the original bindings you have to disable the keypad using xinput as follows:
 
-$ xinput set-int-prop <id> "Devide Enabled" 8 0
+$ xinput set-int-prop <id> "Device Enabled" 8 0
 
 where <id> is the id number of the keypad returned by $ xinput.
 
 You can enable it back to completly restore the changes by changing the last 0 to a 1
+
+#UNNINSTALATION
+
+You just have to delete the files created:
+
+$sudo rm /usr/local/bin/naga ~/.config/startup/naga.desktop /usr/local/bin/nagastart.sh
