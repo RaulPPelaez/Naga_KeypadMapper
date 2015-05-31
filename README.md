@@ -36,7 +36,7 @@ $ xinput set-int-prop [id] "Device Enabled" 8 0
 
 where [id] is the id number of the keypad returned by $ xinput.
 
-You can enable it back to completly restore the changes by changing the last 0 to a 1
+This last until the x server is restarted (nagastart.sh is aware of this), but you can enable it back to completly restore the changes by changing the last 0 to a 1.
 
 #UNNINSTALATION
 
