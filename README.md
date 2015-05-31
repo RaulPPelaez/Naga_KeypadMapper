@@ -5,7 +5,7 @@ More info and mapping.txt syntax in README
 
 Be adviced that I release this project without any sort of warranty. So use under your own responsability.
 
-This daemon does not, in any case modify any system file nor propertie of any device. So the process is totally reversible just by deleting the files.
+This daemon does not, in any case modify any system file nor propertie of any device. So the process is totally reversible just by deleting the files. It is absolutely non invasive
 
 
 #INSTALLATION
