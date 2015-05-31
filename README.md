@@ -18,6 +18,7 @@ This will compile the source and copy the necesary files (see install.sh for mor
 
 
 #USAGE
+The instalation process automatically executes the daemon in the background and set it to start at boot for you. But you can still run it manually as follows:
 
 nagastart.sh does the below process automatically:
 
