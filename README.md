@@ -37,6 +37,8 @@ where <id> is the id number of the keypad returned by $ xinput.
 
 You can enable it back to completly restore the changes by changing the last 0 to a 1
 
-#unninstalation
+#UNNINSTALATION
+
 You just have to delete the files created:
+
 $sudo rm /usr/local/bin/naga ~/.config/startup/naga.desktop /usr/local/bin/nagastart.sh
