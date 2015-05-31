@@ -32,9 +32,9 @@ In my case:   /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd
 
 In order to get rid of the original bindings you have to disable the keypad using xinput as follows:
 
-$ xinput set-int-prop <id> "Device Enabled" 8 0
+$ xinput set-int-prop [id] "Device Enabled" 8 0
 
-where <id> is the id number of the keypad returned by $ xinput.
+where [id] is the id number of the keypad returned by $ xinput.
 
 You can enable it back to completly restore the changes by changing the last 0 to a 1
 
