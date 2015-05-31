@@ -3,28 +3,40 @@ This little linux xorg daemon allows you to map the side keypad of the Razer Nag
 
 More info and mapping.txt syntax in README
 
+Be adviced that I release this project without any sort of warranty. So use under your own responsability.
+
+This daemon does not, in any case modify any system file nor propertie of any device. So the process is totally reversible just by deleting the files.
+
+
 #INSTALLATION
 
 It does not need any dependencies besides having installed xdotool http://www.semicomplete.com/projects/xdotool/  (in the oficial ubuntu repositories)
 and g++
 
-Just compile the code using $ g++ -O3 -o naga naga.cpp
-And place it wherever you like, you can run it automatically at startup if you want.
+Just run install.sh as sudo.
+This will compile the source and copy the necesary files (see install.sh for more info)
 
 
 #USAGE
 
-Init the mapper by calling: $ sudo ./naga /dev/input/by-id/[NAGA_KEYPAD]
-I dont know how to overcome the need for sudo, if you know let me know please!
+nagastart.sh does the below process automatically:
+
+naga executable has to be called as sudo or have the s bit up with chmod u+s at least.
+
+Init the mapper by calling: $./naga /dev/input/by-id/[NAGA_KEYPAD]
+I dont know how to overcome the need for sudo privileges, if you know let me know please!
 
 where [NAGA_KEYPAD] is the name of the keypad in this folder. 
 In my case:   /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd
 
 In order to get rid of the original bindings you have to disable the keypad using xinput as follows:
 
-$ xinput set-int-prop <id> "Devide Enabled" 8 0
+$ xinput set-int-prop <id> "Device Enabled" 8 0
 
 where <id> is the id number of the keypad returned by $ xinput.
 
 You can enable it back to completly restore the changes by changing the last 0 to a 1
 
+#unninstalation
+You just have to delete the files created:
+$sudo rm /usr/local/bin/naga ~/.config/startup/naga.desktop /usr/local/bin/nagastart.sh
