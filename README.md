@@ -42,4 +42,4 @@ This last until the x server is restarted (nagastart.sh is aware of this), but y
 
 You just have to delete the files created:
 
-$sudo rm /usr/local/bin/naga ~/.config/startup/naga.desktop /usr/local/bin/nagastart.sh
+$sudo rm /usr/local/bin/naga ~/.config/autostart/naga.desktop /usr/local/bin/nagastart.sh
