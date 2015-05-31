@@ -85,7 +85,7 @@ class NagaDaemon{
 		    command = keyop+args[i];
 		    break;
 		  case 2: //run system command
-		    command = args[i]+"&";
+		    command = "setsid "+args[i]+" &";
 		    break;
 		}//ENDSWITCH
 		pid=system(command.c_str());
