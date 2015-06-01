@@ -13,6 +13,7 @@ exit 1
 fi
 
 mv naga /usr/local/bin/
+cp nagastart.sh /usr/local/bin/
 sudo chmod u+s /usr/local/bin/naga
 
 cd ..
