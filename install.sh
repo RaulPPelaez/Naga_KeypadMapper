@@ -13,12 +13,14 @@ exit 1
 fi
 
 mv naga /usr/local/bin/
-cp nagastart.sh /usr/local/bin/
 sudo chmod u+s /usr/local/bin/naga
 
 cd ..
 cp naga.desktop $HOME/.config/autostart/
+cp nagastart.sh /usr/local/bin/
 mkdir $HOME/.naga
 cp mapping.txt $HOME/.naga/
 
 nohup bash nagastart.sh & >/dev/null
+
+rm nohup.out
