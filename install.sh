@@ -16,6 +16,7 @@ chmod u+s /usr/local/bin/
 
 cd ..
 cp naga.desktop $HOME/.config/autostart/
+mkdir $HOME/.naga
 cp mapping.txt $HOME/.naga/
 
 nohup bash nagastart.sh &
