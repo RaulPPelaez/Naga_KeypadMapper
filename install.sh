@@ -18,6 +18,7 @@ sudo chmod u+s /usr/local/bin/naga
 cd ..
 cp naga.desktop $HOME/.config/autostart/
 cp nagastart.sh /usr/local/bin/
+sudo chmod u+s /usr/local/bin/nagastart.sh
 mkdir $HOME/.naga
 cp mapping.txt $HOME/.naga/
 
