@@ -2,7 +2,7 @@
 Name=NagaMaper
 GenericName=Naga key maper
 Comment=Custom key bindings for the side panel
-Exec=bash /usr/local/bin/nagastart.sh
+Exec=sudo bash /usr/local/bin/nagastart.sh
 Terminal=false
 Type=Application
 Icon=
