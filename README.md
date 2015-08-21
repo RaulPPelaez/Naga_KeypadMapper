@@ -1,7 +1,10 @@
 # Naga_KeypadMapper
 This little linux xorg daemon allows you to map the side keypad of the Razer Naga series mice via a configuration file called mapping.txt under $HOME/.naga/ . requieres xdotool and a X server enviroment to work.
 
-Currently tested only for Razer Naga Epic (pre-2014 version) in Ubuntu 14.04.
+Currently tested only for Razer Naga Epic (pre-2014 version) in Ubuntu 14.04 and Razer Naga 2014 (thanks to Destroyer).
+
+You can configure the daemon for any other Razer mice easily, see below.
+
 
 More info and mapping.txt syntax in README
 
@@ -35,7 +38,7 @@ I dont know how to overcome the need for sudo privileges, if you know let me kno
 
 where [NAGA_KEYPAD] is the name of the keypad in this folder. 
 In my case:   /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd
-
+If you are using naga 2014: /dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd
 In order to get rid of the original bindings you have to disable the keypad using xinput as follows:
 
 $ xinput set-int-prop [id] "Device Enabled" 8 0
