@@ -85,6 +85,7 @@ class NagaDaemon{
 	int pid;
 	while (1){
 	  rd = read (fd, ev, size * 64);
+	  if (rd == -1) exit(1); //Thanks Destroyer!
           value = ev[0].value;
           if (value != ' ' && ev[1].value == 1 && ev[1].type == 1){ // Only read the key press event
             for(int i=0;i<DEV_NUM_KEYS;i++){//For all keys
