@@ -64,6 +64,7 @@ I dont know how to overcome the need for sudo privileges, if you know let me kno
 
 where [NAGA_KEYPAD] is the name of the keypad in this folder. 
 In my case:   /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd
+If you are using naga 2014: /dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd
 
 In order to get rid of the original bindings you have to disable the keypad using xinput as follows:
 
