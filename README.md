@@ -3,8 +3,11 @@ This little linux xorg daemon allows you to map the side keypad of the Razer Nag
 
 Currently tested only for Razer Naga Epic (pre-2014 version) in Ubuntu 14.04 and Razer Naga 2014 (thanks to Destroyer).
 
+
 You can configure the daemon for any other Razer mice easily, see below.
-For Naga 2014 just change the param in nagastart to  
+
+
+For Naga 2014 just change the param in nagastart to:
  sudo naga /dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd
 
 More info and mapping.txt syntax in README
