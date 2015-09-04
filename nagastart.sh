@@ -14,4 +14,4 @@ fi
 else
 xinput set-button-map $NAGAID2 1 2 3 4 5 6 7 11 10 8 9 13 14 15
 fi
-sudo naga 2014
+naga epic
