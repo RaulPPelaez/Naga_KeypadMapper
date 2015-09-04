@@ -1,130 +1,192 @@
 /*
-Apocatarsis 2015
-Released with absolutely no warranty, use with your own responsability.
-
-The differences between the naga and any other input keyboard-like device in 
-this code is in the number of keys (line 25)
-And the code of each button (in the Naga this is Code=2 for button 1 and all the way to Code=13 for button 12)
-you can change line 91 to adapt it to other devices.
-*/
-#include <stdio.h>
-#include <stdlib.h>
+ * Apocatarsis 2015
+ * Released with absolutely no warranty, use with your own responsability.
+ * 
+ * This version is still in development
+ */
+#include <cstdio>
+#include <cstring>
+#include <iostream>
 #include <string>
+#include <vector>
+#include <algorithm>
 #include <fstream>
-#include <unistd.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <dirent.h>
 #include <linux/input.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <unistd.h>
 #include <sys/select.h>
-#include <sys/time.h>
-#include <termios.h>
-#include <signal.h>
-#include <iostream>
-#include<vector>
-#include<algorithm> 
+
 #define DEV_NUM_KEYS 12
+#define EXTRA_BUTTONS 2
+
 using namespace std;
-class NagaDaemon{
-  public:
-    NagaDaemon(int argc, char *argv[]){
-	device = NULL;	
-	size = sizeof (struct input_event);		
-      	this->load_conf();
-	 //Setup check
-  	if (argv[1] == NULL){
-      	  printf("Please specify (on the command line) the path to the dev event interface devicei\n");
-     	  exit (0);
-     	}
-  	if ((getuid ()) != 0)printf ("You are not root! This may not work...\n");
-  	if (argc > 1) device = argv[1];
-  	//Open Device
-  	if ((fd = open (device, O_RDONLY)) == -1)printf ("%s is not a vaild device\n", device);
 
-  	//Print Device Name
-  	ioctl (fd, EVIOCGNAME (sizeof (name)), name);
-  	printf ("Reading From : %s (%s)\n", device, name);	
-    }
-    void load_conf(){
-	
-	args.resize(DEV_NUM_KEYS);
-	options.resize(DEV_NUM_KEYS);
-
-	string conf_file;
-	conf_file+=string(getenv("HOME"))+"/.naga/mapping.txt";
-	ifstream in(conf_file.c_str(), ios::in);
-  	if (!in) { cerr << "Cannot open " << conf_file << endl; exit(1); }
- 	string line,token1,token2;
-	int pos;
-	while(getline(in,line)){
-	  //Erase spaces
-          line.erase(std::remove(line.begin(), line.end(),' '),line.end());
-	  //Ignore comments
-	  if (line[0] == '#') { continue; }
-	  //Search option and argument
-	  pos = line.find("-");
-	  token1 = line.substr(0,pos);
-	  line = line.substr(pos+1);
-	  pos = line.find("=");
-	  token2 = line.substr(0,pos);
-	  line = line.substr(pos+1);
-	  //Encode and store mapping
-	  pos =  atoi(token1.c_str())-1;
-	  if(token2=="key")options[pos] = 1;
-	  else if(token2=="run")options[pos] = 2;
-	  else printf("Not supported key action, check the syntax in mapping.txt!\n");
-	  args[pos] = line;
-	  if(pos==DEV_NUM_KEYS) break; //Only 12 keys for the Naga
-	}
-    }
-    void Run(){
-	string keyop="xdotool key --window getactivewindow ";
-	string command;
-	int pid;
-	while (1){
-	  rd = read (fd, ev, size * 64);
-	  if (rd == -1) exit(1); //Thanks Destroyer!
-          value = ev[0].value;
-          if (value != ' ' && ev[1].value == 1 && ev[1].type == 1){ // Only read the key press event
-            for(int i=0;i<DEV_NUM_KEYS;i++){//For all keys
-	      if(ev[1].code==(i+2)){ //If code i+2 is on (Only for naga)
-	      	switch (options[i]){
-		  case 1: //key
-		    command = keyop+args[i];
-		    break;
-		  case 2: //run system command
-		    command = "setsid "+args[i]+" &";
-		    break;
-		}//ENDSWITCH
-		pid=system(command.c_str());
-	      }//ENDIF
-            }//ENDFOR
-	  }//ENDIF
-	}//ENDWHILE
-    }
-  private:
-    struct input_event ev[64];
-    int fd, rd, value, size;
-    char name[256];
-    char *device;
-    vector<string> args;
-    vector<int> options;
-
-
-
-
-
-
-
+const char * devices[][2] = {
+		{"/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd","/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse"}, // NAGA EPIC
+		{"/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd","/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse"} // NAGA 2014
 };
 
-int main (int argc, char *argv[])
-{
-NagaDaemon daemon(argc,argv);
+class NagaDaemon {
+	struct input_event ev1[64], ev2[64];
+	int id, side_btn_fd, top_btn_fd, rd, rd1,rd2, value, size;
+	vector<string> args;
+	vector<int> options;
 
-daemon.Run(); 
+public:
+	NagaDaemon(int argc, char *argv[]) 
+	{
+		size = sizeof (struct input_event);
+		this->load_conf("mapping_01.txt");
+		//Setup check
+		if (argv[1] == NULL) 
+		{
+			printf("Please specify if you're using Naga Epic or Naga 2014.\n");
+			exit(0);
+		}
+		if (strstr(argv[1],"epic"))
+			id = 0;
+		else if (strstr(argv[1],"2014"))
+			id = 1;
+		else
+		{
+			printf("Not valid device. Exiting.\n");
+			exit(1);
+		}
+			
+		
+		//Open Devices
+		if ((side_btn_fd = open(devices[id][0], O_RDONLY)) == -1)
+		{
+			printf("%s is not a vaild device or you don't have the permission to access it.\n", devices[id][0]);
+			exit(1);
+		}
+		if ((top_btn_fd = open(devices[id][1],O_RDONLY)) == -1)
+		{
+			printf("%s is not a vaild device or you don't have the permission to access it.\n", devices[id][1]);
+			exit(1);
+		}
+		//Print Device Name
+		printf("Reading From : %s and %s\n", devices[id][0], devices[id][1]);
+	}
 
-  return 0;
+	void load_conf(string path) 
+	{
+		args.resize(DEV_NUM_KEYS+EXTRA_BUTTONS);
+		options.resize(DEV_NUM_KEYS+EXTRA_BUTTONS);
+
+		string conf_file = string(getenv("HOME")) + "/.naga/" + path;
+		ifstream in(conf_file.c_str(), ios::in);
+		if (!in) {
+			cerr << "Cannot open " << conf_file << endl;
+			exit(1);
+		}
+		
+		string line, token1, token2;
+		int pos;
+		while (getline(in, line)) {
+			//Erase spaces
+			line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+			//Ignore comments
+			if (line[0] == '#') {
+				continue;
+			}
+			//Search option and argument
+			pos = line.find("-");
+			token1 = line.substr(0, pos);
+			line = line.substr(pos + 1);
+			pos = line.find("=");
+			token2 = line.substr(0, pos);
+			line = line.substr(pos + 1);
+			//Encode and store mapping
+			pos = atoi(token1.c_str()) - 1;
+			if (token2 == "chmap")options[pos] = 0;
+			else if (token2 == "key")options[pos] = 1;
+			else if (token2 == "run")options[pos] = 2;
+			else printf("Not supported key action, check the syntax in mapping_01.txt!\n");
+			args[pos] = line;
+			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS) break; //Only 12 keys for the Naga + 2 buttons on the top
+		}
+	}
+
+	void run() 
+	{
+		string keyop = "xdotool key --window getactivewindow ";
+		string command;
+		int pid;
+		fd_set readset;		
+		
+		while (1) 
+		{
+			FD_ZERO(&readset);
+			FD_SET(side_btn_fd, &readset );
+			FD_SET(top_btn_fd, &readset);
+			rd = select(FD_SETSIZE , &readset, NULL, NULL, NULL);
+			if (rd == -1) exit(2);		
+			if(FD_ISSET(side_btn_fd,&readset))
+			{		
+					rd1 = read(side_btn_fd, ev1, size * 64);
+					if (rd1 == -1) exit(2);
+
+					value = ev1[0].value;
+
+					if (value != ' ' && ev1[1].value == 1 && ev1[1].type == 1) 
+					{ // Only read the key press event
+						for (int i = 0; i < DEV_NUM_KEYS; i++) {//For all keys
+							if (ev1[1].code == (i + 2)) { //If code i+2 is on (Only for naga)
+								switch (options[i]) 
+								{
+									case 0: //switch mapping
+										this->load_conf(args[i]);
+										break;
+									case 1: //key
+										command = keyop + args[i];
+										break;
+									case 2: //run system command
+										command = "setsid " + args[i] + " &";
+										break;
+								}
+								if(options[i])
+									pid = system(command.c_str());
+							}
+						}//ENDFOR
+					}//ENDIF
+			}//ENDIF
+			else
+			{
+					rd2 = read(top_btn_fd, ev2, size * 64);
+					if (rd2 == -1) exit(2);
+					if ((ev2[1].code == 275 || ev2[1].code == 276) && ev2[1].value == 1 )
+						for(int i = DEV_NUM_KEYS; i < DEV_NUM_KEYS+EXTRA_BUTTONS;i++)
+						{
+							if(ev2[1].code == i+263) 
+							{
+								switch (options[i]) 
+								{
+									case 0: //switch mapping
+										this->load_conf(args[i]);
+										break;
+									case 1: //key
+										command = keyop + args[i];
+										break;
+									case 2: //run system command
+										command = "setsid " + args[i] + " &";
+										break;
+								}
+								if(options[i])
+									pid = system(command.c_str());
+							}
+						}
+				}
+		
+		}
+	}
+	
+};
+
+int main(int argc, char *argv[]) {
+	NagaDaemon daemon(argc, argv);
+	daemon.run();
+
+	return 0;
 } 
