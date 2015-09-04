@@ -5,7 +5,7 @@ if [ "$(whoami)" != "root" ]; then
 fi
 command -v xdotool >/dev/null 2>&1 || { echo >&2 "I require xdotool but it's not installed!  Aborting."; exit 1; }
 cd src
-g++ -O3 naga.cpp -o naga
+g++ -O3 -std=c++11 naga.cpp -o naga
 
 if [ ! -f ./naga ]; then
 echo "Error at compile! Aborting"
@@ -20,7 +20,7 @@ cp naga.desktop $HOME/.config/autostart/
 cp nagastart.sh /usr/local/bin/
 sudo chmod u+s /usr/local/bin/nagastart.sh
 mkdir $HOME/.naga
-cp mapping_01.txt $HOME/.naga/
+cp mapping_{01,02}.txt $HOME/.naga/
 
 nohup bash nagastart.sh & >/dev/null
 
