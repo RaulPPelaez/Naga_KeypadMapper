@@ -5,7 +5,7 @@ The configuration file mapping.txt has the following syntax:
 
 <keynumber> - <option>=<action>
 
-<keynumber> is a number between 1-12 representing the 12 keys of the naga's keypad
+<keynumber> is a number between 1-14 representing the 12 keys of the naga's keypad + two on the top of the naga.
 
 <option> is either key (for remapping keys) or run (for running a system command, or a custom script through an alias i.e.)
 
@@ -14,9 +14,9 @@ The configuration file mapping.txt has the following syntax:
   For run: a system command like top or a custom script like bash /usr/local/bin/custom.bash
   
 
-if the mapping.txt file is missing the default mapping.txt corresponds to the numbers 0-11 assigned to the buttons: (the program will NOT autocreate this file, the install.sh script will though)
+if the mapping_01.txt file is missing the default mapping_01.txt corresponds to the numbers 0-11 assigned to the buttons: (the program will NOT autocreate this file, the install.sh script will though)
 
-An example mapping.txt configuration file is the following:
+An example mapping_01.txt configuration file is the following:
 --------------------------
 #There must be no blank lines at the beggining of the file, yeah lazy parsing. Comments are accepted though
 1 - key=ctrl+t
@@ -31,6 +31,8 @@ An example mapping.txt configuration file is the following:
 10 - run=gedit
 11 - key=H
 12 - key=I
+13 - key=ctrl+Tab
+14 - chmap=mapping_02.txt
 ------------------------------
 (Do not include the ---- in the actual file) 
 
@@ -40,7 +42,7 @@ As an alpha version, it is very prone to bugs and other sorts of faliure, use un
 
 Be adviced that I release this project without any sort of warranty. So use under your own responsability.
 
-This daemon does not, in any case modify any system file nor propertie of any device. So the process is totally reversible just by deleting the files.
+This daemon does not, in any case modify any system file nor propertie of any device. So the process is totally reversible just by deleting the files and rebooting the computer.
 
 
 #INSTALLATION
@@ -51,31 +53,34 @@ and g++
 Just run install.sh as sudo.
 This will compile the source and copy the necesary files (see install.sh for more info)
 
-
 #USAGE
 The instalation process automatically executes the daemon in the background and set it to start at boot for you. But you can still run it manually as follows:
 
 nagastart.sh does the below process automatically:
 
-naga executable has to be called as sudo or have the s bit up with chmod u+s at least.
+1) naga executable has to be called as sudo or have the s bit up with chmod u+s at least.
+- I dont know how to overcome the need for sudo privileges, if you know let me know please!
 
-Init the mapper by calling: $./naga /dev/input/by-id/[NAGA_KEYPAD]
-I dont know how to overcome the need for sudo privileges, if you know let me know please!
+2) Init the mapper by calling: $./naga epic or $./naga 2014
 
-where [NAGA_KEYPAD] is the name of the keypad in this folder. 
-In my case:   /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd
-If you are using naga 2014: /dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd
+3) In order to get rid of the original bindings you have to disable the keypad using xinput as follows:
 
-In order to get rid of the original bindings you have to disable the keypad using xinput as follows:
+$ xinput set-int-prop [id] "Device Enabled" 8 0
 
-$ xinput set-int-prop <id> "Device Enabled" 8 0
+where [id] is the id number of the keypad returned by $ xinput.
 
-where <id> is the id number of the keypad returned by $ xinput.
+4) You have to also run 
 
-You can enable it back to completly restore the changes by changing the last 0 to a 1
+$ xinput set-button-map [id2] 1 2 3 4 5 6 7 11 10 8 9 13 14 15
 
-#UNNINSTALATION
+where [id2] is the id number of the pointer device returned by $ xinput - in case of naga 2014 you also have to check which of those two has more than 7 numbers by typing $ xinput get-button-map [id2]
+
+This lasts until the x server is restarted (nagastart.sh is aware of this), but you can enable it back to completly restore the changes by changing the last 0 to a 1.
+
+#UNINSTALATION
 
 You just have to delete the files created:
 
 $sudo rm /usr/local/bin/naga ~/.config/autostart/naga.desktop /usr/local/bin/nagastart.sh
+$sudo rm -r ~/.naga
+
