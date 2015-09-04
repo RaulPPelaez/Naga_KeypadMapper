@@ -1,0 +1,12 @@
+1 - key=ctrl+t
+2 - key=ctrl+w
+3 - key=ctrl+z
+4 - key=ctrl+c
+5 - key=ctrl+x
+6 - key=ctrl+v
+7 - key=alt+F4
+8 - key=ctrl+alt+t
+9 - run=firefox
+10 - run=gedit
+11 - key=Return
+12 - key=Delete
