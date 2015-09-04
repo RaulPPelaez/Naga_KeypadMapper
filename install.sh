@@ -13,15 +13,18 @@ exit 1
 fi
 
 mv naga /usr/local/bin/
-sudo chmod u+s /usr/local/bin/naga
-
+sudo chmod 755 /usr/local/bin/naga
 cd ..
 cp naga.desktop $HOME/.config/autostart/
 cp nagastart.sh /usr/local/bin/
-sudo chmod u+s /usr/local/bin/nagastart.sh
+sudo chmod 755 /usr/local/bin/nagastart.sh
 mkdir $HOME/.naga
 cp mapping_{01,02}.txt $HOME/.naga/
 
-nohup bash nagastart.sh & >/dev/null
+echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /etc/udev/rules.d/80-naga.rules
+groupadd -f razer
+gpasswd -a $SUDO_USER razer
 
+nohup bash nagastart.sh & >/dev/null
+sleep 5
 rm nohup.out
