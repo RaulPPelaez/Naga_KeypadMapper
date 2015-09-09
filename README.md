@@ -33,20 +33,22 @@ The configuration file mapping_xx.txt has the following syntax:
     For chmap: path to a new mapping file 
     For key: is the custom key mapping, might be a single key like A or a combination like ctrl+t (following xdotool's syntax)
     For run: a system command like gedit or a custom script like bash /usr/local/bin/custom.bash
-    For click: number of the mouse button*
+    For click: number of the mouse button, see table below
     For workspace_r: positive or negative number e.g. +2 (go two workspaces forward) -1 (previous)
     For workspace: min 0, max `xdotool get_num_desktops`-1
 
-* button numbers:
-1 = left button
-2 = middle button (pressing the scroll wheel)
-3 = right button
-4 = turn scroll wheel up
-5 = turn scroll wheel down
-6 = push scroll wheel left (some mouse only)
-7 = push scroll wheel right (some mouse only)
-8 = 4th button (aka backward button)
-9 = 5th button (aka forward button)
+
+Button number | Info
+------------ | -------------
+1 | left button
+2 | middle button (pressing the scroll wheel)
+3 | right button
+4 | turn scroll wheel up
+5 | turn scroll wheel down
+6 | push scroll wheel left (some mouse only)
+7 | push scroll wheel right (some mouse only)
+8 | 4th button (aka backward button)
+9 | 5th button (aka forward button)
 
 If the $HOME/.naga/mapping_xx.txt file is missing the daemon won't start: (the program will NOT autocreate this file, the install.sh script will copy an example files though)
 
