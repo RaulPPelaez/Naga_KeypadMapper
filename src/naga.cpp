@@ -24,7 +24,8 @@ using namespace std;
 
 const char * devices[][2] = {
 		{"/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd","/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse"}, // NAGA EPIC
-		{"/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd","/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse"} // NAGA 2014
+		{"/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd","/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse"}, // NAGA 2014
+		{"/dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd","/dev/input/by-id/usb-Razer_Razer_Naga-event-mouse"} // NAGA MOLTEN
 };
 
 class NagaDaemon {
@@ -48,6 +49,8 @@ public:
 			id = 0;
 		else if (strstr(argv[1],"2014"))
 			id = 1;
+		else if (strstr(argv[1],"molten")
+			id = 2;
 		else
 		{
 			printf("Not valid device. Exiting.\n");
