@@ -30,7 +30,7 @@ const char * devices[][2] = {
 
 class NagaDaemon {
 	struct input_event ev1[64], ev2[64];
-	int id, side_btn_fd, top_btn_fd, rd, rd1,rd2, value, size;
+	int id, side_btn_fd, extra_btn_fd, rd, rd1,rd2, value, size;
 	vector<string> args;
 	vector<int> options;
 
@@ -49,7 +49,7 @@ public:
 			id = 0;
 		else if (strstr(argv[1],"2014"))
 			id = 1;
-		else if (strstr(argv[1],"molten")
+		else if (strstr(argv[1],"molten"))
 			id = 2;
 		else
 		{
@@ -64,7 +64,7 @@ public:
 			printf("%s is not a vaild device or you don't have the permission to access it.\n", devices[id][0]);
 			exit(1);
 		}
-		if ((top_btn_fd = open(devices[id][1],O_RDONLY)) == -1)
+		if ((extra_btn_fd = open(devices[id][1],O_RDONLY)) == -1)
 		{
 			printf("%s is not a vaild device or you don't have the permission to access it.\n", devices[id][1]);
 			exit(1);
@@ -106,6 +106,9 @@ public:
 			if (token2 == "chmap")options[pos] = 0;
 			else if (token2 == "key")options[pos] = 1;
 			else if (token2 == "run")options[pos] = 2;
+			else if (token2 == "click")options[pos] = 3;
+			else if (token2 == "workspace_r")options[pos] = 4;
+			else if (token2 == "workspace")options[pos] = 5;
 			else printf("Not supported key action, check the syntax in mapping_01.txt!\n");
 			args[pos] = line;
 			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS) break; //Only 12 keys for the Naga + 2 buttons on the top
@@ -115,6 +118,9 @@ public:
 	void run() 
 	{
 		string keyop = "xdotool key --window getactivewindow ";
+		string clickop = "xdotool click --window getactivewindow ";
+		string workspace_r = "xdotool set_desktop --relative -- ";
+		string workspace = "xdotool set_desktop ";
 		string command;
 		int pid;
 		fd_set readset;		
@@ -123,7 +129,7 @@ public:
 		{
 			FD_ZERO(&readset);
 			FD_SET(side_btn_fd, &readset );
-			FD_SET(top_btn_fd, &readset);
+			FD_SET(extra_btn_fd, &readset);
 			rd = select(FD_SETSIZE , &readset, NULL, NULL, NULL);
 			if (rd == -1) exit(2);		
 			if(FD_ISSET(side_btn_fd,&readset))
@@ -148,16 +154,25 @@ public:
 									case 2: //run system command
 										command = "setsid " + args[i] + " &";
 										break;
+									case 3: //click
+										command = clickop + args[i];
+										break;
+									case 4: //move to workspace(relative)
+										command = workspace_r + args[i];
+										break;
+									case 5: //move to workspace(absolute)
+										command = workspace + args[i];
+										break;
 								}
 								if(options[i])
 									pid = system(command.c_str());
 							}
-						}//ENDFOR
-					}//ENDIF
-			}//ENDIF
+						}
+					}
+			}
 			else
 			{
-					rd2 = read(top_btn_fd, ev2, size * 64);
+					rd2 = read(extra_btn_fd, ev2, size * 64);
 					if (rd2 == -1) exit(2);
 					if ((ev2[1].code == 275 || ev2[1].code == 276) && ev2[1].value == 1 )
 						for(int i = DEV_NUM_KEYS; i < DEV_NUM_KEYS+EXTRA_BUTTONS;i++)
@@ -174,6 +189,15 @@ public:
 										break;
 									case 2: //run system command
 										command = "setsid " + args[i] + " &";
+										break;
+									case 3: //click
+										command = clickop + args[i];
+										break;
+									case 4: //move to workspace(relative)
+										command = workspace_r + args[i];
+										break;
+									case 5: //move to workspace(absolute)
+										command = workspace + args[i];
 										break;
 								}
 								if(options[i])
