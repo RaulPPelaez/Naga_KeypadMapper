@@ -1,5 +1,5 @@
-#!/bin/bash
-# For Naga Epic and Naga 2014 atm. If you wanna add another device, please check the naga.cpp source code!
+!/bin/bash
+# For Naga Epic, 2014 and Molten atm. If you wanna add another device, please check the naga.cpp source code!
 NAGAID1=$(xinput | grep Naga | grep keyboard | cut -d= -f2 | cut -b1-2)
 xinput set-int-prop $NAGAID1 "Device Enabled" 8 0
  
@@ -14,4 +14,5 @@ fi
 else
 xinput set-button-map $NAGAID2 1 2 3 4 5 6 7 11 10 8 9 13 14 15
 fi
-naga epic
+
+# If you didn't run the install.sh or you don't have supported model you have to call naga daemon here e.g.  naga epic

@@ -13,9 +13,7 @@ CAUTION, in this alpha version the run option wont work for text enviroment comm
 As an alpha version, it is very prone to bugs and other sorts of faliure. I release this project without any sort of warranty, so use under your own responsability.
 
 #CONFIGURATION
-For Naga 2014 or Naga molten just change the param in nagastart.sh to `naga 2014` or `naga molten` .
-
-The configuration file mapping_xx.txt has the following syntax:
+The configuration file `mapping_xx.txt` has the following syntax:
 
     <keynumber> - <option>=<action>
     
@@ -50,9 +48,9 @@ Button number | Info
 8 | 4th button (aka backward button)
 9 | 5th button (aka forward button)
 
-If the $HOME/.naga/mapping_xx.txt file is missing the daemon won't start: (the program will NOT autocreate this file, the install.sh script will copy an example files though)
+If the `$HOME/.naga/mapping_01.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy example files though).
 
-An example mapping_xx.txt configuration file is the following:
+An example `mapping_xx.txt` configuration file is the following:
 
     #There must be no blank lines at the beggining of the file, yeah lazy parsing. Comments are accepted though
     1 - key=ctrl+t
@@ -77,17 +75,18 @@ If you want to dig more into configuration, you might find these tools useful: `
 
 KeypadMapper does not need any dependencies besides having installed `xdotool` http://www.semicomplete.com/projects/xdotool/  (in the oficial ubuntu repositories) and g++
 
-Change nagastart.sh to adapt the installation to another device. You will also have to change a couple of lines in the source code if the device is not listed there, using different inputs and/or different key codes than the Naga Epic, 2014 or Molten - more information in src/naga.cpp.
+Change `nagastart.sh` to adapt the installation to another device. You will also have to change a couple of lines in the source code if the device is not listed there, using different inputs and/or different key codes than the Naga Epic, 2014 or Molten - more information in src/naga.cpp.
 
 Run `sudo bash install.sh` .
-This will compile the source and copy the necesary files (see install.sh for more info)
+This will compile the source and copy the necesary files (see `install.sh` for more info)
 
+If you don't have supported model or it has not been detected properly you have to change it in `nagastart.sh` to `naga [version]` .
  
 
 #USAGE
 The instalation process automatically executes the daemon in the background and set it to start at boot for you. But you can still run it manually as follows:
 
-nagastart.sh does the below process automatically:
+`nagastart.sh` does the below process automatically:
 
 1) Inits the mapper by calling: `$./naga epic`, `$./naga 2014` or `$./naga molten`
 
@@ -101,9 +100,9 @@ where [id] is the id number of the keypad returned by $ xinput.
 
     $ xinput set-button-map [id2] 1 2 3 4 5 6 7 11 10 8 9 13 14 15
 
-where [id2] is the id number of the pointer device returned by $ xinput - in case of naga 2014 you also have to check which of those two has more than 7 numbers by typing $ xinput get-button-map [id2]
+where [id2] is the id number of the pointer device returned by `xinput` - in case of naga 2014 you also have to check which of those two has more than 7 numbers by typing `xinput get-button-map [id2]`
 
-This lasts until the x server is restarted (nagastart.sh is aware of this), but you can enable it back to completly restore the changes by changing the last 0 to a 1.
+This lasts until the x server is restarted (`nagastart.sh` is aware of this), but you can enable it back to completly restore the changes by changing the last 0 to a 1.
 
 #UNINSTALATION
 
