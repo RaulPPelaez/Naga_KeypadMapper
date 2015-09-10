@@ -5,7 +5,6 @@
  * This version is still in development
  */
 #include <cstdio>
-#include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -13,8 +12,8 @@
 #include <fstream>
 #include <fcntl.h>
 #include <dirent.h>
-#include <linux/input.h>
 #include <unistd.h>
+#include <linux/input.h>
 #include <sys/select.h>
 
 #define DEV_NUM_KEYS 12
@@ -33,11 +32,19 @@ class NagaDaemon {
 	int id, side_btn_fd, extra_btn_fd, rd, rd1,rd2, value, size;
 	vector<string> args;
 	vector<int> options;
+	
+	string keyop = "xdotool key --window getactivewindow ";
+	string clickop = "xdotool click --window getactivewindow ";
+	string workspace_r = "xdotool set_desktop --relative -- ";
+	string workspace = "xdotool set_desktop ";
+	string command;
+
 
 public:
 	NagaDaemon(int argc, char *argv[]) 
 	{
 		size = sizeof (struct input_event);
+		//Initialize config
 		this->load_conf("mapping_01.txt");
 		//Setup check
 		if (argv[1] == NULL) 
@@ -45,11 +52,11 @@ public:
 			printf("Please specify if you're using Naga Epic or Naga 2014.\n");
 			exit(0);
 		}
-		if (strstr(argv[1],"epic"))
+		if ((string)argv[1] == "epic")
 			id = 0;
-		else if (strstr(argv[1],"2014"))
+		else if ((string)argv[1] =="2014")
 			id = 1;
-		else if (strstr(argv[1],"molten"))
+		else if ((string)argv[1] == "molten")
 			id = 2;
 		else
 		{
@@ -91,9 +98,8 @@ public:
 			//Erase spaces
 			line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
 			//Ignore comments
-			if (line[0] == '#') {
+			if (line[0] == '#') 
 				continue;
-			}
 			//Search option and argument
 			pos = line.find("-");
 			token1 = line.substr(0, pos);
@@ -111,18 +117,13 @@ public:
 			else if (token2 == "workspace")options[pos] = 5;
 			else printf("Not supported key action, check the syntax in mapping_01.txt!\n");
 			args[pos] = line;
-			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS) break; //Only 12 keys for the Naga + 2 buttons on the top
+			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS) 
+				break; //Only 12 keys for the Naga + 2 buttons on the top
 		}
 	}
 
 	void run() 
 	{
-		string keyop = "xdotool key --window getactivewindow ";
-		string clickop = "xdotool click --window getactivewindow ";
-		string workspace_r = "xdotool set_desktop --relative -- ";
-		string workspace = "xdotool set_desktop ";
-		string command;
-		int pid;
 		fd_set readset;		
 		
 		while (1) 
@@ -131,85 +132,59 @@ public:
 			FD_SET(side_btn_fd, &readset );
 			FD_SET(extra_btn_fd, &readset);
 			rd = select(FD_SETSIZE , &readset, NULL, NULL, NULL);
-			if (rd == -1) exit(2);		
-			if(FD_ISSET(side_btn_fd,&readset))
-			{		
-					rd1 = read(side_btn_fd, ev1, size * 64);
-					if (rd1 == -1) exit(2);
+			if (rd == -1) exit(2);
 
-					value = ev1[0].value;
-
-					if (value != ' ' && ev1[1].value == 1 && ev1[1].type == 1) 
-					{ // Only read the key press event
-						for (int i = 0; i < DEV_NUM_KEYS; i++) {//For all keys
-							if (ev1[1].code == (i + 2)) { //If code i+2 is on (Only for naga)
-								switch (options[i]) 
-								{
-									case 0: //switch mapping
-										this->load_conf(args[i]);
-										break;
-									case 1: //key
-										command = keyop + args[i];
-										break;
-									case 2: //run system command
-										command = "setsid " + args[i] + " &";
-										break;
-									case 3: //click
-										command = clickop + args[i];
-										break;
-									case 4: //move to workspace(relative)
-										command = workspace_r + args[i];
-										break;
-									case 5: //move to workspace(absolute)
-										command = workspace + args[i];
-										break;
-								}
-								if(options[i])
-									pid = system(command.c_str());
-							}
-						}
-					}
-			}
-			else
+			if(FD_ISSET(side_btn_fd,&readset)) // Side buttons
 			{
-					rd2 = read(extra_btn_fd, ev2, size * 64);
-					if (rd2 == -1) exit(2);
-					if ((ev2[1].code == 275 || ev2[1].code == 276) && ev2[1].value == 1 )
-						for(int i = DEV_NUM_KEYS; i < DEV_NUM_KEYS+EXTRA_BUTTONS;i++)
-						{
-							if(ev2[1].code == i+263) 
-							{
-								switch (options[i]) 
-								{
-									case 0: //switch mapping
-										this->load_conf(args[i]);
-										break;
-									case 1: //key
-										command = keyop + args[i];
-										break;
-									case 2: //run system command
-										command = "setsid " + args[i] + " &";
-										break;
-									case 3: //click
-										command = clickop + args[i];
-										break;
-									case 4: //move to workspace(relative)
-										command = workspace_r + args[i];
-										break;
-									case 5: //move to workspace(absolute)
-										command = workspace + args[i];
-										break;
-								}
-								if(options[i])
-									pid = system(command.c_str());
-							}
-						}
-				}
-		
+				rd1 = read(side_btn_fd, ev1, size * 64);
+				if (rd1 == -1) exit(2);
+
+				if (ev1[0].value != ' ' && ev1[1].value == 1 && ev1[1].type == 1)  // Only read the key press event
+					for (int i = 0; i < DEV_NUM_KEYS; i++)//For all keys
+						if (ev1[1].code == (i + 2)) //If code i+2 is on (Only for naga)
+							chooseAction(i);
+			}
+			else // Extra buttons
+			{
+				rd2 = read(extra_btn_fd, ev2, size * 64);
+				if (rd2 == -1) exit(2);
+
+				if ((ev2[1].code == 275 || ev2[1].code == 276) && ev2[1].value == 1 ) //Only extra buttons
+					for(int i = DEV_NUM_KEYS; i < DEV_NUM_KEYS+EXTRA_BUTTONS;i++)
+						if(ev2[1].code == i+263) // Only line 13 and 14
+							chooseAction(i);
+			}
 		}
 	}
 	
+	void chooseAction(int i) 
+	{
+		int pid;
+		switch (options[i]) {
+			case 0: //switch mapping
+				this->load_conf(args[i]);
+				break;
+			case 1: //key
+				command = keyop + args[i];
+				break;
+			case 2: //run system command
+				command = "setsid " + args[i] + " &";
+				break;
+			case 3: //click
+				command = clickop + args[i];
+				break;
+			case 4: //move to workspace(relative)
+				command = workspace_r + args[i];
+				break;
+			case 5: //move to workspace(absolute)
+				command = workspace + args[i];
+				break;
+		}
+		if(options[i])
+			pid = system(command.c_str());
+		}
 };
+
 
 int main(int argc, char *argv[]) {
 	NagaDaemon daemon(argc, argv);
