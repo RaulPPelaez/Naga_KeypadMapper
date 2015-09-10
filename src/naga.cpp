@@ -117,7 +117,7 @@ public:
 			else if (token2 == "workspace")options[pos] = 5;
 			else printf("Not supported key action, check the syntax in mapping_01.txt!\n");
 			args[pos] = line;
-			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS) 
+			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS-1) 
 				break; //Only 12 keys for the Naga + 2 buttons on the top
 		}
 	}

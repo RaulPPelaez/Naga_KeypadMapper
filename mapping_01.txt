@@ -12,3 +12,6 @@
 12 - key=Delete
 13 - key=ctrl+z
 14 - chmap=mapping_02.txt
+15 - run=gedit
+16 - run=firefox
+
