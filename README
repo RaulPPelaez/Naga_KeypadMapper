@@ -1,0 +1,81 @@
+# Naga_KeypadMapper
+This little linux xorg daemon allows you to map the side keypad of the Razer Naga series mice via a configuration file called mapping.txt under $HOME/.naga/
+
+The configuration file mapping.txt has the following syntax:
+
+<keynumber> - <option>=<action>
+
+<keynumber> is a number between 1-12 representing the 12 keys of the naga's keypad
+
+<option> is either key (for remapping keys) or run (for running a system command, or a custom script through an alias i.e.)
+
+<action> 
+  For key: is the custom key mapping, might be a single key like A or a combination like ctrl+t (following xdotool's syntax)
+  For run: a system command like top or a custom script like bash /usr/local/bin/custom.bash
+  
+
+if the mapping.txt file is missing the default mapping.txt corresponds to the numbers 0-11 assigned to the buttons: (the program will NOT autocreate this file, the install.sh script will though)
+
+An example mapping.txt configuration file is the following:
+--------------------------
+#There must be no blank lines at the beggining of the file, yeah lazy parsing. Comments are accepted though
+1 - key=ctrl+t
+2 - key=A
+3 - key=B
+4 - key=C
+5 - key=D
+6 - key=E
+7 - key=F
+8 - key=G
+9 - key=alt+F4
+10 - run=gedit
+11 - key=H
+12 - key=I
+------------------------------
+(Do not include the ---- in the actual file) 
+
+CAUTION, in this first alpha version the run option wont work for text enviroment commands, like for example top.
+As an alpha version, it is very prone to bugs and other sorts of faliure, use under your own responsability.
+
+
+Be adviced that I release this project without any sort of warranty. So use under your own responsability.
+
+This daemon does not, in any case modify any system file nor propertie of any device. So the process is totally reversible just by deleting the files.
+
+
+#INSTALLATION
+
+It does not need any dependencies besides having installed xdotool http://www.semicomplete.com/projects/xdotool/  (in the oficial ubuntu repositories)
+and g++
+
+Just run install.sh as sudo.
+This will compile the source and copy the necesary files (see install.sh for more info)
+
+
+#USAGE
+The instalation process automatically executes the daemon in the background and set it to start at boot for you. But you can still run it manually as follows:
+
+nagastart.sh does the below process automatically:
+
+naga executable has to be called as sudo or have the s bit up with chmod u+s at least.
+
+Init the mapper by calling: $./naga /dev/input/by-id/[NAGA_KEYPAD]
+I dont know how to overcome the need for sudo privileges, if you know let me know please!
+
+where [NAGA_KEYPAD] is the name of the keypad in this folder. 
+In my case:   /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd
+If you are using naga 2014: /dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd
+
+In order to get rid of the original bindings you have to disable the keypad using xinput as follows:
+
+$ xinput set-int-prop <id> "Device Enabled" 8 0
+
+where <id> is the id number of the keypad returned by $ xinput.
+
+You can enable it back to completly restore the changes by changing the last 0 to a 1
+
+#UNNINSTALATION
+
+You just have to delete the files created:
+
+$sudo rm /usr/local/bin/naga ~/.config/autostart/naga.desktop /usr/local/bin/nagastart.sh
