@@ -170,7 +170,7 @@ public:
 					{
 						case 275:
 						case 276:
-							chooseAction(ev1[1].code-263);
+							chooseAction(ev2[1].code-263);
 							break;
 						// do nothing on default
 					}
