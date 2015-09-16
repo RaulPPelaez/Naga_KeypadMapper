@@ -140,19 +140,41 @@ public:
 				if (rd1 == -1) exit(2);
 
 				if (ev1[0].value != ' ' && ev1[1].value == 1 && ev1[1].type == 1)  // Only read the key press event
-					for (int i = 0; i < DEV_NUM_KEYS; i++)//For all keys
-						if (ev1[1].code == (i + 2)) //If code i+2 is on (Only for naga)
-							chooseAction(i);
+					switch(ev1[1].code)
+					{
+						case 2:
+						case 3:
+						case 4:
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+						case 9:
+						case 10:
+						case 11:
+						case 12:
+						case 13:
+							chooseAction(ev1[1].code-2);
+							break;
+						// do nothing on default
+					}
+			
 			}
 			else // Extra buttons
 			{
 				rd2 = read(extra_btn_fd, ev2, size * 64);
 				if (rd2 == -1) exit(2);
 
-				if ((ev2[1].code == 275 || ev2[1].code == 276) && ev2[1].value == 1 ) //Only extra buttons
-					for(int i = DEV_NUM_KEYS; i < DEV_NUM_KEYS+EXTRA_BUTTONS;i++)
-						if(ev2[1].code == i+263) // Only line 13 and 14
-							chooseAction(i);
+				if (ev2[1].type == 1 && ev2[1].value == 1 ) //Only extra buttons
+					switch(ev2[1].code)
+					{
+						case 275:
+						case 276:
+							chooseAction(ev1[1].code-263);
+							break;
+						// do nothing on default
+					}
+
 			}
 		}
 	}
@@ -182,7 +204,7 @@ public:
 		}
 		if(options[i])
 			pid = system(command.c_str());
-		}
+	}
 };
 
 

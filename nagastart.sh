@@ -16,3 +16,6 @@ xinput set-button-map $NAGAID2 1 2 3 4 5 6 7 11 10 8 9 13 14 15
 fi
 
 # If you didn't run the install.sh or you don't have supported model you have to call naga daemon here e.g.  naga epic
+naga epic
+naga epic
+naga epic
