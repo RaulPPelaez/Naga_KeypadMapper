@@ -29,16 +29,9 @@ const char * devices[][2] = {
 
 class NagaDaemon {
 	struct input_event ev1[64], ev2[64];
-	int id, side_btn_fd, extra_btn_fd, rd, rd1,rd2, value, size;
+	int id, side_btn_fd, extra_btn_fd, size;
 	vector<string> args;
 	vector<int> options;
-	
-	string keyop = "xdotool key --window getactivewindow ";
-	string clickop = "xdotool click --window getactivewindow ";
-	string workspace_r = "xdotool set_desktop --relative -- ";
-	string workspace = "xdotool set_desktop ";
-	string command;
-
 
 public:
 	NagaDaemon(int argc, char *argv[]) 
@@ -60,7 +53,7 @@ public:
 			id = 2;
 		else
 		{
-			printf("Not valid device. Exiting.\n");
+			printf("Not a valid device. Exiting.\n");
 			exit(1);
 		}
 			
@@ -68,12 +61,12 @@ public:
 		//Open Devices
 		if ((side_btn_fd = open(devices[id][0], O_RDONLY)) == -1)
 		{
-			printf("%s is not a vaild device or you don't have the permission to access it.\n", devices[id][0]);
+			printf("%s is not a valid device or you don't have the permission to access it.\n", devices[id][0]);
 			exit(1);
 		}
 		if ((extra_btn_fd = open(devices[id][1],O_RDONLY)) == -1)
 		{
-			printf("%s is not a vaild device or you don't have the permission to access it.\n", devices[id][1]);
+			printf("%s is not a valid device or you don't have the permission to access it.\n", devices[id][1]);
 			exit(1);
 		}
 		//Print Device Name
@@ -124,6 +117,7 @@ public:
 
 	void run() 
 	{
+		int rd, rd1, rd2;
 		fd_set readset;		
 		
 		while (1) 
@@ -179,9 +173,16 @@ public:
 		}
 	}
 	
-	void chooseAction(int i) 
+	void chooseAction(int i)
 	{
+		const string keyop = "xdotool key --window getactivewindow ";
+		const string clickop = "xdotool click --window getactivewindow ";
+		const string workspace_r = "xdotool set_desktop --relative -- ";
+		const string workspace = "xdotool set_desktop ";
+
 		int pid;
+		string command;
+
 		switch (options[i]) {
 			case 0: //switch mapping
 				this->load_conf(args[i]);
