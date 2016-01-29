@@ -108,6 +108,10 @@ public:
 			else if (token2 == "click")options[pos] = 3;
 			else if (token2 == "workspace_r")options[pos] = 4;
 			else if (token2 == "workspace")options[pos] = 5;
+			else if (token2 == "position"){
+				options[pos] = 6;
+				std::replace(line.begin(), line.end(), ',', ' ');
+			}
 			else printf("Not supported key action, check the syntax in mapping_01.txt!\n");
 			args[pos] = line;
 			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS-1) 
@@ -179,6 +183,7 @@ public:
 		const string clickop = "xdotool click --window getactivewindow ";
 		const string workspace_r = "xdotool set_desktop --relative -- ";
 		const string workspace = "xdotool set_desktop ";
+		const string position = "xdotool mousemove ";
 
 		int pid;
 		string command;
@@ -202,6 +207,9 @@ public:
 			case 5: //move to workspace(absolute)
 				command = workspace + args[i];
 				break;
+			case 6: //move cursor to position
+				command = position + args[i];
+
 		}
 		if(options[i])
 			pid = system(command.c_str());
