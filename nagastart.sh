@@ -18,5 +18,3 @@ fi
 # If you didn't run the install.sh or you don't have supported model you have to call naga daemon here e.g.  naga epic
 
 
-naga molten
-naga molten
