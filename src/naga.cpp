@@ -86,7 +86,7 @@ public:
 		}
 		
 		string line, token1, token2;
-		int pos, len;
+		int pos;
 		while (getline(in, line)) {
 			//Erase spaces
 			line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
@@ -102,52 +102,20 @@ public:
 			line = line.substr(pos + 1);
 			//Encode and store mapping
 			pos = atoi(token1.c_str()) - 1;
-			if (token2 == "chmap"){
-				len = options[pos].size();
-				options[pos].resize(len+1);
-				options[pos][len] = 0;
+			if (token2 == "chmap") options[pos].push_back( 0);
+			else if (token2 == "key") options[pos].push_back( 1);
+			else if (token2 == "run") options[pos].push_back( 2);
+			else if (token2 == "click") options[pos].push_back( 3);
+			else if (token2 == "workspace_r") options[pos].push_back( 4);
+			else if (token2 == "workspace") options[pos].push_back( 5);
+			else if (token2 == "position") {
+				options[pos].push_back( 6);
+				std::replace(line.begin(),line.end(), ',', ' ');
 			}
-			else if (token2 == "key"){
-				len = options[pos].size();
-				options[pos].resize(len+1);
-				options[pos][len] = 1;
-			}
-			else if (token2 == "run"){
-				len = options[pos].size();
-				options[pos].resize(len+1);
-				options[pos][len] = 2;
-			}
-			else if (token2 == "click"){
-				len = options[pos].size();
-				options[pos].resize(len+1);
-				options[pos][len] = 3;
-			}
-			else if (token2 == "workspace_r"){
-				len = options[pos].size();
-				options[pos].resize(len+1);
-				options[pos][len] = 4;
-			}
-			else if (token2 == "workspace"){
-				len = options[pos].size();
-				options[pos].resize(len+1);
-				options[pos][len] = 5;
-			}
-			else if (token2 == "position"){
-				len = options[pos].size();
-				options[pos].resize(len+1);
-				options[pos][len] = 6;
-				std::replace(line.begin(), line.end(), ',', ' ');
-			}
-			else if (token2 == "delay"){
-				len = options[pos].size();
-				options[pos].resize(len+1);
-				options[pos][len] = 7;
-			}
-
+			else if (token2 == "delay") options[pos].push_back( 7);
 			else printf("Not supported key action, check the syntax in mapping_01.txt!\n");
 			//cerr << "b) len: " << len << " pos: " << pos << " line: " << line << " args[pos] size:" << args[pos].size() << "\n"; 
-			args[pos].resize(len+1);
-			args[pos][len] = line;
+			args[pos].push_back(line);
 			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS-1) 
 				break; //Only 12 keys for the Naga + 2 buttons on the top
 		}
