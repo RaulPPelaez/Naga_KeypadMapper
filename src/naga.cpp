@@ -138,12 +138,16 @@ public:
 				options[pos][len] = 6;
 				std::replace(line.begin(), line.end(), ',', ' ');
 			}
+			else if (token2 == "delay"){
+				len = options[pos].size();
+				options[pos].resize(len+1);
+				options[pos][len] = 7;
+			}
+
 			else printf("Not supported key action, check the syntax in mapping_01.txt!\n");
-			//cerr << "a) len: " << len << " pos: " << pos << " line: " << line << "\n"; 
-			args[pos].resize(len+1);
 			//cerr << "b) len: " << len << " pos: " << pos << " line: " << line << " args[pos] size:" << args[pos].size() << "\n"; 
+			args[pos].resize(len+1);
 			args[pos][len] = line;
-			//cerr << "c) len: " << len << " pos: " << pos << " line: " << line << "\n"; 
 			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS-1) 
 				break; //Only 12 keys for the Naga + 2 buttons on the top
 		}
@@ -216,11 +220,16 @@ public:
 		const string position = "xdotool mousemove ";
 
 		int pid;
+		unsigned int delay;
 		string command;
+		bool execution;
 		for (int j = 0; j < options[i].size(); j++){
+			//cerr << "key: " << i << " action: " << j << " args: " << args[i][j] << "\n" ;
+			execution = true;
 			switch (options[i][j]) {
 				case 0: //switch mapping
 					this->load_conf(args[i][j]);
+					execution = false;
 					break;
 				case 1: //key
 					command = keyop + args[i][j];
@@ -239,9 +248,16 @@ public:
 					break;
 				case 6: //move cursor to position
 					command = position + args[i][j];
+					break;
+				case 7: //delay execution n milliseconds
+					delay = atoi(args[i][j].c_str()) * 1000 ;
+					usleep(delay);
+					execution = false;
+					break;
+
 	
 			}
-			if(options[i][j])
+			if(execution)
 				pid = system(command.c_str());
 		}
 	}
@@ -250,7 +266,7 @@ public:
 
 int main(int argc, char *argv[]) {
 	NagaDaemon daemon(argc, argv);
-	cerr << "inicializa daemon";
+	cerr << "Start daemon";
 	daemon.run();
 
 	return 0;
