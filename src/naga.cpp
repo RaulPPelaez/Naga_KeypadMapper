@@ -30,8 +30,8 @@ const char * devices[][2] = {
 class NagaDaemon {
 	struct input_event ev1[64], ev2[64];
 	int id, side_btn_fd, extra_btn_fd, size;
-	vector<string> args;
-	vector<int> options;
+	vector<vector<string>> args;
+	vector<vector<int>> options;
 
 public:
 	NagaDaemon(int argc, char *argv[]) 
@@ -102,14 +102,20 @@ public:
 			line = line.substr(pos + 1);
 			//Encode and store mapping
 			pos = atoi(token1.c_str()) - 1;
-			if (token2 == "chmap")options[pos] = 0;
-			else if (token2 == "key")options[pos] = 1;
-			else if (token2 == "run")options[pos] = 2;
-			else if (token2 == "click")options[pos] = 3;
-			else if (token2 == "workspace_r")options[pos] = 4;
-			else if (token2 == "workspace")options[pos] = 5;
+			if (token2 == "chmap") options[pos].push_back( 0);
+			else if (token2 == "key") options[pos].push_back( 1);
+			else if (token2 == "run") options[pos].push_back( 2);
+			else if (token2 == "click") options[pos].push_back( 3);
+			else if (token2 == "workspace_r") options[pos].push_back( 4);
+			else if (token2 == "workspace") options[pos].push_back( 5);
+			else if (token2 == "position") {
+				options[pos].push_back( 6);
+				std::replace(line.begin(),line.end(), ',', ' ');
+			}
+			else if (token2 == "delay") options[pos].push_back( 7);
 			else printf("Not supported key action, check the syntax in mapping_01.txt!\n");
-			args[pos] = line;
+			//cerr << "b) len: " << len << " pos: " << pos << " line: " << line << " args[pos] size:" << args[pos].size() << "\n"; 
+			args[pos].push_back(line);
 			if (pos == DEV_NUM_KEYS+EXTRA_BUTTONS-1) 
 				break; //Only 12 keys for the Naga + 2 buttons on the top
 		}
@@ -179,38 +185,56 @@ public:
 		const string clickop = "xdotool click --window getactivewindow ";
 		const string workspace_r = "xdotool set_desktop --relative -- ";
 		const string workspace = "xdotool set_desktop ";
+		const string position = "xdotool mousemove ";
 
 		int pid;
+		unsigned int delay;
 		string command;
+		bool execution;
+		for (int j = 0; j < options[i].size(); j++){
+			//cerr << "key: " << i << " action: " << j << " args: " << args[i][j] << "\n" ;
+			execution = true;
+			switch (options[i][j]) {
+				case 0: //switch mapping
+					this->load_conf(args[i][j]);
+					execution = false;
+					break;
+				case 1: //key
+					command = keyop + args[i][j];
+					break;
+				case 2: //run system command
+					command = "setsid " + args[i][j] + " &";
+					break;
+				case 3: //click
+					command = clickop + args[i][j];
+					break;
+				case 4: //move to workspace(relative)
+					command = workspace_r + args[i][j];
+					break;
+				case 5: //move to workspace(absolute)
+					command = workspace + args[i][j];
+					break;
+				case 6: //move cursor to position
+					command = position + args[i][j];
+					break;
+				case 7: //delay execution n milliseconds
+					delay = atoi(args[i][j].c_str()) * 1000 ;
+					usleep(delay);
+					execution = false;
+					break;
 
-		switch (options[i]) {
-			case 0: //switch mapping
-				this->load_conf(args[i]);
-				break;
-			case 1: //key
-				command = keyop + args[i];
-				break;
-			case 2: //run system command
-				command = "setsid " + args[i] + " &";
-				break;
-			case 3: //click
-				command = clickop + args[i];
-				break;
-			case 4: //move to workspace(relative)
-				command = workspace_r + args[i];
-				break;
-			case 5: //move to workspace(absolute)
-				command = workspace + args[i];
-				break;
+	
+			}
+			if(execution)
+				pid = system(command.c_str());
 		}
-		if(options[i])
-			pid = system(command.c_str());
 	}
 };
 
 
 int main(int argc, char *argv[]) {
 	NagaDaemon daemon(argc, argv);
+	cerr << "Start daemon";
 	daemon.run();
 
 	return 0;

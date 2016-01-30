@@ -26,6 +26,8 @@ The configuration file `mapping_xx.txt` has the following syntax:
     For mouse click: click 
     For switching workspace relatively: workspace_r
     For switching workspace absolutly: workspace
+    For position mouse cursor: position
+    For add a delay between actions : delay
 
     <action>
     For chmap: path to a new mapping file 
@@ -34,6 +36,8 @@ The configuration file `mapping_xx.txt` has the following syntax:
     For click: number of the mouse button, see table below
     For workspace_r: positive or negative number e.g. +2 (go two workspaces forward) -1 (previous)
     For workspace: min 0, max `xdotool get_num_desktops`-1
+    For position: x,y which are the relative position in pixel from the left upper corner of the display
+    For delay: delay in milliseconds
 
 ###MOUSE FUNCTION (click)
 Button number | Info
@@ -53,6 +57,8 @@ If you want to test your shortcut you can use `xdotool key --window getactivewin
 ###NOTES
 If the `$HOME/.naga/mapping_01.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy example files though).
 
+For a given action multiple actions may be defined. They will be executed sequentially.
+
 An example `mapping_xx.txt` configuration file is the following:
 
     #There must be no blank lines at the beginning of the file, yeah lazy parsing. Comments are accepted though
@@ -64,7 +70,11 @@ An example `mapping_xx.txt` configuration file is the following:
     6 - workspace_r=1
     7 - workspace_r=-1
     8 - key=G
-    9 - key=alt+F4
+    9 - position=331,7
+    9 - click=1
+    9 - delay=100
+    9 - position=343,72
+    9 - click=1
     10 - run=gedit
     11 - key=H
     12 - key=Return
