@@ -75,6 +75,8 @@ public:
 
 	void load_conf(string path) 
 	{
+		args.clear();
+		options.clear();
 		args.resize(DEV_NUM_KEYS+EXTRA_BUTTONS);
 		options.resize(DEV_NUM_KEYS+EXTRA_BUTTONS);
 
