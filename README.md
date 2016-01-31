@@ -2,9 +2,10 @@
 This little linux xorg daemon allows you to map the side keypad of the Razer Naga series mice via a configuration file called `mapping_xx.txt` under `$HOME/.naga/` 
 Requires: `xdotool` and an X server enviroment to work.
 
-Currently tested with:  
+Known to work with:  
 -Razer Naga Epic Chroma in CentOS 7  
 -Razer Naga Epic (pre-2014 version) in Ubuntu 14.04,15.04  
+-Razer Naga (RZ01-0028) in Ubuntu 14.04
 -Razer Naga 2014 (thanks to Destroyer) in Ubuntu 15.04  
 -Razer Naga Molten (thanks to noobxgockel) in Linux Mint 17.02
 
