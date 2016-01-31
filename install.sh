@@ -5,7 +5,7 @@ if [ "$(whoami)" != "root" ]; then
 	exit 1
 fi
 # Xdotool installed check
-command -v xdotool >/dev/null 2>&1 || { echo >&2 "I require xdotool but it's not installed!  Aborting."; exit 1; }
+command -v xdotool >/dev/null 2>&1 || { echo >&2 "I require xdotool but it's not installed! Aborting."; exit 1; }
 
 # Naga detection
 if [[ -e /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd ]]; then
@@ -14,6 +14,8 @@ elif [[ -e /dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd ]]; then
 	version=2014
 elif [[ -e /dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd ]]; then
 	version=molten
+elif [[ -e /dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd ]]; then
+	version=chroma
 else 
 	echo "Naga not connected or using unsupported model. Please check src/naga.cpp and nagastart.sh"
 fi

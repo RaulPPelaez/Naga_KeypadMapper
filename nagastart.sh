@@ -1,5 +1,5 @@
 #!/bin/bash
-# For Naga Epic, 2014 and Molten atm. If you wanna add another device, please check the naga.cpp source code!
+# For Naga Epic, 2014, Molten and Epic Chroma atm. If you wanna add another device, please check the naga.cpp source code!
 NAGAID1=$(xinput | grep Naga | grep keyboard | cut -d= -f2 | cut -b1-2)
 xinput set-int-prop $NAGAID1 "Device Enabled" 8 0
  
