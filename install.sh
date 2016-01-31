@@ -35,8 +35,8 @@ sudo chmod 755 /usr/local/bin/naga
 
 cd ..
 HOME=$( getent passwd "$SUDO_USER" | cut -d: -f6 )
-touch $HOME/.bash_profile
-echo "bash /usr/local/bin/nagastart.sh" >> $HOME/.bash_profile
+touch $HOME/.profile
+echo "bash /usr/local/bin/nagastart.sh" >> $HOME/.profile
 echo "naga $version" >> nagastart.sh
 cp nagastart.sh /usr/local/bin/
 sudo chmod 755 /usr/local/bin/nagastart.sh
