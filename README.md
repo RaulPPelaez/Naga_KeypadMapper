@@ -5,7 +5,7 @@ Requires: `xdotool` and an X server enviroment to work.
 Known to work with:  
 -Razer Naga Epic Chroma in CentOS 7  
 -Razer Naga Epic (pre-2014 version) in Ubuntu 14.04,15.04  
--Razer Naga (RZ01-0028) in Ubuntu 14.04  
+-Razer Naga (RZ01-0028) (thanks to khornem) in Ubuntu 14.04  
 -Razer Naga 2014 (thanks to Destroyer) in Ubuntu 15.04  
 -Razer Naga Molten (thanks to noobxgockel) in Linux Mint 17.02
 
