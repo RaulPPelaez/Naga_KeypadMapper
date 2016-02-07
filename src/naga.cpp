@@ -212,6 +212,7 @@ public:
     }
 
     void chooseAction(int i) {
+        //TODO I dont like these, should be at least static.
         const string keyop = "xdotool key --window getactivewindow ";
         const string clickop = "xdotool click --window getactivewindow ";
         const string workspace_r = "xdotool set_desktop --relative -- ";
@@ -222,7 +223,7 @@ public:
         unsigned int delay;
         string command;
         bool execution;
-        //TODO I dont like this
+        //TODO I dont like this casuistic
         for (unsigned int j = 0; j < options[i].size(); j++) {
             //cerr << "key: " << i << " action: " << j << " args: " << args[i][j] << "\n" ;
             execution = true;
