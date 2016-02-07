@@ -5,6 +5,7 @@ Requires: `xdotool` and an X server environment to work.
 Currently tested with:  
 -Razer Naga Epic Chroma in CentOS 7
 -Razer Naga Epic (pre-2014 version) in Ubuntu 14.04,15.04  
+-Razer Naga (RZ01-0028) (thanks to khornem) in Ubuntu 14.04  
 -Razer Naga 2014 (thanks to Destroyer) in Ubuntu 15.04  
 -Razer Naga Molten (thanks to noobxgockel) in Linux Mint 17.02
 
@@ -89,7 +90,7 @@ If you want to dig more into configuration, you might find these tools useful: `
 
 KeypadMapper does not need any dependencies besides having installed `xdotool` http://www.semicomplete.com/projects/xdotool/  (in the oficial ubuntu, fedora, centOS, etc repositories) and g++
 
-Change `nagastart.sh` to adapt the installation to another device. You will also have to change a couple of lines in the source code if the device is not listed there, using different inputs and/or different key codes than the Naga Epic, 2014 or Molten - more information in src/naga.cpp. For Example, Epic Chroma is compatible with Epic (they have the same buttons), so you would only have to add an additional line to the devices const char* and add an additional else if to set a new id with chroma keyword.
+Change `nagastart.sh` to adapt the installation to another device. You will also have to change a couple of lines in the source code if the device is not listed there, using different inputs and/or different key codes than the Naga Epic, 2014 or Molten - more information in src/naga.cpp. For Example, Epic Chroma is compatible with Epic (they have the same buttons), so you would only have to add an additional line to the devices const char* and add an additional else if to set a new id with chroma keyword. 
 
 Run `sudo bash install.sh` .
 This will compile the source and copy the necessary files (see `install.sh` for more info)
@@ -102,7 +103,7 @@ The installation process automatically executes the daemon in the background and
 
 `nagastart.sh` does the below process automatically:
 
-1) Inits the mapper by calling: `$./naga epic`, `$./naga 2014` or `$./naga molten` or `$./naga chroma`
+1) Inits the mapper by calling: `$./naga epic`, `$./naga 2014` or `$./naga molten` or `$./naga chroma` 
 
 2) In order to get rid of the original bindings it disables the keypad using xinput as follows:
 
