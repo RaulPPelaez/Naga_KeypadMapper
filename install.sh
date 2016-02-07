@@ -17,7 +17,8 @@ elif [[ -e /dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd ]]; then
 elif [[ -e /dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd ]]; then
 	version=chroma
 else 
-	echo "Naga not connected or using unsupported model. Please check src/naga.cpp and nagastart.sh"
+	echo "Naga not connected or using unsupported model. Please check src/naga.cpp and nagastart.sh. Daemon will not autostart."
+	not_found=true
 fi
 
 # Compilation
@@ -25,30 +26,34 @@ cd src
 g++ -O3 -std=c++11 naga.cpp -o naga
 
 if [ ! -f ./naga ]; then
-echo "Error at compile! Aborting"
-exit 1
+	echo "Error at compile! Aborting"
+	exit 1
 fi
 
 # Configuration
 mv naga /usr/local/bin/
-sudo chmod 755 /usr/local/bin/naga
+chmod 755 /usr/local/bin/naga
 
 cd ..
 HOME=$( getent passwd "$SUDO_USER" | cut -d: -f6 )
-cp naga.desktop $HOME/.config/autostart/
-#touch $HOME/.profile
-#echo "bash /usr/local/bin/nagastart.sh" >> $HOME/.profile
+
 echo "naga $version" >> nagastart.sh
 cp nagastart.sh /usr/local/bin/
-sudo chmod 755 /usr/local/bin/nagastart.sh
-mkdir -p $HOME/.naga
-cp mapping_{01,02}.txt $HOME/.naga/
+chmod 755 /usr/local/bin/nagastart.sh
+
+#cp naga.desktop "$HOME"/.config/autostart/
+echo "bash /usr/local/bin/nagastart.sh" >> "$HOME"/.profile
+
+mkdir -p "$HOME"/.naga
+cp mapping_{01,02}.txt "$HOME"/.naga/
 
 echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /etc/udev/rules.d/80-naga.rules
 groupadd -f razer
-gpasswd -a $SUDO_USER razer
+gpasswd -a "$SUDO_USER" razer
 
 # Run
-nohup sudo -u $SUDO_USER nagastart.sh & >/dev/null
-sleep 5
-rm nohup.out
+if [ "$not_found" != true]; then
+	nohup sudo -u $SUDO_USER nagastart.sh & >/dev/null
+	sleep 5
+	rm nohup.out
+fi
