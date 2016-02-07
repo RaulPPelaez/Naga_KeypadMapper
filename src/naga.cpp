@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 #include <algorithm>
 #include <fstream>
 #include <fcntl.h>
@@ -28,12 +29,57 @@ const char *devices[][2] = {
         {"/dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd",             "/dev/input/by-id/usb-Razer_Razer_Naga-event-mouse"},            // NAGA MOLTEN
         {"/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-event-mouse"} // NAGA EPIC CHROMA
 };
+//Supported mice list by id
+std::map <string, int> devlist;
+  devlist["epic"]=1;
+  devlist["2014"]=2;
+  devlist["molten"]=3;
+  devlist["chroma"]=4;
+//Supported options
+std::map <string, int> oplist;
+  oplist["chmap"]=1;
+  oplist["key"]=2;
+  oplist["run"]=3;
+  oplist["click"]=4;
+  oplist["workspace_r"]=5;
+  oplist["workspace"]=6;
+  oplist["position"]=7;
+  oplist["delay"]=8;
 
+  
 class NagaDaemon {
     struct input_event ev1[64], ev2[64];
     int id, side_btn_fd, extra_btn_fd, size;
     vector<vector<string>> args;
     vector<vector<int>> options;
+    
+    void parse_input(){
+        if(argc==1){
+          cout << "Missing parameter: type. Possible parameters: epic, 2014, molten, chroma.";
+          cout << "\nExample usage: $ naga epic" << endl;
+          exit(0);
+        }
+        id=-1;
+        for(int i=1; i<argc; i++){
+        //   if(strcmp("--dock",argv[i])==0) docked=atoi(argv[i+1])==0?false:true; //Example of input handleing
+        // if(strcmp("--mouse",argv[i])==0) id=devlist[argv[i+1]]; //Casuistics hidden in devlist map
+          if((string) argv[i] == "epic") id = 0;
+          else if ((string) argv[i] == "2014") id = 1;
+          else if ((string) argv[i] == "molten")id = 2;
+          else if ((string) argv[i] == "chroma") id = 3;
+        }
+        /*
+        if(id<=0){ //for devlist error checking
+          cerr<<"Not a valid device!. Exiting"<<endl;
+          exit(-1);
+        }
+        id--; //id goes from 0 to n, but error checking is simpler if id goes from 1 to n
+        */
+        if(id==-1){
+          cerr << "Not a valid device. Exiting." << endl;
+          exit(1);
+        }
+    }
 
 public:
     NagaDaemon(int argc, char *argv[]) {
@@ -41,23 +87,7 @@ public:
         //Initialize config
         this->loadConf("mapping_01.txt");
         //Setup check
-        if (argv[1] == NULL) {
-            cout << "Missing parameter: type. Possible parameters: epic, 2014, molten, chroma." << endl << "Example usage: $ naga epic" << endl;
-            exit(0);
-        }
-        if ((string) argv[1] == "epic")
-            id = 0;
-        else if ((string) argv[1] == "2014")
-            id = 1;
-        else if ((string) argv[1] == "molten")
-            id = 2;
-        else if ((string) argv[1] == "chroma")
-            id = 3;
-        else {
-            cerr << "Not a valid device. Exiting." << endl;
-            exit(1);
-        }
-
+        this->parse_input();
 
         //Open Devices
         if ((side_btn_fd = open(devices[id][0], O_RDONLY)) == -1) {
@@ -102,6 +132,7 @@ public:
             line = line.substr(pos + 1);
             //Encode and store mapping
             pos = stoi(token1) - 1;
+            //TODO use oplist
             if (token2 == "chmap") options[pos].push_back(0);
             else if (token2 == "key") options[pos].push_back(1);
             else if (token2 == "run") options[pos].push_back(2);
@@ -140,8 +171,8 @@ public:
             {
                 rd1 = read(side_btn_fd, ev1, size * 64);
                 if (rd1 == -1) exit(2);
-
                 if (ev1[0].value != ' ' && ev1[1].value == 1 && ev1[1].type == 1)  // Only read the key press event
+                    //TODO I really dont like this
                     switch (ev1[1].code) {
                         case 2:
                         case 3:
@@ -167,6 +198,7 @@ public:
                 if (rd2 == -1) exit(2);
 
                 if (ev2[1].type == 1 && ev2[1].value == 1) //Only extra buttons
+                //TODO why these magic numbers?
                     switch (ev2[1].code) {
                         case 275:
                         case 276:
@@ -190,6 +222,7 @@ public:
         unsigned int delay;
         string command;
         bool execution;
+        //TODO I dont like this
         for (unsigned int j = 0; j < options[i].size(); j++) {
             //cerr << "key: " << i << " action: " << j << " args: " << args[i][j] << "\n" ;
             execution = true;
