@@ -42,8 +42,8 @@ cp nagastart.sh /usr/local/bin/
 chmod 755 /usr/local/bin/nagastart.sh
 
 #cp naga.desktop "$HOME"/.config/autostart/
-if ! grep -Fxq "bash /usr/local/bin/nagastart.sh" "$HOME"/.profile; then
-	echo "bash /usr/local/bin/nagastart.sh" >> "$HOME"/.profile
+if ! grep -Fxq "bash /usr/local/bin/nagastart.sh &" "$HOME"/.profile; then
+	echo "bash /usr/local/bin/nagastart.sh &" >> "$HOME"/.profile
 fi
 
 mkdir -p "$HOME"/.naga
