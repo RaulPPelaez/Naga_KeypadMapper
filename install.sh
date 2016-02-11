@@ -37,8 +37,8 @@ chmod 755 /usr/local/bin/naga
 cd ..
 HOME=$( getent passwd "$SUDO_USER" | cut -d: -f6 )
 
-echo "naga $version" >> nagastart.sh
 cp nagastart.sh /usr/local/bin/
+echo "naga $version" >> /usr/local/bin/
 chmod 755 /usr/local/bin/nagastart.sh
 
 #cp naga.desktop "$HOME"/.config/autostart/
@@ -47,7 +47,7 @@ if ! grep -Fxq "bash /usr/local/bin/nagastart.sh &" "$HOME"/.profile; then
 fi
 
 mkdir -p "$HOME"/.naga
-cp mapping_{01,02}.txt "$HOME"/.naga/
+cp mapping_{01,02,03}.txt "$HOME"/.naga/
 
 echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /etc/udev/rules.d/80-naga.rules
 groupadd -f razer

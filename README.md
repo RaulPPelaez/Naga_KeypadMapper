@@ -3,7 +3,7 @@ This little linux xorg daemon allows you to map the side keypad of the Razer Nag
 Requires: `xdotool` and an X server environment to work.
 
 Currently tested with:  
--Razer Naga Epic Chroma in CentOS 7
+-Razer Naga Epic Chroma in CentOS 7  
 -Razer Naga Epic (pre-2014 version) in Ubuntu 14.04,15.04  
 -Razer Naga (RZ01-0028) (thanks to khornem) in Ubuntu 14.04  
 -Razer Naga 2014 (thanks to Destroyer) in Ubuntu 15.04  
