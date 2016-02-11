@@ -7,20 +7,6 @@ fi
 # Xdotool installed check
 command -v xdotool >/dev/null 2>&1 || { echo >&2 "I require xdotool but it's not installed! Aborting."; exit 1; }
 
-# Naga detection
-if [[ -e /dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd ]]; then
-	version=epic
-elif [[ -e /dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd ]]; then
-	version=2014
-elif [[ -e /dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd ]]; then
-	version=molten
-elif [[ -e /dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd ]]; then
-	version=chroma
-else 
-	echo "Naga not connected or using unsupported model. Please check src/naga.cpp and nagastart.sh. Daemon will not autostart."
-	not_found=true
-fi
-
 # Compilation
 cd src
 g++ -O3 -std=c++11 naga.cpp -o naga
@@ -38,7 +24,6 @@ cd ..
 HOME=$( getent passwd "$SUDO_USER" | cut -d: -f6 )
 
 cp nagastart.sh /usr/local/bin/
-echo "naga $version" >> /usr/local/bin/
 chmod 755 /usr/local/bin/nagastart.sh
 
 #cp naga.desktop "$HOME"/.config/autostart/
@@ -54,8 +39,6 @@ groupadd -f razer
 gpasswd -a "$SUDO_USER" razer
 
 # Run
-if [ "$not_found" != true ]; then
-	nohup sudo -u $SUDO_USER nagastart.sh & >/dev/null
-	sleep 5
-	rm nohup.out
-fi
+nohup sudo -u $SUDO_USER nagastart.sh & >/dev/null
+sleep 5
+rm nohup.out
