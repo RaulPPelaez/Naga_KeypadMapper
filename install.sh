@@ -33,6 +33,7 @@ fi
 
 mkdir -p "$HOME"/.naga
 cp mapping_{01,02,03}.txt "$HOME"/.naga/
+chown -R ${SUDO_USER}:${SUDO_USER} "$HOME"/.naga/
 
 echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /etc/udev/rules.d/80-naga.rules
 groupadd -f razer
