@@ -23,10 +23,11 @@
 using namespace std;
 
 const char *devices[][2] = {
-        {"/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd",        "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse"},       // NAGA EPIC
-        {"/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd",        "/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse"},       // NAGA 2014
-        {"/dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd",             "/dev/input/by-id/usb-Razer_Razer_Naga-event-mouse"},            // NAGA MOLTEN
-        {"/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-event-mouse"} // NAGA EPIC CHROMA
+        {"/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd",        "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse"},        // NAGA EPIC
+        {"/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd",        "/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse"},        // NAGA 2014
+        {"/dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd",             "/dev/input/by-id/usb-Razer_Razer_Naga-event-mouse"},             // NAGA MOLTEN
+        {"/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-event-mouse"}, // NAGA EPIC CHROMA
+        {"/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-if02-event-kbd",      "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse"}  // NAGA CHROMA
 };
 
 class NagaDaemon {
@@ -42,7 +43,7 @@ public:
         this->loadConf("mapping_01.txt");
         //Setup check
         if (argv[1] == NULL) {
-            cout << "Missing parameter: type. Possible parameters: epic, 2014, molten, chroma." << endl << "Example usage: $ naga epic" << endl;
+            cout << "Missing parameter: type. Possible parameters: epic, 2014, molten, epic-chroma, chroma." << endl << "Example usage: $ naga epic" << endl;
             exit(0);
         }
         if ((string) argv[1] == "epic")
@@ -51,8 +52,10 @@ public:
             id = 1;
         else if ((string) argv[1] == "molten")
             id = 2;
-        else if ((string) argv[1] == "chroma")
+        else if ((string) argv[1] == "epic-chroma")
             id = 3;
+        else if ((string) argv[1] == "chroma")
+            id = 4;
         else {
             cerr << "Not a valid device. Exiting." << endl;
             exit(1);
