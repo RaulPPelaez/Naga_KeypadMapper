@@ -22,63 +22,48 @@
 
 using namespace std;
 
-const char *devices[][2] = {
-        {"/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd",        "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse"},       // NAGA EPIC
-        {"/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd",        "/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse"},       // NAGA 2014
-        {"/dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd",             "/dev/input/by-id/usb-Razer_Razer_Naga-event-mouse"},            // NAGA MOLTEN
-        {"/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-event-mouse"} // NAGA EPIC CHROMA
-};
 
 class NagaDaemon {
     struct input_event ev1[64], ev2[64];
     int id, side_btn_fd, extra_btn_fd, size;
+
     vector<vector<string>> args;
     vector<vector<int>> options;
-
+    
+    vector<pair<const char *,const char *>> devices;
 public:
     NagaDaemon(int argc, char *argv[]) {
+		devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd",             "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse");              // NAGA EPIC
+		devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-if01-event-kbd",        "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-event-mouse");         // NAGA EPIC DOCK
+		devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd",             "/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse");              // NAGA 2014
+		devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd",                  "/dev/input/by-id/usb-Razer_Razer_Naga-event-mouse");                   // NAGA MOLTEN
+		devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd",      "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-event-mouse");       // NAGA EPIC CHROMA
+		devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-event-mouse");  // NAGA EPIC CHROMA DOCK
+		devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-if02-event-kbd",           "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse");            // NAGA CHROMA
+        
         size = sizeof(struct input_event);
+        //Setup check
+        for (auto &device : devices) {
+        	if ((side_btn_fd = open(device.first, O_RDONLY)) != -1 &&  (extra_btn_fd = open(device.second, O_RDONLY)) != -1) {
+				cout << "Reading from: " << device.first << " and " << device.second << endl;
+				break;
+			}
+        }
+        if (side_btn_fd == -1 || extra_btn_fd == -1) {
+        	cerr << "No naga devices found or you don't have permission to access them." << endl;
+        	exit(1);
+        }
         //Initialize config
         this->loadConf("mapping_01.txt");
-        //Setup check
-        if (argv[1] == NULL) {
-            cout << "Missing parameter: type. Possible parameters: epic, 2014, molten, chroma." << endl << "Example usage: $ naga epic" << endl;
-            exit(0);
-        }
-        if ((string) argv[1] == "epic")
-            id = 0;
-        else if ((string) argv[1] == "2014")
-            id = 1;
-        else if ((string) argv[1] == "molten")
-            id = 2;
-        else if ((string) argv[1] == "chroma")
-            id = 3;
-        else {
-            cerr << "Not a valid device. Exiting." << endl;
-            exit(1);
-        }
-
-
-        //Open Devices
-        if ((side_btn_fd = open(devices[id][0], O_RDONLY)) == -1) {
-            cerr << devices[id][0] << "is not a valid device or you don't have the permission to access it." << endl;
-            exit(1);
-        }
-        if ((extra_btn_fd = open(devices[id][1], O_RDONLY)) == -1) {
-            cerr << devices[id][1] << "is not a valid device or you don't have the permission to access it." << endl;
-            exit(1);
-        }
-        //Print Device Name
-        cout << "Reading from: " << devices[id][0] << " and " << devices[id][1] << endl;
     }
 
-    void loadConf(string path) {
+    void loadConf(string filename) {
         args.clear();
         options.clear();
         args.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
         options.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
 
-        string conf_file = string(getenv("HOME")) + "/.naga/" + path;
+        string conf_file = string(getenv("HOME")) + "/.naga/" + filename;
         ifstream in(conf_file.c_str(), ios::in);
         if (!in) {
             cerr << "Cannot open " << conf_file << ". Exiting." << endl;
@@ -119,8 +104,6 @@ public:
             }
             //cerr << "b) len: " << len << " pos: " << pos << " line: " << line << " args[pos] size:" << args[pos].size() << "\n";
             args[pos].push_back(line);
-            if (pos == DEV_NUM_KEYS + EXTRA_BUTTONS - 1)
-                break; //Only 12 keys for the Naga + 2 buttons on the top
         }
         in.close();
     }
@@ -181,7 +164,7 @@ public:
 
     void chooseAction(int i) {
         const string keyop = "xdotool key --window getactivewindow ";
-        const string clickop = "xdotool click --window getactivewindow ";
+        const string clickop = "xdotool click ";
         const string workspace_r = "xdotool set_desktop --relative -- ";
         const string workspace = "xdotool set_desktop ";
         const string position = "xdotool mousemove ";
