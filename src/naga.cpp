@@ -164,7 +164,7 @@ public:
 
     void chooseAction(int i) {
         const string keyop = "xdotool key --window getactivewindow ";
-        const string clickop = "xdotool click --window getactivewindow ";
+        const string clickop = "xdotool click ";
         const string workspace_r = "xdotool set_desktop --relative -- ";
         const string workspace = "xdotool set_desktop ";
         const string position = "xdotool mousemove ";
