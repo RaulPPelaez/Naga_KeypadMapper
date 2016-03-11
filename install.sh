@@ -40,6 +40,4 @@ groupadd -f razer
 gpasswd -a "$SUDO_USER" razer
 
 # Run
-nohup sudo -u $SUDO_USER nagastart.sh & >/dev/null
-sleep 5
-rm nohup.out
+nohup sudo -u $SUDO_USER nagastart.sh >/dev/null 2>&1 &
