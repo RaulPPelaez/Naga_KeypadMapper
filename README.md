@@ -3,11 +3,12 @@ This little linux xorg daemon allows you to map the side keypad of the Razer Nag
 Requires: `xdotool` and an X server environment to work.
 
 Currently tested with:  
--Razer Naga Epic Chroma in CentOS 7  
--Razer Naga Epic (pre-2014 version) in Ubuntu 14.04,15.04  
--Razer Naga (RZ01-0028) (thanks to khornem) in Ubuntu 14.04  
--Razer Naga 2014 (thanks to Destroyer) in Ubuntu 15.04  
--Razer Naga Molten (thanks to noobxgockel) in Linux Mint 17.02
+- Razer Naga Epic Chroma in CentOS 7  
+- Razer Naga Epic (pre-2014 version) in Ubuntu 14.04, 15.04, 15.10  
+- Razer Naga (RZ01-0028) (thanks to khornem) in Ubuntu 14.04  
+- Razer Naga 2014 (thanks to Destroyer) in Ubuntu 15.04, 15.10  
+- Razer Naga Molten (thanks to noobxgockel) in Linux Mint 17.02  
+- Razer Chroma (thanks to felipeacsi) in Manjaro
 
 This daemon does not, in any case modify any system file nor property of any device. So the process is totally reversible just by deleting the files and at most rebooting. 
 
@@ -90,7 +91,7 @@ If you want to dig more into configuration, you might find these tools useful: `
 
 KeypadMapper does not need any dependencies besides having installed `xdotool` http://www.semicomplete.com/projects/xdotool/  (in the oficial ubuntu, fedora, centOS, etc repositories) and g++
 
-Change `nagastart.sh` to adapt the installation to another device. You will also have to change a couple of lines in the source code if the device is not listed there, using different inputs and/or different key codes than the Naga Epic, 2014, Molten or Chroma - more information in src/naga.cpp. For Example, Epic Chroma is compatible with Epic (they have the same buttons), so you would only have to add an additional line to the devices vector.
+Change `src/naga.cpp` to adapt the installation to another device, using different inputs and/or different key codes than the Naga Epic, 2014, Molten or Chroma. For Example, Epic Chroma is compatible with Epic (they have the same buttons), so you would only have to add an additional line to the devices vector.
 
 Run `sudo bash install.sh` .
 This will compile the source and copy the necessary files (see `install.sh` for more info).
@@ -117,7 +118,7 @@ where [id2] is the id number of the pointer device returned by `xinput` - in cas
 
 This lasts until the x server is restarted (`nagastart.sh` is aware of this), but you can enable it back to completely restore the changes by changing the last 0 to a 1 in 2).
 
-##UNINSTALATION
+##UNINSTALLATION
 
 You just have to delete the files created:
 
