@@ -9,6 +9,7 @@ Currently tested with:
 - Razer Naga 2014 (thanks to Destroyer) in Ubuntu 15.04, 15.10  
 - Razer Naga Molten (thanks to noobxgockel) in Linux Mint 17.02  
 - Razer Chroma (thanks to felipeacsi) in Manjaro
+- Razer Naga 2012 (RZ01-0058) (thanks to mrlinuxfish) in Arch Linux.
 
 This daemon does not, in any case modify any system file nor property of any device. So the process is totally reversible just by deleting the files and at most rebooting. 
 
