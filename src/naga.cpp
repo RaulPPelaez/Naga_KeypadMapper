@@ -112,6 +112,9 @@ public:
         int rd, rd1, rd2;
         fd_set readset;
 
+	ioctl(side_btn_fd, EVIOCGRAB, 1);
+	ioctl(extra_btn_fd, EVIOCGRAB, 1);
+
         while (1) {
             FD_ZERO(&readset);
             FD_SET(side_btn_fd, &readset);
