@@ -98,6 +98,7 @@ public:
                 std::replace(line.begin(), line.end(), ',', ' ');
             }
             else if (token2 == "delay") options[pos].push_back(7);
+            else if (token2 == "media") options[pos].push_back(8);
             else {
                 cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
                 exit(1);
@@ -203,6 +204,9 @@ public:
                     delay = stoi(args[i][j]) * 1000;
                     usleep(delay);
                     execution = false;
+                    break;
+                case 8: //media options
+                    command = "xdotool key XF86" + args[i][j] + " ";
                     break;
             }
             if (execution)
