@@ -1,7 +1,8 @@
 #!/bin/bash
 # All supported devices listed in README. If you want to add another device, please check the naga.cpp source code!
-NAGAID1=$(xinput | grep Naga | grep keyboard | cut -d= -f2 | cut -b1-2)
-xinput set-int-prop $NAGAID1 "Device Enabled" 8 0
+# Disabled next two lines from ioctl change.
+# NAGAID1=$(xinput | grep Naga | grep keyboard | cut -d= -f2 | cut -b1-2)
+# xinput set-int-prop $NAGAID1 "Device Enabled" 8 0
  
 # Insanity, just because naga 2014
 NAGAID2=$(xinput | grep Naga | grep pointer | cut -d= -f2 | cut -f1)
