@@ -103,7 +103,6 @@ public:
             else if (token2 == "delay") options[pos].push_back(7);
             else if (token2 == "media") options[pos].push_back(8);
             else if (token2 == "toggle") options[pos].push_back(9);
-            else if (token2 == "bash") options[pos].push_back(10);
             else {
                 cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
                 exit(1);
@@ -224,11 +223,8 @@ public:
                     }
                     else if (state[i][j] == 1) {
                         command = "xdotool keyup" + args[i][j];
-                        state[i][j] = 0;
+                        state[i] = 0;
                     }
-                    break;
-                case 10: // Bash command
-                    command = "bash -c \"" + args[i][j] + "\"";
                     break;
             }
             if (execution)
