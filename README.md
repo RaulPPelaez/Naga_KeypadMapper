@@ -25,19 +25,20 @@ The configuration file `mapping_xx.txt` has the following syntax:
     <keynumber> is a number between 1-14 representing the 12 keys of the naga's keypad + two on the top of the naga.
 
     <option>
-    For switch mapping: chmap
-    For key or shortcut: key
-	For toggle a key (first press will mimic a key being pressed, the second will release it): key
-    For running system commands: run
-    For mouse click: click 
-    For switching workspace relatively: workspace_r
-    For switching workspace absolutly: workspace
-    For position mouse cursor: position
-    For add a delay between actions : delay
+    Switch mapping: chmap
+    Key (holds the key as long as the button is pressed) or shortcut: key
+	Toggle a key (first press will mimic a key being pressed, the second will release it): toggle
+    Running system commands: run
+    Mouse click: click 
+    Switching workspace relatively: workspace_r
+    Switching workspace absolutly: workspace
+    Position mouse cursor: position
+    Add a delay between actions : delay
+	Peform a media action: media
 
     <action>
     For chmap: path to a new mapping file 
-    For key: is the custom key mapping, might be a single key like A or a combination like ctrl+t (following xdotool's syntax)
+    For key and toggle: is the custom key mapping, might be a single key like A or a combination like ctrl+t (following xdotool's syntax)
     For run: a system command like gedit or a custom script like bash /usr/local/bin/custom.bash
     For click: number of the mouse button, see table below
     For workspace_r: positive or negative number e.g. +2 (go two workspaces forward) -1 (previous)
