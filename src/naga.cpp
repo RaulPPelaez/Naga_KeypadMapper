@@ -32,6 +32,7 @@ class NagaDaemon {
 
     vector<vector<string>> args;
     vector<vector<int>> options;
+    vector<vector<int>> state;
     
     vector<pair<const char *,const char *>> devices;
 public:
@@ -64,8 +65,10 @@ public:
     void loadConf(string filename) {
         args.clear();
         options.clear();
+        state.clear();
         args.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
         options.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
+        state.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
 
         string conf_file = string(getenv("HOME")) + "/.naga/" + filename;
         ifstream in(conf_file.c_str(), ios::in);
@@ -103,12 +106,14 @@ public:
             }
             else if (token2 == "delay") options[pos].push_back(7);
             else if (token2 == "media") options[pos].push_back(8);
+            else if (token2 == "toggle") options[pos].push_back(9);
             else {
                 cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
                 exit(1);
             }
             //cerr << "b) len: " << len << " pos: " << pos << " line: " << line << " args[pos] size:" << args[pos].size() << "\n";
             args[pos].push_back(line);
+            state[pos].push_back(0); // Default state initialise
         }
         in.close();
     }
@@ -117,8 +122,8 @@ public:
         int rd, rd1, rd2;
         fd_set readset;
 	
-	// Give application exclusive control over side buttons.
-	ioctl(side_btn_fd, EVIOCGRAB, 1);
+        // Give application exclusive control over side buttons.
+        ioctl(side_btn_fd, EVIOCGRAB, 1);
 
         while (1) {
             FD_ZERO(&readset);
@@ -214,6 +219,16 @@ public:
                     break;
                 case 8: //media options
                     command = "xdotool key XF86" + args[i][j] + " ";
+                    break;
+                case 9: // Toggle action
+                    if (state[i][j] == 0) {
+                        command = "xdotool keydown" + args[i][j];
+                        state[i][j] = 1;
+                    }
+                    else if (state[i][j] == 1) {
+                        command = "xdotool keyup" + args[i][j];
+                        state[i] = 0;
+                    }
                     break;
             }
             if (execution)
