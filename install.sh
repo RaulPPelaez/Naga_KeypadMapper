@@ -33,16 +33,18 @@ echo "Some window managers do not support ~/.config/autostart. Please add nagast
 #	echo "bash /usr/local/bin/nagastart.sh &" >> "$HOME"/.profile
 #fi
 
-mkdir -p "$HOME"/.naga
-cp -n mapping_{01,02,03}.txt "$HOME"/.naga/
+mkdir -p ~/.naga
+cp -n mapping_{01,02,03}.txt ~/.naga/
 sudo chown -R $(whoami):$(id -gn $(whoami)) ~/.naga/
 
 echo "Creating udev rule..."
 
-sudo echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /etc/udev/rules.d/80-naga.rules
+echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /tmp/80-naga.rules
+
+sudo mv /tmp/80-naga.rules /etc/udev/rules.d/80-naga.rules
 sudo groupadd -f razer
 sudo gpasswd -a "$(whoami)" razer
 
 echo "Starting daemon..."
 # Run
-nohup sudo -u $SUDO_USER nagastart.sh >/dev/null 2>&1 &
+nohup sudo bash /usr/local/bin/nagastart.sh >/dev/null 2>&1 &
