@@ -1,43 +1,48 @@
 #!/bin/bash
-# Root access check
-if [ "$(whoami)" != "root" ]; then
-	echo "You need to be root! Aborting"
-	exit 1
-fi
+echo "Checking requirements..."
 # Xdotool installed check
 command -v xdotool >/dev/null 2>&1 || { echo >&2 "I require xdotool but it's not installed! Aborting."; exit 1; }
 
+echo "Compiling code..."
 # Compilation
 cd src
 g++ -O3 -std=c++11 naga.cpp -o naga
 
 if [ ! -f ./naga ]; then
-	echo "Error at compile! Aborting"
+	echo "Error at compile! Ensure you have gcc installed Aborting"
 	exit 1
 fi
 
+echo "Create config files"
 # Configuration
-mv naga /usr/local/bin/
-chmod 755 /usr/local/bin/naga
+sudo mv naga /usr/local/bin/
+sudo chmod 755 /usr/local/bin/naga
 
 cd ..
-HOME=$( getent passwd "$SUDO_USER" | cut -d: -f6 )
+#HOME=$( getent passwd "$SUDO_USER" | cut -d: -f6 )
 
-cp nagastart.sh /usr/local/bin/
-chmod 755 /usr/local/bin/nagastart.sh
+sudo cp nagastart.sh /usr/local/bin/
+sudo chmod 755 /usr/local/bin/nagastart.sh
 
-#cp naga.desktop "$HOME"/.config/autostart/
-if ! grep -Fxq "bash /usr/local/bin/nagastart.sh &" "$HOME"/.profile; then
-	echo "bash /usr/local/bin/nagastart.sh &" >> "$HOME"/.profile
-fi
+
+cp naga.desktop ~/.config/autostart/
+echo "Some window managers do not support ~/.config/autostart. Please add nagastart.sh to be executed when your window manager starts if this is your case."
+
+#This method is too problematic
+#if ! grep -Fxq "bash /usr/local/bin/nagastart.sh &" "$HOME"/.profile; then
+#	echo "bash /usr/local/bin/nagastart.sh &" >> "$HOME"/.profile
+#fi
 
 mkdir -p "$HOME"/.naga
 cp -n mapping_{01,02,03}.txt "$HOME"/.naga/
-chown -R ${SUDO_USER}:$(id -gn $SUDO_USER) "$HOME"/.naga/
+sudo chown -R $(whoami):$(id -gn $(whoami)) ~/.naga/
 
-echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /etc/udev/rules.d/80-naga.rules
-groupadd -f razer
-gpasswd -a "$SUDO_USER" razer
+echo "Creating udev rule..."
 
+sudo echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /etc/udev/rules.d/80-naga.rules
+sudo groupadd -f razer
+sudo gpasswd -a "$(whoami)" razer
+
+echo "Starting daemon..."
 # Run
 nohup sudo -u $SUDO_USER nagastart.sh >/dev/null 2>&1 &
