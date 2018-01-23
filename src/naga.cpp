@@ -15,7 +15,7 @@
 #include <unistd.h>
 #include <linux/input.h>
 #include <sys/select.h>
-
+#include <cstring>
 #define DEV_NUM_KEYS 12
 #define EXTRA_BUTTONS 2
 #define OFFSET 263
@@ -221,9 +221,16 @@ public:
 
 
 int main(int argc, char *argv[]) {
-    NagaDaemon daemon(argc, argv);
-    clog << "Starting naga daemon" << endl;
-    daemon.run();
+  //This option kills any other naga daemons and exits
+  if(argc>1){
+    if(strcmp(argv[1], "-kill")==0){
+      int pid = system("killall naga");
+      exit(0);
+    }
+  }
+  NagaDaemon daemon(argc, argv);
+  clog << "Starting naga daemon" << endl;
+  daemon.run();
 
-    return 0;
+  return 0;
 }
