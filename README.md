@@ -27,6 +27,7 @@ The configuration file `mapping_xx.txt` has the following syntax:
     <option>
     For switch mapping: chmap
     For key or shortcut: key
+	For toggle a key (first press will mimic a key being pressed, the second will release it): key
     For running system commands: run
     For mouse click: click 
     For switching workspace relatively: workspace_r
@@ -68,7 +69,7 @@ An example `mapping_xx.txt` configuration file is the following:
 
     #There must be no blank lines at the beginning of the file, yeah lazy parsing. Comments are accepted though
     1 - key=ctrl+t
-    2 - key=A
+    2 - toggle=A
     3 - click=8
     4 - key=C
     5 - click=9
@@ -89,17 +90,24 @@ An example `mapping_xx.txt` configuration file is the following:
 
 If you want to dig more into configuration, you might find these tools useful: `xinput`, `evtest`
 
+Keep in mind that any non existing functionality can be created through the "run" option, at the end of the day naga just calls xdotools, which can be done from a script.  
 ## INSTALLATION
 
 KeypadMapper does not need any dependencies besides having installed `xdotool` http://www.semicomplete.com/projects/xdotool/  (in the oficial ubuntu, fedora, centOS, etc repositories) and g++
 
 Change `src/naga.cpp` to adapt the installation to another device, using different inputs and/or different key codes than the Naga Epic, 2014, Molten or Chroma. For Example, Epic Chroma is compatible with Epic (they have the same buttons), so you would only have to add an additional line to the devices vector.
 
-Run `sudo bash install.sh` .
-This will compile the source and copy the necessary files (see `install.sh` for more info).
+Run `bash install.sh` .
+This will compile the source and copy the necessary files (see `install.sh` for more info).  
+It will prompt you for your password, as it uses sudo to copy some files.
  
 
 ## USAGE
+
+**Install with ``` bash install.sh```**  
+This will copy the necessary files and start the daemon. After running this you should have mapping_01.txt working.  
+
+#### In depth
 The installation process automatically executes the daemon in the background and set it to start at boot for you. But you can still run it manually as follows:
 
 `nagastart.sh` does the below process automatically:

@@ -177,6 +177,8 @@ public:
 
     void chooseAction(int i) {
         const string keyop = "xdotool key --window getactivewindow ";
+	const string keydownop = "xdotool keydown --window getactivewindow ";
+	const string keyupop = "xdotool keyup --window getactivewindow ";
         const string clickop = "xdotool click ";
         const string workspace_r = "xdotool set_desktop --relative -- ";
         const string workspace = "xdotool set_desktop ";
@@ -222,11 +224,11 @@ public:
                     break;
                 case 9: // Toggle action
                     if (state[i][j] == 0) {
-                        command = "xdotool keydown" + args[i][j];
+                        command = keydownop + args[i][j];
                         state[i][j] = 1;
                     }
                     else if (state[i][j] == 1) {
-                        command = "xdotool keyup" + args[i][j];
+                        command = keyupop + args[i][j];
                         state[i][j] = 0;
                     }
                     break;
@@ -246,8 +248,8 @@ int main(int argc, char *argv[]) {
       exit(0);
     }
   }
-  NagaDaemon daemon(argc, argv);
   clog << "Starting naga daemon" << endl;
+  NagaDaemon daemon(argc, argv);
   daemon.run();
 
   return 0;
