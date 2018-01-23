@@ -1,5 +1,5 @@
-/*
- * Apocatarsis 2016
+/* See github page for a list of contributors:
+ * https://github.com/RaulPPelaez/Naga_KeypadMapper/graphs/contributors
  * ----------------------------------------------------------------------------
  * "THE BEER-WARE LICENSE" (Revision 42):
  * <phk@FreeBSD.ORG> wrote this file.  As long as you retain this notice you
