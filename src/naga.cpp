@@ -227,7 +227,7 @@ public:
                     }
                     else if (state[i][j] == 1) {
                         command = "xdotool keyup" + args[i][j];
-                        state[i] = 0;
+                        state[i][j] = 0;
                     }
                     break;
             }
