@@ -122,10 +122,8 @@ This lasts until the x server is restarted (`nagastart.sh` is aware of this), bu
 
 ## UNINSTALLATION
 
-You just have to delete the files created:
+To uninstall you just need to run ```$bash uninstall.sh```.
 
-    # rm /usr/local/bin/naga* /etc/udev/rules.d/80-naga.rules ~/.config/autostart/naga.desktop
-    # rm -r ~/.naga
-    # gpasswd -d $SUDO_USER razer
 
-You also have to remove line `bash /usr/local/bin/nagastart.sh &` in your ~/.profile
+
+
