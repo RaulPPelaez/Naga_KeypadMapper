@@ -1,12 +1,15 @@
-/* See github page for a list of contributors:
- * https://github.com/RaulPPelaez/Naga_KeypadMapper/graphs/contributors
- * ----------------------------------------------------------------------------
- * "THE BEER-WARE LICENSE" (Revision 42):
- * <phk@FreeBSD.ORG> wrote this file.  As long as you retain this notice you
- * can do whatever you want with this stuff. If we meet some day, and you think
- * this stuff is worth it, you can buy me a beer in return.   Poul-Henning Kamp
- * ----------------------------------------------------------------------------
- */
+/* See https://github.com/RaulPPelaez/Naga_KeypadMapper/graphs/contributors
+* for a full list of contributors.
+* This program is free software. It comes without any warranty, to the extent
+* permitted by applicable law. You can redistribute it and/or modify it under the
+* terms of the Beer-ware license revision 42.
+* ----------------------------------------------------------------------------
+* "THE BEER-WARE LICENSE" (Revision 42):
+* RaulPPelaez, et. al wrote this file.  As long as you retain this notice you
+* can do whatever you want with this stuff. If we meet some day, and you think
+* this stuff is worth it, you can buy me a beer in return. RaulPPelaez 2016
+* ----------------------------------------------------------------------------
+*/
 #include <cstdio>
 #include <iostream>
 #include <string>
