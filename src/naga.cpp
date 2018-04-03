@@ -215,12 +215,12 @@ public:
 	if(eventCode==1)           command = keydownop + args[i][j];
 	else if(eventCode==0)      command = keyupop + args[i][j];
 	break;
-      case Operators::run:         command = "setsid " + args[i][j] + " &";break;
-      case Operators::click:       command = clickop + args[i][j];         break;
-      case Operators::workspace_r: command = workspace_r + args[i][j];	   break;
-      case Operators::workspace:   command = workspace + args[i][j];	   break;
-      case Operators::position:    command = position + args[i][j];        break;
-      case Operators::media:       command = "xdotool key XF86" + args[i][j] + " ";break;
+      case Operators::run:         command = "setsid " + args[i][j] + " &";if(eventCode==0) execution=false; break;
+      case Operators::click:       command = clickop + args[i][j];         if(eventCode==0) execution=false; break;
+      case Operators::workspace_r: command = workspace_r + args[i][j];	   if(eventCode==0) execution=false; break;
+      case Operators::workspace:   command = workspace + args[i][j];	   if(eventCode==0) execution=false; break;
+      case Operators::position:    command = position + args[i][j];        if(eventCode==0) execution=false; break;
+      case Operators::media:       command = "xdotool key XF86" + args[i][j] + " "; if(eventCode==0) execution=false; break;
       case Operators::delay: //delay execution n milliseconds
 	delay = stoi(args[i][j]) * 1000;
 	usleep(delay);
@@ -235,6 +235,7 @@ public:
 	  command = keyupop + args[i][j];
 	  state[i][j] = 0;
 	}
+	if(eventCode==0) execution=false; 
 	break;
       }
 
