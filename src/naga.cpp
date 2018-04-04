@@ -161,8 +161,7 @@ public:
           case 12:
           case 13:
           chooseAction(ev1[1].code - 2, ev1[1].value); //ev1[1].value holds 1 if press event and 0 if release
-          break;
-          // do nothing on default
+          break;  // do nothing on default
         }
       }
       else // Extra buttons
@@ -245,15 +244,19 @@ public:
         execution = false;
         break;
         case Operators::toggle: // Toggle action
-        if (state[i][j] == 0) {
-          command = keydownop + args[i][j];
-          state[i][j] = 1;
+        if(eventCode==0){
+          execution=false;
         }
-        else if (state[i][j] == 1) {
-          command = keyupop + args[i][j];
-          state[i][j] = 0;
+        else{
+          if (state[i][j] == 0) {
+            command = keydownop + args[i][j];
+            state[i][j] = 1;
+          }
+          else if (state[i][j] == 1) {
+            command = keyupop + args[i][j];
+            state[i][j] = 0;
+          }
         }
-        if(eventCode==0) execution=false;
         break;
         default: //never too safe
         execution=false;
