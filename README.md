@@ -42,6 +42,8 @@ The configuration file `mapping_xx.txt` has the following syntax:
 		-run2 : Runs the command <command> on key press and release with setsid before the command.
 		-run3 : Runs the command <command> on key press without setsid before the command (might freeze the whole daemon depending on the command, I did this in case any command might not work with setsid).
 		-run4 : Runs the command <command> on key press and release without setsid before the command. (might also freeze the whole daemon but 2 times lul)
+		-run5 : Runs the command <command> on key release with setsid.
+		-run6 : Runs the command <command> on key release without setsid(might freeze the whole daemon depending on the command).
 		-click : CLick based on xdotool click option. (Basically runs **xdotool click <command>**) (Can put numbers from 1 to 9 and options such as *--window** etc).
 		-workspace_r : Runs <command> in **xdotool set_desktop --relative -- <command>** .
 		-workspace : Runs <command> in **xdotool set_desktop <command>** .
@@ -49,10 +51,14 @@ The configuration file `mapping_xx.txt` has the following syntax:
 		-delay : Sleeps for <command> milliseconds .
 		-toggle : Toggle key <command>.
 	
+		If you're not sure about the run versions use the setsid ones (run, run2, run5).
+
     <command> is what is going to be used based on the option.
     
 	To test any <command> run it in the command cited above.
- 
+
+
+
 ### NOTES
 If the `$HOME/.naga/mapping_01.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy example files though). 
 	//The copy of the config files might not succeed in wich case you can copy them manually.

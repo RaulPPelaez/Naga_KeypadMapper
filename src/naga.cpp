@@ -28,7 +28,7 @@
 using namespace std;
 
 class NagaDaemon {
-  enum class Operators{chmap, key, run, run2, run3, run4, run5, click,workspace, workspace_r, position, delay, toggle};
+  enum class Operators{chmap, key, run, run2, run3, run4, run5, run6, click,workspace, workspace_r, position, delay, toggle};
   struct input_event ev1[64], ev2[64];
   int id, side_btn_fd, extra_btn_fd, size;
   vector<vector<string>> args;
@@ -110,6 +110,7 @@ public:
       else if (line1 == "run3") options[pos].push_back(Operators::run3);
       else if (line1 == "run4") options[pos].push_back(Operators::run4);
       else if (line1 == "run5") options[pos].push_back(Operators::run5);
+      else if (line1 == "run6") options[pos].push_back(Operators::run6);
       else if (line1 == "click") options[pos].push_back(Operators::click);
       else if (line1 == "workspace_r") options[pos].push_back(Operators::workspace_r);
       else if (line1 == "workspace") options[pos].push_back(Operators::workspace);
@@ -224,6 +225,11 @@ public:
         break;
 
         case Operators::run5:
+        command = "setsid " + args[i][j];
+        if(eventCode==1) execution=false;
+        break;
+
+        case Operators::run6:
         command = args[i][j];
         if(eventCode==1) execution=false;
         break;
