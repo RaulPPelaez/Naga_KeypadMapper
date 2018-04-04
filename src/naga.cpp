@@ -32,7 +32,7 @@ using namespace std;
 
 
 class NagaDaemon {
-  enum class Operators{chmap, key, run, click,workspace, workspace_r, position, delay, media, toggle};
+  enum class Operators{chmap, key, run, run2, click, workspace, workspace_r, position, delay, media, toggle};
   struct input_event ev1[64], ev2[64];
   int id, side_btn_fd, extra_btn_fd, size;
 
@@ -91,41 +91,57 @@ public:
       exit(1);
     }
 
-    string line, token1, token2;
+    string line, line1, token1, token2;
     int pos;
     while (getline(in, line)) {
-      //Erase spaces
-      line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
-      //Ignore comments
-      if (line[0] == '#')
-	continue;
-      //Search option and argument
-      pos = line.find("-");
-      token1 = line.substr(0, pos);
-      line = line.substr(pos + 1);
-      pos = line.find("=");
-      token2 = line.substr(0, pos);
-      line = line.substr(pos + 1);
-      //Encode and store mapping
-      pos = stoi(token1) - 1;
-      if (token2 == "chmap") options[pos].push_back(Operators::chmap);
-      else if (token2 == "key") options[pos].push_back(Operators::key);
-      else if (token2 == "run") options[pos].push_back(Operators::run);
-      else if (token2 == "click") options[pos].push_back(Operators::click);
-      else if (token2 == "workspace_r") options[pos].push_back(Operators::workspace_r);
-      else if (token2 == "workspace") options[pos].push_back(Operators::workspace);
-      else if (token2 == "position") {
+      //Mapping.txt format:
+      //X-COMMAND=ARGUMENT
+      //X: A key number
+      //COMMAND: One of the available operators
+      //ARGUMENT: A valid command argument (a key for "key", a bash command for "run"...)
+      //Spaces are ignored before the "="
+      //Lines starting with "#" are ignored
+
+      //Thanks @lostallmymoney for fixing these lines!
+	//divide at =
+	pos = line.find('=');
+	line1 = line.substr(0, pos); //line1 = numbers and stull
+	
+	//Erase spaces before the =
+	line.erase(0, pos+1); //line = command
+	//Erase spaces before the =
+	line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end());
+	//Ignore comments
+	if (line1[0] == '#') 
+	  continue;
+
+	//Search option and argument
+	pos = line1.find("-");
+	token1 = line1.substr(0, pos);
+	line1 = line1.substr(pos + 1);
+
+	//Encode and store mapping
+	pos = stoi(token1) - 1;
+      if (line1 == "chmap") options[pos].push_back(Operators::chmap);
+      else if (line1 == "key") options[pos].push_back(Operators::key);
+      else if (line1 == "run") options[pos].push_back(Operators::run);
+      else if (line1 == "run2") options[pos].push_back(Operators::run2);
+      else if (line1 == "click") options[pos].push_back(Operators::click);
+      else if (line1 == "workspace_r") options[pos].push_back(Operators::workspace_r);
+      else if (line1 == "workspace") options[pos].push_back(Operators::workspace);
+      else if (line1 == "position") {
 	options[pos].push_back(Operators::position);
 	std::replace(line.begin(), line.end(), ',', ' ');
       }
-      else if (token2 == "delay") options[pos].push_back(Operators::delay);
-      else if (token2 == "media") options[pos].push_back(Operators::media);
-      else if (token2 == "toggle") options[pos].push_back(Operators::toggle);
+      else if (line1 == "delay") options[pos].push_back(Operators::delay);
+      else if (line1 == "media") options[pos].push_back(Operators::media);
+      else if (line1 == "toggle") options[pos].push_back(Operators::toggle);
       else {
 	cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
 	exit(1);
       }
       //cerr << "b) len: " << len << " pos: " << pos << " line: " << line << " args[pos] size:" << args[pos].size() << "\n";
+      clog<<"Line : "<<line<<endl;
       args[pos].push_back(line);
       state[pos].push_back(0); // Default state initialise
     }
@@ -216,6 +232,7 @@ public:
 	else if(eventCode==0)      command = keyupop + args[i][j];
 	break;
       case Operators::run:         command = "setsid " + args[i][j] + " &";if(eventCode==0) execution=false; break;
+      case Operators::run2:        command = "setsid " + args[i][j] + " &"; break;
       case Operators::click:       command = clickop + args[i][j];         if(eventCode==0) execution=false; break;
       case Operators::workspace_r: command = workspace_r + args[i][j];	   if(eventCode==0) execution=false; break;
       case Operators::workspace:   command = workspace + args[i][j];	   if(eventCode==0) execution=false; break;
@@ -227,15 +244,19 @@ public:
 	execution = false;
 	break;
       case Operators::toggle: // Toggle action
-	if (state[i][j] == 0) {
-	  command = keydownop + args[i][j];
-	  state[i][j] = 1;
+	if(eventCode==0){
+	  execution=false;
 	}
-	else if (state[i][j] == 1) {
-	  command = keyupop + args[i][j];
-	  state[i][j] = 0;
+	else{	
+	  if (state[i][j] == 0) {
+	    command = keydownop + args[i][j];
+	    state[i][j] = 1;
+	  }
+	  else if (state[i][j] == 1) {
+	    command = keyupop + args[i][j];
+	    state[i][j] = 0;
+	  }
 	}
-	if(eventCode==0) execution=false; 
 	break;
       }
 

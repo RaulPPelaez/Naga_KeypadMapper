@@ -28,7 +28,7 @@ The configuration file `mapping_xx.txt` has the following syntax:
     Switch mapping: chmap
     Key (holds the key as long as the button is pressed) or shortcut: key
 	Toggle a key (first press will mimic a key being pressed, the second will release it): toggle
-    Running system commands: run
+    Running system commands: run, run2(runs the command at key press and key release)	
     Mouse click: click 
     Switching workspace relatively: workspace_r
     Switching workspace absolutly: workspace
@@ -39,7 +39,7 @@ The configuration file `mapping_xx.txt` has the following syntax:
     <action>
     For chmap: path to a new mapping file 
     For key and toggle: is the custom key mapping, might be a single key like A or a combination like ctrl+t (following xdotool's syntax)
-    For run: a system command like gedit or a custom script like bash /usr/local/bin/custom.bash
+    For run and run2: a system command like gedit or a custom script or bash line like bash /usr/local/bin/custom.bash
     For click: number of the mouse button, see table below
     For workspace_r: positive or negative number e.g. +2 (go two workspaces forward) -1 (previous)
     For workspace: min 0, max `xdotool get_num_desktops`-1
