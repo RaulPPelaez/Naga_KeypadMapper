@@ -130,7 +130,7 @@ public:
         cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
         exit(1);
       }
-      
+
       args[pos].push_back(line);
       state[pos].push_back(0); // Default state initialise
     }
@@ -281,7 +281,7 @@ void startD(int argc, char *argv[]) { //starts daemon
 
 void stopD() { //stops daemon
   clog << "Stopping naga daemon" << endl;
-  int pid = system("kill $(ps aux | grep [n]aga | grep -v start | grep -v cpp | grep -v $$ | awk '{print $2}')");
+  int pid = system("kill $(ps aux | grep naga | grep -v grep | grep -v start | grep -v cpp | grep -v $$ | awk '{print $2}')");
 };
 
 int main(int argc, char *argv[]) {
