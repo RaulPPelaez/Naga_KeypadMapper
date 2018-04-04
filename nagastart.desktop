@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=NagaMaper
+GenericName=Naga key maper
+Comment=Custom key bindings for the side panel
+Exec=sh nagastart.sh
+Terminal=false
+Type=Application
+Icon=
+Categories=Drivers;
+StartupNotify=false
+Name[en_CA]=nagastart.desktop
