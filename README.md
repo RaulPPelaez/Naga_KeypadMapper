@@ -41,6 +41,7 @@ The configuration file `mapping_xx.txt` has the following syntax:
 		-run : Runs the command <command> on key press with setsid before the command.
 		-run2 : Runs the command <command> on key press and release with setsid before the command.
 		-run3 : Runs the command <command> on key press without setsid before the command (might freeze the whole daemon, I did this in case any command might not work with setsid).
+		-run4 : Runs the command <command> on key press and release with without setsid before the command. (might also freeze the whole daemon but 2 times lul)
 		-click : CLick based on xdotool click option. (Basically runs **xdotool click <command>**) (Can put numbers from 1 to 9 and options such as *--window** etc).
 		-workspace_r : Runs <command> in **xdotool set_desktop --relative -- <command>** .
 		-workspace : Runs <command> in **xdotool set_desktop <command>** .
