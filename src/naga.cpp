@@ -32,7 +32,7 @@ using namespace std;
 
 
 class NagaDaemon {
-  enum class Operators{chmap, key, run, run2, run3, click,workspace, workspace_r, position, delay, toggle};
+  enum class Operators{chmap, key, run, run2, run3, run4, click,workspace, workspace_r, position, delay, toggle};
   struct input_event ev1[64], ev2[64];
   int id, side_btn_fd, extra_btn_fd, size;
 
@@ -95,16 +95,13 @@ public:
     int pos;
     while (getline(in, line)) {
 
-      //divide at =
       pos = line.find('=');
-      line1 = line.substr(0, pos);
-      line.erase(0, pos+1);
+      line1 = line.substr(0, pos); //line1 = numbers and stull
 
-      //Erase spaces
-      line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end());
+      line.erase(0, pos+1); //line = command
+      line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end()); //Erase spaces
 
-      //Ignore comments
-      if (line1[0] == '#')
+      if (line1[0] == '#') //Ignore comments
       continue;
 
       //Search option and argument
@@ -119,6 +116,7 @@ public:
       else if (line1 == "run") options[pos].push_back(Operators::run);
       else if (line1 == "run2") options[pos].push_back(Operators::run2);
       else if (line1 == "run3") options[pos].push_back(Operators::run3);
+      else if (line1 == "run4") options[pos].push_back(Operators::run4);
       else if (line1 == "click") options[pos].push_back(Operators::click);
       else if (line1 == "workspace_r") options[pos].push_back(Operators::workspace_r);
       else if (line1 == "workspace") options[pos].push_back(Operators::workspace);
@@ -132,7 +130,7 @@ public:
         cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
         exit(1);
       }
-      //cerr << "b) len: " << len << " pos: " << pos << " line: " << line << " args[pos] size:" << args[pos].size() << "\n";
+      
       args[pos].push_back(line);
       state[pos].push_back(0); // Default state initialise
     }
@@ -235,6 +233,10 @@ public:
         case Operators::run3:
         command = args[i][j];
         if(eventCode==0) execution=false;
+        break;
+
+        case Operators::run4:
+        command = args[i][j];
         break;
 
         case Operators::click:       command = clickop + args[i][j];         if(eventCode==0) execution=false; break;
