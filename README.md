@@ -72,7 +72,7 @@ An example `mapping_xx.txt` configuration file is the following:
 
 If you want to dig more into configuration, you might find these tools useful: `xinput`, `evtest`
 
-Any non existing functionality can be created through the "run" option, at the end of the day naga calls xdotools, which can be done from a script.
+Any non existing functionality can be created through the "run" option.
 
 ## INSTALLATION
 
@@ -91,11 +91,11 @@ Since autorun is a bit complicated for all the distros you can simply add nagast
 
 ## Debugging
 
-While running as root you can use naga -restart to restart the daemon.
-Be careful running this as non root as it might not kill the older naga
+While running as root you can use naga -restart to restart the daemon and log the output.
+Be careful running this as non root as it might not kill the older daemon
 The commands are :
-	-naga -stop
-	-naga -restart
+	- naga -stop
+	- naga -restart
 
 By running it from a terminal you can get the "Command : " output and debug your config/fork.
 
