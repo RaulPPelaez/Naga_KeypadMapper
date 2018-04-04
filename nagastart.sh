@@ -5,6 +5,9 @@
 # xinput set-int-prop $NAGAID1 "Device Enabled" 8 0
  
 # Insanity, just because naga 2014
+
+killall naga
+
 NAGAID2=$(xinput | grep Naga | grep pointer | cut -d= -f2 | cut -f1)
 if [[ `echo $NAGAID2 | wc -w` -eq 2 ]]; then
 if [[ `xinput get-button-map $(echo $NAGAID2 | awk '{print $1}') | grep 10 | wc -l` -eq 1 ]]; then
