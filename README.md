@@ -71,8 +71,8 @@ An example `mapping_xx.txt` configuration file is the following:
     1 - key=ctrl+t
     2 - toggle=A
     3 - click=8
-    4 - key=C
-    4 - key=A
+    4 - run=notify-send 'Button # 4' 'Pressed'
+    4 - run5=notify-send 'Button # 4' 'Released'
     #etc
 
 
