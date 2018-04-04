@@ -1,4 +1,5 @@
 #!/bin/bash
+sudo killall naga
 echo "Checking requirements..."
 # Xdotool installed check
 command -v xdotool >/dev/null 2>&1 || { echo >&2 "I require xdotool but it's not installed! Aborting."; exit 1; }
