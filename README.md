@@ -59,13 +59,13 @@ For a key multiple actions may be defined. They will be executed sequentially.
 
 An example `mapping_xx.txt` configuration file is the following:
 
-    #There must be no blank lines at the beginning of the file. Comments are accepted #cmt
+    #There must be no blank lines at the beginning of the file. Comments are accepted
     1 - key=ctrl+t
     2 - toggle=A
     3 - click=8
     4 - key=C
     4 - key=A
-    etc
+    #etc
 
 
 If you want to dig more into configuration, you might find these tools useful: `xinput`, `evtest`
@@ -78,14 +78,14 @@ Dependencies : `xdotool`and `xinput`
 
 Edit `src/naga.cpp` to adapt the installation to another device, using different inputs and/or different key codes than the Naga Epic, 2014, Molten or Chroma. For Example, Epic Chroma is compatible with Epic (they have the same buttons), so you would only have to add an additional line to the devices vector.
 
-Run `bash install.sh` .
+Run `sh install.sh` .
 This will compile the source and copy the necessary files (see `install.sh` for more info).
 It will prompt you for your password, as it uses sudo to copy some files.
 
 ## Autorun
 
 Since autorun is a bit complicated for all the distros you can simply add nagastart.desktop or nagastart.sh to your startup folder/configuration.
-(Might have to run chmod +x on it)
+(Might have to run chmod +x on the .desktop)
  
 
 #### In depth
@@ -111,7 +111,7 @@ This lasts until the x server is restarted (`nagastart.sh` is aware of this), bu
 
 ## UNINSTALLATION
 
-To uninstall you need to run `$bash uninstall.sh`.
+To uninstall you need to run `sh uninstall.sh`.
 
 
 
