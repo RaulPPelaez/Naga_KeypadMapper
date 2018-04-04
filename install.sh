@@ -19,22 +19,14 @@ sudo mv naga /usr/local/bin/
 sudo chmod 755 /usr/local/bin/naga
 
 cd ..
-#HOME=$( getent passwd "$SUDO_USER" | cut -d: -f6 )
 
 sudo cp nagastart.sh /usr/local/bin/
 sudo chmod 755 /usr/local/bin/nagastart.sh
 
-
-cp naga.desktop ~/.config/autostart/
-echo "Some window managers do not support ~/.config/autostart. Please add nagastart.sh to be executed when your window manager starts if this is your case."
-
-#This method is too problematic
-#if ! grep -Fxq "bash /usr/local/bin/nagastart.sh &" "$HOME"/.profile; then
-#	echo "bash /usr/local/bin/nagastart.sh &" >> "$HOME"/.profile
-#fi
+echo "Please add (naga.desktop OR nagastart.sh) to be executed when your window manager starts."
 
 mkdir -p ~/.naga
-cp -n mapping_{01,02,03}.txt ~/.naga/
+cp -n mapping_*.txt ~/.naga/
 sudo chown -R $(whoami):$(id -gn $(whoami)) ~/.naga/
 
 echo "Creating udev rule..."
