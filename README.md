@@ -68,9 +68,9 @@ For a key multiple actions may be defined. They will be executed sequentially.
 An example `mapping_xx.txt` configuration file is the following:
 
     #There must be no blank lines at the beginning of the file. Comments are accepted
-    1 - key=ctrl+t
+    1 - key=XF86AudioPlay
     2 - toggle=A
-    3 - click=8
+    3 - chmap=mapping_420.txt
     4 - run=notify-send 'Button # 4' 'Pressed'
     4 - run5=notify-send 'Button # 4' 'Released'
     #etc
