@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "--------------------------------------\nOnly run with root (or sudo su) if you want to use it on the root account.\nChanging user will need to either copy the .naga folder\nor reinstall on their account.\n--------------------------------------"
 sudo killall naga
 echo "Checking requirements..."
 # Xdotool installed check
@@ -40,4 +41,4 @@ sudo gpasswd -a "$(whoami)" razer
 
 echo "Starting daemon..."
 # Run
-nohup sudo bash /usr/local/bin/nagastart.sh >/dev/null 2>&1 &
+nohup sh /usr/local/bin/nagastart.sh >/dev/null 2>&1 &
