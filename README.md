@@ -32,8 +32,8 @@ The configuration file `mapping_xx.txt` has the following syntax:
     <option> decides what is going to be applied to <command>
 	
 	The possible choices are :
-		-chmap : Changes the keymap for the file <option> (example `keymap.txt` in ~/.naga)
-		-key : Runs <command> in xdotool so the possible keys are on google ( i didn't find a list of all the keys ) 
+		-chmap : Changes the keymap for the file <option> (example `keymap.txt` in ~/.naga) .
+		-key : Runs <command> in xdotool so the possible keys are on google ( i didn't find a list of all the keys ) .
 			The <command> is run in : **xdotool keydown** or/and **keyup --window getactivewindow <command>** so it's already 'framed'.
 			By example to play/pause music you can put **key=XF86AudioPlay**.
 			The xdotool key is released when the key is released.
@@ -41,11 +41,12 @@ The configuration file `mapping_xx.txt` has the following syntax:
 		-run : Runs the command <command> on key press with setsid before the command.
 		-run2 : Runs the command <command> on key press and release with setsid before the command.
 		-run3 : Runs the command <command> on key press without setsid before the command (might freeze the whole daemon, I did this in case any command might not work with setsid).
-		-click : CLick based on xdotool click option. (Basically runs **xdotool click <command>**) (Can put numbers from 1 to 9 and options such as *--window** etc)
-		-workspace_r : Runs <command> in **xdotool set_desktop --relative -- <command>**
-		-workspace : Runs <command> in **xdotool set_desktop <command>**
-		-position : Runs <command> in **xdotool mousemove <command>**
-
+		-click : CLick based on xdotool click option. (Basically runs **xdotool click <command>**) (Can put numbers from 1 to 9 and options such as *--window** etc).
+		-workspace_r : Runs <command> in **xdotool set_desktop --relative -- <command>** .
+		-workspace : Runs <command> in **xdotool set_desktop <command>** .
+		-position : Runs <command> in **xdotool mousemove <command>** .
+		-delay : Sleeps for <command> milliseconds .
+		-toggle : Toggle key <command>.
 	
     <command> is what is going to be used based on the option.
     
@@ -86,7 +87,16 @@ It will prompt you for your password, as it uses sudo to copy some files.
 
 Since autorun is a bit complicated for all the distros you can simply add nagastart.desktop or nagastart.sh to your startup folder/configuration.
 (Might have to run chmod +x on the .desktop)
- 
+
+## Debugging
+
+While running as root you can use naga -restart to restart the daemon.
+Be careful running this as non root as it might not kill the older naga
+The commands are :
+	-naga -stop
+	-naga -restart
+
+By running it from a terminal you can get the "Command : " output and debug your config/fork.
 
 #### In depth
 The installation process automatically executes the daemon in the background and set it to start at boot for you. But you can still run it manually as follows:

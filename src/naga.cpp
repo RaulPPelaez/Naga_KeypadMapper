@@ -95,8 +95,6 @@ public:
     int pos;
     while (getline(in, line)) {
 
-      clog << "Line : " << line << endl;
-
       //divide at =
       pos = line.find('=');
       line1 = line.substr(0, pos);
@@ -200,7 +198,6 @@ public:
 
   void chooseAction(int i, int eventCode /*1 for press, 0 for release*/) {
     //Only accept press or release events
-    clog << "eventCode : " << to_string(eventCode) << endl;
     if(eventCode>1) return;
 
     const string keydownop = "xdotool keydown --window getactivewindow ";
@@ -245,6 +242,7 @@ public:
         case Operators::workspace:   command = workspace + args[i][j];	   if(eventCode==0) execution=false; break;
         case Operators::position:    command = position + args[i][j];        if(eventCode==0) execution=false; break;
         case Operators::delay: //delay execution n milliseconds
+
         delay = stoi(args[i][j]) * 1000;
         usleep(delay);
         execution = false;
@@ -260,11 +258,10 @@ public:
         }
         if(eventCode==0) execution=false;
         break;
-        default:
+        default: //never too safe
           execution=false;
         break;
       }
-
       if (execution){
         clog << "Command : " << command << endl;
         pid = system(command.c_str());
