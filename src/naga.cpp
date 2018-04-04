@@ -25,21 +25,15 @@
 #define DEV_NUM_KEYS 12
 #define EXTRA_BUTTONS 2
 #define OFFSET 263
-
 using namespace std;
 
-
-
-
 class NagaDaemon {
-  enum class Operators{chmap, key, run, run2, run3, run4, click,workspace, workspace_r, position, delay, toggle};
+  enum class Operators{chmap, key, run, run2, run3, run4, run5, click,workspace, workspace_r, position, delay, toggle};
   struct input_event ev1[64], ev2[64];
   int id, side_btn_fd, extra_btn_fd, size;
-
   vector<vector<string>> args;
   vector<vector<Operators>> options;
   vector<vector<int>> state;
-
   vector<pair<const char *,const char *>> devices;
 public:
   NagaDaemon(int argc, char *argv[]) {
@@ -96,7 +90,7 @@ public:
     while (getline(in, line)) {
 
       pos = line.find('=');
-      line1 = line.substr(0, pos); //line1 = numbers and stull
+      line1 = line.substr(0, pos); //line1 = numbers and stuff
 
       line.erase(0, pos+1); //line = command
       line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end()); //Erase spaces
@@ -104,11 +98,9 @@ public:
       if (line1[0] == '#') //Ignore comments
       continue;
 
-      //Search option and argument
       pos = line1.find("-");
-      token1 = line1.substr(0, pos);
+      token1 = line1.substr(0, pos); //Isolate command type
       line1 = line1.substr(pos + 1);
-
       //Encode and store mapping
       pos = stoi(token1) - 1;
       if (line1 == "chmap") options[pos].push_back(Operators::chmap);
@@ -117,6 +109,7 @@ public:
       else if (line1 == "run2") options[pos].push_back(Operators::run2);
       else if (line1 == "run3") options[pos].push_back(Operators::run3);
       else if (line1 == "run4") options[pos].push_back(Operators::run4);
+      else if (line1 == "run5") options[pos].push_back(Operators::run5);
       else if (line1 == "click") options[pos].push_back(Operators::click);
       else if (line1 == "workspace_r") options[pos].push_back(Operators::workspace_r);
       else if (line1 == "workspace") options[pos].push_back(Operators::workspace);
@@ -130,7 +123,6 @@ public:
         cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
         exit(1);
       }
-
       args[pos].push_back(line);
       state[pos].push_back(0); // Default state initialise
     }
@@ -140,10 +132,8 @@ public:
   void run() {
     int rd, rd1, rd2;
     fd_set readset;
-
     // Give application exclusive control over side buttons.
     ioctl(side_btn_fd, EVIOCGRAB, 1);
-
     while (1) {
       FD_ZERO(&readset);
       FD_SET(side_btn_fd, &readset);
@@ -155,7 +145,6 @@ public:
       {
         rd1 = read(side_btn_fd, ev1, size * 64);
         if (rd1 == -1) exit(2);
-
         if (ev1[0].value != ' ' && ev1[1].type == EV_KEY)  //Key event (press or release)
         switch (ev1[1].code) {
           case 2:
@@ -174,28 +163,24 @@ public:
           break;
           // do nothing on default
         }
-
       }
       else // Extra buttons
       {
         rd2 = read(extra_btn_fd, ev2, size * 64);
         if (rd2 == -1) exit(2);
-
         if (ev2[1].type == 1 && ev2[1].value == 1) //Only extra buttons
         switch (ev2[1].code) {
           case 275:
           case 276:
           chooseAction(ev2[1].code - OFFSET, 1);
           break;
-          // do nothing on default
         }
-
       }
     }
   }
 
-  void chooseAction(int i, int eventCode /*1 for press, 0 for release*/) {
-    //Only accept press or release events
+  void chooseAction(int i, int eventCode) {
+    //Only accept press or release events 1 for press 0 for release
     if(eventCode>1) return;
 
     const string keydownop = "xdotool keydown --window getactivewindow ";
@@ -209,7 +194,6 @@ public:
     string command;
     bool execution;
     for (unsigned int j = 0; j < options[i].size(); j++) {
-      //cerr << "key: " << i << " action: " << j << " args: " << args[i][j] << "\n" ;
       execution = true;
       switch (options[i][j]) {
         case Operators::chmap: //switch mapping
@@ -239,6 +223,11 @@ public:
         command = args[i][j];
         break;
 
+        case Operators::run5:
+        command = args[i][j];
+        if(eventCode==1) execution=false;
+        break;
+
         case Operators::click:       command = clickop + args[i][j];         if(eventCode==0) execution=false; break;
         case Operators::workspace_r: command = workspace_r + args[i][j];	   if(eventCode==0) execution=false; break;
         case Operators::workspace:   command = workspace + args[i][j];	   if(eventCode==0) execution=false; break;
@@ -261,14 +250,13 @@ public:
         if(eventCode==0) execution=false;
         break;
         default: //never too safe
-          execution=false;
+        execution=false;
         break;
       }
       if (execution){
         clog << "Command : " << command << endl;
         pid = system(command.c_str());
       }
-
     }
   }
 };
