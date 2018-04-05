@@ -57,11 +57,11 @@ The configuration file `keyMap.txt` has the following syntax:
 	
 		If you're not sure about the run versions use the setsid ones (run, run2, run5).
 
-    <command> is what is going to be used based on the option.
+    		<command> is what is going to be used based on the option.
     
-To test any <command> run it in the command cited above.
+		To test any <command> run it in the command cited above.
 
-"configEnd" Marks the end of <configName>.
+		"configEnd" Marks the end of <configName>.
 
 You can have as many configs as you want in the keyMap.txt file, just make sure to give them different names and include defaultConfig.
 
