@@ -37,7 +37,7 @@ The configuration file `mapping_xx.txt` has the following syntax:
 			The <command> is run in : **xdotool keydown** or/and **keyup --window getactivewindow <command>** so it's already 'framed'.
 			By example to play/pause music you can put **key=XF86AudioPlay**.
 			The xdotool key is released when the key is released.
-			There seems to be a list of keys on https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h but you need to remove **XK_** and they're not all there so google them if you want to be sure.
+			There seems to be a list of keys on [This Page](https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h) but you need to remove **XK_** and they're not all there so google them if you want to be sure.
 		-run : Runs the command <command> on key press with setsid before the command.
 		-run2 : Runs the command <command> on key press and release with setsid before the command.
 		-run3 : Runs the command <command> on key press without setsid before the command (might freeze the whole daemon depending on the command, I did this in case any command might not work with setsid).
@@ -100,8 +100,8 @@ Since autorun is a bit complicated for all the distros you can simply add nagast
 While running as root you can use naga -restart to restart the daemon and log the output.
 Be careful running this as non root as it might not kill the older daemon
 The commands are :
-	`naga -stop
-	naga -restart`
+	`naga -stop`
+	`naga -restart`
 
 By running it from a terminal you can get the "Command : " output and debug your config/fork.
 
