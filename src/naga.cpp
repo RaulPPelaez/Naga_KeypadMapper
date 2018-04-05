@@ -10,6 +10,22 @@
 * this stuff is worth it, you can buy me a beer in return. RaulPPelaez 2016
 * ----------------------------------------------------------------------------
 */
+
+/*See https://github.com/lostallmymoney/Razer_Key_Mapper_Linux/graphs/contributors
+* for a full list of contributors of this branch.
+* This program is free software. It comes without any warranty, to the extent
+* permitted by applicable law. You can redistribute it and/or modify it under the
+* terms of the Beer-ware license revision 420.
+* ----------------------------------------------------------------------------
+* "THE BEER-WARE LICENSE" (Revision 420):
+* RaulPPelaez et. al wrote this file. As long as you retain this notice you
+* can do whatever you want with this stuff. If we meet some day, and you think
+* this stuff is worth it, you can gimme me a j in return.   lostallmymoney 2018
+* ----------------------------------------------------------------------------
+* This is lostallmymoney's branch of RaulPPelaez's original tool.
+* Modifying a lot of stuff so it might never merge with master.
+*/
+
 #include <cstdio>
 #include <iostream>
 #include <string>
@@ -306,7 +322,7 @@ void stopD() {
 
 void xinputStart(){
   int pid = system("/usr/local/bin/nagaXinputStart.sh");
-}
+};
 
 int main(int argc, char *argv[]) {
   if(argc>1){
