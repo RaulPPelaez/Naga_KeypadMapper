@@ -25,8 +25,8 @@ groupadd -f razer
 
 cd ..
 
-sudo cp nagastart.sh /usr/local/bin/
-sudo chmod 755 /usr/local/bin/nagastart.sh
+sudo cp nagaXinputStart.sh /usr/local/bin/
+sudo chmod 755 /usr/local/bin/nagaXinputStart.sh
 
 for u in $(sudo awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534) print $1}' /etc/passwd)
 do
@@ -52,8 +52,7 @@ echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /tmp/
 
 sudo mv /tmp/80-naga.rules /etc/udev/rules.d/80-naga.rules
 
-echo "Starting daemon..."
+naga --start
 
-tput setaf 2; echo "Please add (naga.desktop OR nagastart.sh) to be executed\nwhen your window manager starts."
+tput setaf 2; echo "Please add (naga.desktop or a script with naga -start) to be executed\nwhen your window manager starts."
 tput sgr0;
-nohup sh /usr/local/bin/nagastart.sh >/dev/null 2>&1 &

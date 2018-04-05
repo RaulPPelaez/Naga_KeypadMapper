@@ -17,7 +17,7 @@ Probably works with :
 Works for sure with :
 - Razer Naga 2014 (Debian)
 
-This tool doesn't modify file except `$HOME/.naga/`, `/etc/udev/rules.d/80-naga.rules` and `/usr/local/bin/(naga && nagastart.sh)`, so deleting the files deletes the tool.
+This tool doesn't modify file except `$HOME/.naga/`, `/etc/udev/rules.d/80-naga.rules` and `/usr/local/bin/(naga && nagaXinputStart.sh)`, so deleting the files deletes the tool.
 
 Make sure to add the users to the group razer with the command `sudo gpasswd -a "$(whoami)" razer` if you create a new user.
 
@@ -119,7 +119,7 @@ The config files are copied to all the users (even root) homes.
 
 ## Autorun
 
-Since autorun is a bit complicated for all the distros you can simply add nagastart.desktop or nagastart.sh to your startup folder/configuration.
+Since autorun is a bit complicated for all the distros you can simply add nagastart.desktop or a script executing naga -start to your startup folder/configuration.
 (Might have to run chmod +x on the .desktop)
 
 ## Debugging
@@ -128,31 +128,25 @@ The commands are :
 
 	`naga -stop` //stops the daemon.
 	`naga -start` //restart the daemon if there is one running and starts a hidden daemon.
-	`naga` //restart the daemon if there is one running and starts one in the console for debugging.
+	`naga -debug` //restart the daemon if there is one running and starts one in the console for debugging.
+	`naga` //gives help
 
-By running it from a terminal you can get the "Command : " output and debug your config/fork.
 For all the double dashed ocd people the commands also works with 2 dashes.
 
 #### In depth
-The installation process automatically executes the daemon in the background and set it to start at boot for you. But you can still run it manually as follows:
 
-`nagastart.sh` does the below process automatically:
 
-1) Inits the mapper by calling: `$./naga` 
-
-2) In order to get rid of the original bindings it disables the keypad using xinput as follows:
+1) In order to get rid of the original bindings it disables the keypad using xinput as follows:
 
     $ xinput set-int-prop [id] "Device Enabled" 8 0
 
 where [id] is the id number of the keypad returned by $ xinput.
 
-4) You may have to also run 
+2) You may have to also run 
 
     $ xinput set-button-map [id2] 1 2 3 4 5 6 7 11 10 8 9 13 14 15
 
 where [id2] is the id number of the pointer device returned by `xinput` - in case of naga 2014 you also have to check which of those two has more than 7 numbers by typing `xinput get-button-map [id2]`. Although this seems to be unnecesary in some systems (i.e CentOS 7)
-
-This lasts until the x server is restarted (`nagastart.sh` is aware of this), but you can enable it back to completely restore the changes by changing the last 0 to a 1 in 2).
 
 ## UNINSTALLATION
 

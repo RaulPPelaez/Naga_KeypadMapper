@@ -299,32 +299,34 @@ public:
   }
 };
 
-void startD(int argc, char *argv[]) { //starts daemon
-  clog << "Starting naga daemon" << endl;
-  NagaDaemon daemon(argc, argv);
-  daemon.run();
-};
-
-void stopD() { //stops daemon
+void stopD() {
   clog << "Stopping possible naga daemon" << endl;
   int pid = system(("nohup kill $(ps aux | grep naga | grep -v grep | grep -v cpp | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str());
 };
 
+void xinputStart(){
+  int pid = system("/usr/local/bin/nagaXinputStart.sh");
+}
+
 int main(int argc, char *argv[]) {
   if(argc>1){
     if(strcmp(argv[1], "-start")==0 || strcmp(argv[1], "--start")==0){
-      stopD();
-      usleep(40000);
-      clog << "Starting naga daemon" << endl;
-      int pid = system("nohup nagastart.sh > /dev/null 2>&1 &");
-    }else if(strcmp(argv[1], "-kill")==0 || strcmp(argv[1], "--kill")==0 || strcmp(argv[1], "--stop")==0 || strcmp(argv[1], "-stop")==0){ //kill daemon
+      clog << "Starting naga daemon in hidden mode..." << endl;
+      xinputStart();
+      int pid = system("nohup naga -debug > /dev/null 2>&1 &");
+    }else if(strcmp(argv[1], "-kill")==0 || strcmp(argv[1], "--kill")==0 || strcmp(argv[1], "--stop")==0 || strcmp(argv[1], "-stop")==0){
       stopD();
       exit(0);
+    }else if(strcmp(argv[1], "-debug")==0 || strcmp(argv[1], "--debug")==0){
+      stopD();
+      usleep(40000);
+      clog << "Starting naga daemon in debug mode..." << endl;
+      xinputStart();
+      NagaDaemon daemon(argc, argv);
+      daemon.run();
     }
   } else {
-    stopD();
-    usleep(40000);
-    startD(argc, argv);
+    clog << "Possible arguments : " << endl << "  -start          Starts the daemon in hidden mode. (stops it before)" << endl << "  -stop          Stops the daemon." << endl << "  -debug          Starts the daemon in the terminal, giving access to logs. (stops it before)";
   }
   return 0;
 }
