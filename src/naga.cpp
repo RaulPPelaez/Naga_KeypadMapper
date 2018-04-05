@@ -35,6 +35,7 @@ class NagaDaemon {
   vector<vector<Operators>> options;
   vector<vector<int>> state;
   vector<pair<const char *,const char *>> devices;
+  const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
 public:
   NagaDaemon(int argc, char *argv[]) {
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd",
@@ -77,7 +78,6 @@ public:
     args.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
     options.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
     state.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
-    const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
     ifstream in(conf_file.c_str(), ios::in);
     if (!in) {
       cerr << "Cannot open " << conf_file << ". Exiting." << endl;
