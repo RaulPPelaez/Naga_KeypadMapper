@@ -108,7 +108,7 @@ Any non existing functionality can be created through the "run" option.
 
 ## INSTALLATION
 
-Dependencies : `xdotool`and `xinput`
+Dependencies : `xdotool`, `xinput` and `g++`
 
 Edit `src/naga.cpp` to adapt the installation to another device, using different inputs and/or different key codes than the Naga Epic, 2014, Molten or Chroma. For Example, Epic Chroma is compatible with Epic (they have the same buttons), so you would only have to add an additional line to the devices vector.
 
