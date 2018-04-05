@@ -28,7 +28,7 @@
 using namespace std;
 
 class NagaDaemon {
-  enum class Operators{chmap, key, run, run2, run3, run4, run5, run6, click,workspace, workspace_r, position, delay, toggle};
+  enum class Operators{chmap, key, run, run2, run3, run4, run5, run6, click, workspace, workspace_r, position, delay, toggle};
   struct input_event ev1[64], ev2[64];
   int id, side_btn_fd, extra_btn_fd, size;
   vector<vector<string>> args;
@@ -36,6 +36,12 @@ class NagaDaemon {
   vector<vector<int>> state;
   vector<pair<const char *,const char *>> devices;
   const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
+  const string keydownop = "xdotool keydown --window getactivewindow ";
+  const string keyupop = "xdotool keyup --window getactivewindow ";
+  const string clickop = "xdotool click ";
+  const string workspace_r = "xdotool set_desktop --relative -- ";
+  const string workspace = "xdotool set_desktop ";
+  const string position = "xdotool mousemove ";
 public:
   NagaDaemon(int argc, char *argv[]) {
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd",
@@ -117,11 +123,7 @@ public:
     while (getline(in, line) && readingLine<configEndLine){
       if (readingLine>configLine) //&& readingLine<configEndLine in the while
       {
-
-        if (line[0] == '#' || line.find_first_not_of(' ') == std::string::npos) //Ignore comments, empty lines, config= and configEnd
-        continue;
-
-        //clog << "Loading line : " << readingLine << " . line : " << line << endl;
+        if (line[0] == '#' || line.find_first_not_of(' ') == std::string::npos) continue; //Ignore comments, empty lines, config= and configEnd
 
         pos = line.find('=');
         line1 = line.substr(0, pos); //line1 = numbers and stuff
@@ -155,9 +157,6 @@ public:
           cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
           exit(1);
         }
-
-        //clog << "Pushing : " << line << " in args[" << pos << "]" << endl;
-
         args[pos].push_back(line);
         state[pos].push_back(0); // Default state initialise
       }
@@ -177,7 +176,6 @@ public:
       FD_SET(extra_btn_fd, &readset);
       rd = select(FD_SETSIZE, &readset, NULL, NULL, NULL);
       if (rd == -1) exit(2);
-
       if (FD_ISSET(side_btn_fd, &readset)) // Side buttons
       {
         rd1 = read(side_btn_fd, ev1, size * 64);
@@ -217,16 +215,7 @@ public:
   }
 
   void chooseAction(int i, int eventCode) {
-
-    //Only accept press or release events 1 for press 0 for release
-    if(eventCode>1) return;
-
-    const string keydownop = "xdotool keydown --window getactivewindow ";
-    const string keyupop = "xdotool keyup --window getactivewindow ";
-    const string clickop = "xdotool click ";
-    const string workspace_r = "xdotool set_desktop --relative -- ";
-    const string workspace = "xdotool set_desktop ";
-    const string position = "xdotool mousemove ";
+    if(eventCode>1) return; //Only accept press or release events 1 for press 0 for release
     int pid;
     unsigned int delay;
     string command;
@@ -234,16 +223,13 @@ public:
     for (unsigned int j = 0; j < options[i].size(); j++) {
       execution = true;
       switch (options[i][j]) {
-        case Operators::chmap: //switch mapping
+
+        case Operators::chmap:
         this->loadConf(args[i][j]);
-
-        //clog << "action choosen : "<< i << endl;
-        // << "unsigned int j : "<< j << endl;
-        //clog << "args[i][j] : "<< args[i][j] << endl;
-
         execution = false;
         break;
-        case Operators::key: //key press/release
+
+        case Operators::key:
         if(eventCode==1)           command = keydownop + args[i][j];
         else if(eventCode==0)      command = keyupop + args[i][j];
         break;
@@ -321,7 +307,7 @@ void startD(int argc, char *argv[]) { //starts daemon
 
 void stopD() { //stops daemon
   clog << "Stopping naga daemon" << endl;
-  int pid = system("kill $(ps aux | grep naga | grep -v grep | grep -v start | grep -v cpp | grep -v $$ | awk '{print $2}')");
+  int pid = system(("kill $(ps aux | grep naga | grep -v grep | grep -v cpp | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}')").c_str());
 };
 
 int main(int argc, char *argv[]) {
@@ -331,6 +317,7 @@ int main(int argc, char *argv[]) {
       exit(0);
     }else if(strcmp(argv[1], "--restart")==0 || strcmp(argv[1], "-restart")==0){ //kill and restart daemon
       stopD();
+      usleep(40000);
       startD(argc, argv);
     }
   } else {
