@@ -17,7 +17,7 @@ Probably works with :
 Works for sure with :
 - Razer Naga 2014 (Debian)
 
-This tool doesn't modify file except `$HOME/.naga/`, `/etc/udev/rules.d/80-naga.rules` and `/usr/local/bin/(naga && nagastart.sh)` so deleting the files deletes the tool.
+This tool doesn't modify file except `$HOME/.naga/`, `/etc/udev/rules.d/80-naga.rules` and `/usr/local/bin/(naga && nagastart.sh)`, so deleting the files deletes the tool.
 
 Make sure to add the users to the group razer with the command `groupadd -f razer`.
 
@@ -123,11 +123,11 @@ Since autorun is a bit complicated for all the distros you can simply add nagast
 
 ## Debugging
 
-While running as root you can use naga -restart to restart the daemon and log the output.
-Be careful running this as non root as it might not kill the older daemon
 The commands are :
-	`naga -stop`
-	`naga -restart`
+
+	`naga -stop` //stops the daemon.
+	`naga -start` //restart the daemon if there is one running and starts a hidden daemon.
+	`naga` //restart the daemon if there is one running and starts one in the console for debugging.
 
 By running it from a terminal you can get the "Command : " output and debug your config/fork.
 

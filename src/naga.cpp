@@ -306,21 +306,24 @@ void startD(int argc, char *argv[]) { //starts daemon
 };
 
 void stopD() { //stops daemon
-  clog << "Stopping naga daemon" << endl;
-  int pid = system(("kill $(ps aux | grep naga | grep -v grep | grep -v cpp | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}')").c_str());
+  clog << "Stopping possible naga daemon" << endl;
+  int pid = system(("nohup kill $(ps aux | grep naga | grep -v grep | grep -v cpp | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str());
 };
 
 int main(int argc, char *argv[]) {
   if(argc>1){
-    if(strcmp(argv[1], "-kill")==0 || strcmp(argv[1], "--kill")==0 || strcmp(argv[1], "--stop")==0 || strcmp(argv[1], "-stop")==0){ //kill daemon
-      stopD();
-      exit(0);
-    }else if(strcmp(argv[1], "--restart")==0 || strcmp(argv[1], "-restart")==0){ //kill and restart daemon
+    if(strcmp(argv[1], "-start")==0 || strcmp(argv[1], "--start")==0){
       stopD();
       usleep(40000);
-      startD(argc, argv);
+      clog << "Starting naga daemon" << endl;
+      int pid = system("nohup nagastart.sh > /dev/null 2>&1 &");
+    }else if(strcmp(argv[1], "-kill")==0 || strcmp(argv[1], "--kill")==0 || strcmp(argv[1], "--stop")==0 || strcmp(argv[1], "-stop")==0){ //kill daemon
+      stopD();
+      exit(0);
     }
   } else {
+    stopD();
+    usleep(40000);
     startD(argc, argv);
   }
   return 0;
