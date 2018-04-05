@@ -2,10 +2,10 @@
 Name=NagaMaper
 GenericName=Naga key maper
 Comment=Custom key bindings for the side panel
-Exec=sh nagastart.sh
+Exec=nohup nagastart.sh > /dev/null 2>&1 &
 Terminal=false
 Type=Application
 Icon=
 Categories=Drivers;
 StartupNotify=false
-Name[en_CA]=nagastart.desktop
+Name=nagastart.desktop
