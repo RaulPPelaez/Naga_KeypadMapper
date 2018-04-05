@@ -63,13 +63,20 @@ The configuration file `keyMap.txt` has the following syntax:
 
     "configEnd" Marks the end of <configName>.
 
-    You can have as many configs as you want in the keyMap.txt file, just make sure to give them different names and include defaultConfig.
+You can have as many configs as you want in the keyMap.txt file, just make sure to give them different names and include defaultConfig.
 
 [Link for Keys](https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h)
 
 
 
 ### NOTES
+
+To reload the config you can simply reference itself with 
+	config=defaultConfig
+	1 - chmap=defaultConfig
+	configEnd
+or swap to another config and comeback.
+
 If the `$HOME/.naga/mapping_01.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy example files though). 
 	//The copy of the config files might not succeed in wich case you can copy them manually.
 
@@ -89,6 +96,7 @@ An example `mapping_xx.txt` configuration file is the following:
 
     config=420configEnemyBlazerWoW
     1 - run=sh ~/hacks.sh
+    2 - chmap=defaultConfig
     #etc
     configEnd
 
