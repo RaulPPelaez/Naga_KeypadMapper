@@ -115,6 +115,7 @@ Edit `src/naga.cpp` to adapt the installation to another device, using different
 Run `sh install.sh` .
 This will compile the source and copy the necessary files (see `install.sh` for more info).
 It will prompt you for your password, as it uses sudo to copy some files.
+The config files are copied to all the users (even root) homes.
 
 ## Autorun
 

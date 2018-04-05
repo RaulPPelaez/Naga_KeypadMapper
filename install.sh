@@ -1,7 +1,8 @@
 #!/bin/bash
-echo "--------------------------------------\nOnly run with root (or sudo su) if you want to use it on the root account.\nChanging user will need to either copy the .naga folder\nor reinstall on their account.\n--------------------------------------"
+
 sudo nohup killall naga > /dev/null 2>&1 &
-echo "Checking requirements..."
+
+sudo echo "Checking requirements..."
 # Xdotool installed check
 command -v xdotool >/dev/null 2>&1 || { echo >&2 "I require xdotool but it's not installed! Aborting."; exit 1; }
 
@@ -25,11 +26,21 @@ cd ..
 sudo cp nagastart.sh /usr/local/bin/
 sudo chmod 755 /usr/local/bin/nagastart.sh
 
-
-
-mkdir -p ~/.naga
-cp -n keyMap.txt ~/.naga/
-sudo chown -R $(whoami):$(id -gn $(whoami)) ~/.naga/
+for u in $(sudo awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534) print $1}' /etc/passwd)
+do
+	_dir="/home/${u}/.naga"
+	sudo mkdir -p $_dir
+	if [ -d "$_dir" ]
+	then
+		sudo cp -r -n -v "keyMap.txt" "$_dir"
+		sudo chown -R $(id -un $u):users "$_dir"
+	fi
+done
+if [ -d "/root" ];
+then
+	sudo mkdir -p /root/.naga
+	sudo cp -r -n -v "keyMap.txt" "/root/.naga"
+fi
 
 echo "Creating udev rule..."
 
