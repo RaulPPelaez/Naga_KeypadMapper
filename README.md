@@ -130,6 +130,7 @@ The commands are :
 	`naga` //restart the daemon if there is one running and starts one in the console for debugging.
 
 By running it from a terminal you can get the "Command : " output and debug your config/fork.
+For all the double dashed ocd people the commands also works with 2 dashes.
 
 #### In depth
 The installation process automatically executes the daemon in the background and set it to start at boot for you. But you can still run it manually as follows:
