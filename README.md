@@ -57,7 +57,7 @@ The configuration file `mapping_xx.txt` has the following syntax:
     
 	To test any <command> run it in the command cited above.
 
-	[Link for Keys](https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h)
+[Link for Keys](https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h)
 
 
 
