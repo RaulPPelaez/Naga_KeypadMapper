@@ -338,7 +338,7 @@ int main(int argc, char *argv[]) {
       string answer;
       clog << "Are you sure you want to uninstall ? y/n" << endl;
       cin >> answer;
-      if(answer.length() != 1 || answer[0] != 'y'){
+      if(answer.length() != 1 || ( answer[0] != 'y' &&  answer[0] != 'Y' )){
         clog << "Aborting" << endl;
       }else{
         int pid = system("bash /usr/local/bin/nagaUninstall.sh");
