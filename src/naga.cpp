@@ -18,7 +18,7 @@
 * terms of the Beer-ware license revision 420.
 * ----------------------------------------------------------------------------
 * "THE BEER-WARE LICENSE" (Revision 420):
-* RaulPPelaez et. al wrote this file. As long as you retain this notice you
+* RaulPPelaez et. al wrote this file and lostallmymoney made a branch. As long as you retain this notice you
 * can do whatever you want with this stuff. If we meet some day, and you think
 * this stuff is worth it, you can gimme me a j in return.   lostallmymoney 2018
 * ----------------------------------------------------------------------------
@@ -317,7 +317,7 @@ public:
 
 void stopD() {
   clog << "Stopping possible naga daemon" << endl;
-  int pid = system(("nohup kill $(ps aux | grep naga | grep -v grep | grep -v cpp | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str());
+  int pid = system(("nohup kill $(ps aux | grep naga | grep -v Uninstall | grep -v grep | grep -v cpp | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str());
 };
 
 void xinputStart(){
@@ -330,8 +330,19 @@ int main(int argc, char *argv[]) {
       clog << "Starting naga daemon in hidden mode..." << endl;
       xinputStart();
       int pid = system("nohup naga -debug > /dev/null 2>&1 &");
+      exit(0);
     }else if(strcmp(argv[1], "-kill")==0 || strcmp(argv[1], "--kill")==0 || strcmp(argv[1], "--stop")==0 || strcmp(argv[1], "-stop")==0){
       stopD();
+      exit(0);
+    }else if(strcmp(argv[1], "-uninstall")==0 || strcmp(argv[1], "--uninstall")==0){
+      string answer;
+      clog << "Are you sure you want to uninstall ? y/n" << endl;
+      cin >> answer;
+      if(answer.length() != 1 || answer[0] != 'y'){
+        clog << "Aborting" << endl;
+      }else{
+        int pid = system("bash /usr/local/bin/nagaUninstall.sh");
+      }
       exit(0);
     }else if(strcmp(argv[1], "-debug")==0 || strcmp(argv[1], "--debug")==0){
       stopD();
@@ -340,6 +351,7 @@ int main(int argc, char *argv[]) {
       xinputStart();
       NagaDaemon daemon(argc, argv);
       daemon.run();
+      exit(0);
     }
   } else {
     clog << "Possible arguments : " << endl << "  -start          Starts the daemon in hidden mode. (stops it before)" << endl << "  -stop           Stops the daemon." << endl << "  -debug          Starts the daemon in the terminal," << endl << "                      --giving access to logs. (stops it before)" << endl;

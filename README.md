@@ -128,6 +128,7 @@ The commands are :
 	`naga -stop` //stops the daemon.
 	`naga -start` //restart the daemon if there is one running and starts a hidden daemon.
 	`naga -debug` //restart the daemon if there is one running and starts one in the console for debugging.
+	`naga -uninstall` //uninstall the daemon tool
 	`naga` //gives help
 
 For all the double dashed ocd people the commands also works with 2 dashes.
@@ -149,7 +150,7 @@ where [id2] is the id number of the pointer device returned by `xinput` - in cas
 
 ## UNINSTALLATION
 
-To uninstall you need to run `sh uninstall.sh`.
+To uninstall you need to run `naga -uninstall` .
 
 
 
