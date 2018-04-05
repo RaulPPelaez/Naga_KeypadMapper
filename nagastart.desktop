@@ -2,7 +2,7 @@
 Name=NagaMaper
 GenericName=Naga key maper
 Comment=Custom key bindings for the side panel
-Exec=nohup nagastart.sh > /dev/null 2>&1 &
+Exec=naga -start
 Terminal=false
 Type=Application
 Icon=
