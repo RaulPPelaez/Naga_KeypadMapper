@@ -21,6 +21,8 @@ echo "Create config files"
 sudo mv naga /usr/local/bin/
 sudo chmod 755 /usr/local/bin/naga
 
+groupadd -f razer
+
 cd ..
 
 sudo cp nagastart.sh /usr/local/bin/
@@ -28,6 +30,7 @@ sudo chmod 755 /usr/local/bin/nagastart.sh
 
 for u in $(sudo awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534) print $1}' /etc/passwd)
 do
+	sudo gpasswd -a "$u" razer
 	_dir="/home/${u}/.naga"
 	sudo mkdir -p $_dir
 	if [ -d "$_dir" ]
@@ -38,6 +41,7 @@ do
 done
 if [ -d "/root" ];
 then
+	sudo gpasswd -a "root" razer
 	sudo mkdir -p /root/.naga
 	sudo cp -r -n -v "keyMap.txt" "/root/.naga"
 fi
@@ -47,8 +51,6 @@ echo "Creating udev rule..."
 echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /tmp/80-naga.rules
 
 sudo mv /tmp/80-naga.rules /etc/udev/rules.d/80-naga.rules
-groupadd -f razer
-sudo gpasswd -a "$(whoami)" razer
 
 echo "Starting daemon..."
 

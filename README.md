@@ -19,7 +19,7 @@ Works for sure with :
 
 This tool doesn't modify file except `$HOME/.naga/`, `/etc/udev/rules.d/80-naga.rules` and `/usr/local/bin/(naga && nagastart.sh)`, so deleting the files deletes the tool.
 
-Make sure to add the users to the group razer with the command `groupadd -f razer`.
+Make sure to add the users to the group razer with the command `sudo gpasswd -a "$(whoami)" razer` if you create a new user.
 
 CAUTION, in this alpha version the run option wont work for text environment commands, like for example `top`.
 As an alpha version, there might be bugs.
