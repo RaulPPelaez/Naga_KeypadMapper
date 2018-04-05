@@ -71,10 +71,12 @@ You can have as many configs as you want in the keyMap.txt file, just make sure 
 
 ### NOTES
 
-To reload the config you can simply reference itself with 
-	config=defaultConfig
-	1 - chmap=defaultConfig
-	configEnd
+To reload the config you can simply reference itself with :
+
+    config=defaultConfig
+    1 - chmap=defaultConfig
+    configEnd
+
 or swap to another config and comeback.
 
 If the `$HOME/.naga/mapping_01.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy example files though). 
