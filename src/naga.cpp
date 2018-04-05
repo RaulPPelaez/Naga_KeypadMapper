@@ -67,16 +67,17 @@ public:
       exit(1);
     }
     //Initialize config
-    this->loadConf("mapping_01.txt");
+    this->loadConf("defaultConfig");
   }
 
-  void loadConf(string filename) {
+  void loadConf(string configName) {
     args.clear();
     options.clear();
     state.clear();
     args.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
     options.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
     state.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
+    const string filename = "keyMap.txt";
 
     string conf_file = string(getenv("HOME")) + "/.naga/" + filename;
     ifstream in(conf_file.c_str(), ios::in);
@@ -84,48 +85,85 @@ public:
       cerr << "Cannot open " << conf_file << ". Exiting." << endl;
       exit(1);
     }
-
+    bool found1 = false, found2 = false;
     string line, line1, token1;
-    int pos;
-    while (getline(in, line)) {
+    int pos, configLine, readingLine=0, configEndLine;
 
-      pos = line.find('=');
-      line1 = line.substr(0, pos); //line1 = numbers and stuff
+    while (getline(in, line) && !found2) {
+      readingLine++;
 
-      line.erase(0, pos+1); //line = command
-      line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end()); //Erase spaces
-
-      if (line1[0] == '#') //Ignore comments
-      continue;
-
-      pos = line1.find("-");
-      token1 = line1.substr(0, pos); //Isolate command type
-      line1 = line1.substr(pos + 1);
-      //Encode and store mapping
-      pos = stoi(token1) - 1;
-      if (line1 == "chmap") options[pos].push_back(Operators::chmap);
-      else if (line1 == "key") options[pos].push_back(Operators::key);
-      else if (line1 == "run") options[pos].push_back(Operators::run);
-      else if (line1 == "run2") options[pos].push_back(Operators::run2);
-      else if (line1 == "run3") options[pos].push_back(Operators::run3);
-      else if (line1 == "run4") options[pos].push_back(Operators::run4);
-      else if (line1 == "run5") options[pos].push_back(Operators::run5);
-      else if (line1 == "run6") options[pos].push_back(Operators::run6);
-      else if (line1 == "click") options[pos].push_back(Operators::click);
-      else if (line1 == "workspace_r") options[pos].push_back(Operators::workspace_r);
-      else if (line1 == "workspace") options[pos].push_back(Operators::workspace);
-      else if (line1 == "position") {
-        options[pos].push_back(Operators::position);
-        std::replace(line.begin(), line.end(), ',', ' ');
+      if(!found1 && line.find("config="+configName) != string::npos) //finding configname
+      {
+        configLine=readingLine;
+        found1=true;
+        clog << "Found config start : "<< readingLine << endl;
       }
-      else if (line1 == "delay") options[pos].push_back(Operators::delay);
-      else if (line1 == "toggle") options[pos].push_back(Operators::toggle);
-      else {
-        cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
-        exit(1);
+
+      if(found1 && line.find("configEnd") != string::npos)//finding configEnd
+      {
+        configEndLine=readingLine;
+        found2=true;
+        clog << "Found config end : "<< readingLine << endl;
       }
-      args[pos].push_back(line);
-      state[pos].push_back(0); // Default state initialise
+    }
+
+    if (!found1 || !found2) {
+      cerr << "Error with config names and configEnd : " << configName << ". Exiting." << endl;
+      exit(1);
+    }
+
+    in.clear();
+    in.seekg(0, ios::beg); //reset file reading
+
+    readingLine=1;
+    while (getline(in, line) && readingLine<configEndLine){
+      if (readingLine>configLine) //&& readingLine<configEndLine in the while
+      {
+
+        if (line[0] == '#' || line.find_first_not_of(' ') == std::string::npos) //Ignore comments, empty lines, config= and configEnd
+        continue;
+
+        //clog << "Loading line : " << readingLine << " . line : " << line << endl;
+
+        pos = line.find('=');
+        line1 = line.substr(0, pos); //line1 = numbers and stuff
+
+        line.erase(0, pos+1); //line = command
+        line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end()); //Erase spaces
+
+        pos = line1.find("-");
+        token1 = line1.substr(0, pos); //Isolate command type
+        line1 = line1.substr(pos + 1);
+        //Encode and store mapping
+        pos = stoi(token1) - 1;
+        if (line1 == "chmap") options[pos].push_back(Operators::chmap);
+        else if (line1 == "key") options[pos].push_back(Operators::key);
+        else if (line1 == "run") options[pos].push_back(Operators::run);
+        else if (line1 == "run2") options[pos].push_back(Operators::run2);
+        else if (line1 == "run3") options[pos].push_back(Operators::run3);
+        else if (line1 == "run4") options[pos].push_back(Operators::run4);
+        else if (line1 == "run5") options[pos].push_back(Operators::run5);
+        else if (line1 == "run6") options[pos].push_back(Operators::run6);
+        else if (line1 == "click") options[pos].push_back(Operators::click);
+        else if (line1 == "workspace_r") options[pos].push_back(Operators::workspace_r);
+        else if (line1 == "workspace") options[pos].push_back(Operators::workspace);
+        else if (line1 == "position") {
+          options[pos].push_back(Operators::position);
+          std::replace(line.begin(), line.end(), ',', ' ');
+        }
+        else if (line1 == "delay") options[pos].push_back(Operators::delay);
+        else if (line1 == "toggle") options[pos].push_back(Operators::toggle);
+        else {
+          cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
+          exit(1);
+        }
+
+        //clog << "Pushing : " << line << " in args[" << pos << "]" << endl;
+
+        args[pos].push_back(line);
+        state[pos].push_back(0); // Default state initialise
+      }
+      readingLine++;
     }
     in.close();
   }
@@ -147,6 +185,7 @@ public:
         rd1 = read(side_btn_fd, ev1, size * 64);
         if (rd1 == -1) exit(2);
         if (ev1[0].value != ' ' && ev1[1].type == EV_KEY)  //Key event (press or release)
+        //clog << "ev1[1].code"<< ev1[1].code << endl;
         switch (ev1[1].code) {
           case 2:
           case 3:
@@ -180,6 +219,7 @@ public:
   }
 
   void chooseAction(int i, int eventCode) {
+
     //Only accept press or release events 1 for press 0 for release
     if(eventCode>1) return;
 
@@ -198,6 +238,11 @@ public:
       switch (options[i][j]) {
         case Operators::chmap: //switch mapping
         this->loadConf(args[i][j]);
+
+        //clog << "action choosen : "<< i << endl;
+        // << "unsigned int j : "<< j << endl;
+        //clog << "args[i][j] : "<< args[i][j] << endl;
+
         execution = false;
         break;
         case Operators::key: //key press/release

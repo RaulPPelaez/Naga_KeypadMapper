@@ -28,7 +28,7 @@ sudo chmod 755 /usr/local/bin/nagastart.sh
 echo "Please add (naga.desktop OR nagastart.sh) to be executed when your window manager starts."
 
 mkdir -p ~/.naga
-cp -n mapping_*.txt ~/.naga/
+cp -n keyMap.txt ~/.naga/
 sudo chown -R $(whoami):$(id -gn $(whoami)) ~/.naga/
 
 echo "Creating udev rule..."

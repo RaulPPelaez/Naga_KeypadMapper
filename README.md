@@ -23,7 +23,9 @@ CAUTION, in this alpha version the run option wont work for text environment com
 As an alpha version, there might be bugs.
 
 ## CONFIGURATION
-The configuration file `mapping_xx.txt` has the following syntax:
+The configuration file `keyMap.txt` has the following syntax:
+
+    "config="<configName> set the name of the following config. The initial loaded config will always be <configName> = defaultConfig .
 
     <keynumber> - <option>=<command>
     
@@ -57,6 +59,10 @@ The configuration file `mapping_xx.txt` has the following syntax:
     
 	To test any <command> run it in the command cited above.
 
+    "configEnd" Marks the end of <configName>.
+
+    You can have as many configs as you want in the keyMap.txt file, just make sure to give them different names and include defaultConfig.
+
 [Link for Keys](https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h)
 
 
@@ -69,14 +75,20 @@ For a key multiple actions may be defined. They will be executed sequentially.
 
 An example `mapping_xx.txt` configuration file is the following:
 
-    #There must be no blank lines at the beginning of the file. Comments are accepted
+    #Comments are accepted
+    config=defaultConfig
     1 - key=XF86AudioPlay
     2 - toggle=A
-    3 - chmap=mapping_420.txt
+    3 - chmap=420configEnemyBlazerWoW
     4 - run=notify-send 'Button # 4' 'Pressed'
     4 - run5=notify-send 'Button # 4' 'Released'
     #etc
+    configEnd
 
+    config=420configEnemyBlazerWoW
+    1 - run=sh ~/hacks.sh
+    #etc
+    configEnd
 
 If you want to dig more into configuration, you might find these tools useful: `xinput`, `evtest`
 
