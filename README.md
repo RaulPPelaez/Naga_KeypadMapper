@@ -1,7 +1,7 @@
 # Razer Key Mapper for Linux
 ..also can accept other devices they're simply untested. Contact me for adding devices.
 
-Map razer naga devices keys with the config files : `mapping_xx.txt` under `$HOME/.naga/` 
+Map razer naga devices keys with the config files : `keyMap.txt` under `$HOME/.naga/` 
 
 Requires: `xdotool`, `xinput` and `g++`
 
@@ -17,7 +17,7 @@ Probably works with :
 Works for sure with :
 - Razer Naga 2014 (Debian)
 
-This tool doesn't modify file except `$HOME/.naga/`, `/etc/udev/rules.d/80-naga.rules` and `/usr/local/bin/(naga && nagaXinputStart.sh)`, so deleting the files deletes the tool.
+This tool doesn't modify any files except `$HOME/.naga/`, `/etc/udev/rules.d/80-naga.rules` and `/usr/local/bin/(naga && nagaXinputStart.sh)`, so deleting the files deletes the tool.
 
 Make sure to add the users to the group razer with the command `sudo gpasswd -a "$(whoami)" razer` if you create a new user.
 
@@ -79,7 +79,7 @@ To reload the config you can simply reference itself with :
 
 or swap to another config and comeback.
 
-If the `$HOME/.naga/mapping_01.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy example files though). 
+If the `$HOME/.naga/keyMap.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy example files though). 
 	//The copy of the config files might not succeed in wich case you can copy them manually.
 
 For a key multiple actions may be defined. They will be executed sequentially.
