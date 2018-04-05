@@ -84,7 +84,7 @@ If the `$HOME/.naga/mapping_01.txt` file is missing the daemon won't start (the 
 
 For a key multiple actions may be defined. They will be executed sequentially.
 
-An example `mapping_xx.txt` configuration file is the following:
+An example `keyMap.txt` configuration file is the following:
 
     #Comments are accepted
     config=defaultConfig
