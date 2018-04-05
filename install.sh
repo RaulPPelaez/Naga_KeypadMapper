@@ -3,28 +3,25 @@
 sudo nohup killall naga > /dev/null 2>&1 &
 
 sudo echo "Checking requirements..."
-# Xdotool installed check
-command -v xdotool >/dev/null 2>&1 || { echo >&2 "I require xdotool but it's not installed! Aborting."; exit 1; }
+command -v xdotool >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require xdotool but it's not installed! Aborting."; tput sgr0; exit 1; }
 
 echo "Compiling code..."
-# Compilation
 cd src
 g++ -O3 -std=c++11 naga.cpp -o naga
 
 if [ ! -f ./naga ]; then
-	echo "Error at compile! Ensure you have gcc installed Aborting"
+	tput setaf 1; echo "Error at compile! Ensure you have g++ installed. !!!Aborting!!!"
+	tput sgr0;
 	exit 1
 fi
 
-echo "Create config files"
-# Configuration
+echo "Copying files..."
 sudo mv naga /usr/local/bin/
 sudo chmod 755 /usr/local/bin/naga
 
-groupadd -f razer
-
 cd ..
 
+groupadd -f razer
 sudo cp nagaXinputStart.sh /usr/local/bin/
 sudo chmod 755 /usr/local/bin/nagaXinputStart.sh
 
@@ -45,8 +42,6 @@ then
 	sudo mkdir -p /root/.naga
 	sudo cp -r -n -v "keyMap.txt" "/root/.naga"
 fi
-
-echo "Creating udev rule..."
 
 echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /tmp/80-naga.rules
 
