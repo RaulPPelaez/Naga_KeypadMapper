@@ -1,4 +1,6 @@
-# Naga_KeypadMapper
+# Razer Key Mapper for Linux
+..also can accept other devices they're simply untested. Contact me for adding devices.
+
 Map razer naga devices keys with the config files : `mapping_xx.txt` under `$HOME/.naga/` 
 
 Requires: `xdotool`, `xinput` and `g++`
