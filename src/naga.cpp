@@ -361,7 +361,7 @@ int main(int argc, char *argv[]) {
       exit(0);
     }
   } else {
-    clog << "Possible arguments : " << endl << "  -start          Starts the daemon in hidden mode. (stops it before)" << endl << "  -stop           Stops the daemon." << endl << "  -debug          Starts the daemon in the terminal," << endl << "                      --giving access to logs. (stops it before)"<< endl << "  -killroot       Stops the rooted daemon if ran as root." << endl;
+    clog << "Possible arguments : " << endl << "  -start          Starts the daemon in hidden mode. (stops it before)" << endl << "  -stop           Stops the daemon." << endl << "  -debug          Starts the daemon in the terminal," << endl << "                      --giving access to logs. (stops it before)" << endl << "  -killroot       Stops the rooted daemon if ran as root." << endl;
   }
   return 0;
 }
