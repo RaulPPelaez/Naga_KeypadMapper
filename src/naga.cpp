@@ -317,7 +317,11 @@ public:
 
 void stopD() {
   clog << "Stopping possible naga daemon" << endl;
-  int pid = system(("nohup kill $(ps aux | grep naga | grep -v Uninstall | grep -v grep | grep -v cpp | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str());
+  int pid = system(("nohup kill $(ps aux | grep naga | grep debug | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str());
+};
+
+void stopDroot() {
+  int pid = system(("nohup kill $(ps aux | grep naga | grep debug | grep root | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str());
 };
 
 void xinputStart(){
@@ -333,6 +337,9 @@ int main(int argc, char *argv[]) {
       exit(0);
     }else if(strcmp(argv[1], "-kill")==0 || strcmp(argv[1], "--kill")==0 || strcmp(argv[1], "--stop")==0 || strcmp(argv[1], "-stop")==0){
       stopD();
+      exit(0);
+    }else if(strcmp(argv[1], "-killroot")==0 || strcmp(argv[1], "--killroot")==0){
+      stopDroot();
       exit(0);
     }else if(strcmp(argv[1], "-uninstall")==0 || strcmp(argv[1], "--uninstall")==0){
       string answer;
