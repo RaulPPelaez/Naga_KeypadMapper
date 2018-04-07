@@ -5,6 +5,8 @@ Map razer naga devices keys with the config file : `keyMap.txt` under `$HOME/.na
 
 Requires: `xdotool`, `xinput` and `g++`
 
+Optionnal and probably already installed : `policykit-1`
+
 Probably works with :
 - Razer Naga Epic Chroma in CentOS 7
 - Razer Naga Epic (pre-2014 version) in Ubuntu 14.04, 15.04, 15.10
