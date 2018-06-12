@@ -33,9 +33,9 @@ echo "Some window managers do not support ~/.config/autostart. Please add nagast
 #	echo "bash /usr/local/bin/nagastart.sh &" >> "$HOME"/.profile
 #fi
 
-mkdir -p ~/.naga
-cp -n mapping_{01,02,03}.txt ~/.naga/
-sudo chown -R $(whoami):$(id -gn $(whoami)) ~/.naga/
+mkdir -p ~/.config/naga
+cp -n mapping_{01,02,03}.txt ~/.config/naga/
+sudo chown -R $(whoami):$(id -gn $(whoami)) ~/.config/naga/
 
 echo "Creating udev rule..."
 

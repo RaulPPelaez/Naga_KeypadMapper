@@ -32,7 +32,7 @@ using namespace std;
 
 
 class NagaDaemon {
-  enum class Operators{chmap, key, run, run2, click, workspace, workspace_r, position, delay, media, toggle};
+  enum class Operators{null, chmap, key, run, run2, click, workspace, workspace_r, position, delay, media, toggle};
   struct input_event ev1[64], ev2[64];
   int id, side_btn_fd, extra_btn_fd, size;
 
@@ -84,7 +84,7 @@ public:
     options.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
     state.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
 
-    string conf_file = string(getenv("HOME")) + "/.naga/" + filename;
+    string conf_file = string(getenv("HOME")) + "/.config/naga/" + filename;
     ifstream in(conf_file.c_str(), ios::in);
     if (!in) {
       cerr << "Cannot open " << conf_file << ". Exiting." << endl;
@@ -122,7 +122,8 @@ public:
 
 	//Encode and store mapping
 	pos = stoi(token1) - 1;
-      if (line1 == "chmap") options[pos].push_back(Operators::chmap);
+      if(line1 == "null") options[pos].push_back(Operators::null);
+      else if (line1 == "chmap") options[pos].push_back(Operators::chmap);
       else if (line1 == "key") options[pos].push_back(Operators::key);
       else if (line1 == "run") options[pos].push_back(Operators::run);
       else if (line1 == "run2") options[pos].push_back(Operators::run2);
@@ -223,6 +224,7 @@ public:
       //cerr << "key: " << i << " action: " << j << " args: " << args[i][j] << "\n" ;
       execution = true;
       switch (options[i][j]) {
+        case Operators::null:     break;
       case Operators::chmap: //switch mapping
 	this->loadConf(args[i][j]);
 	execution = false;
