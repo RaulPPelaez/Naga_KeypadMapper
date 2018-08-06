@@ -116,34 +116,33 @@ public:
 	  continue;
 
 	//Search option and argument
-	pos = line1.find("-");
+	pos = line1.find("-"); //- pos in line1
 	token1 = line1.substr(0, pos);
-	line1 = line1.substr(pos + 1);
+	line1 = line1.substr(pos + 1); //Action
 
 	//Encode and store mapping
-	pos = stoi(token1) - 1;
-      if (line1 == "chmap") options[pos].push_back(Operators::chmap);
-      else if (line1 == "key") options[pos].push_back(Operators::key);
-      else if (line1 == "run") options[pos].push_back(Operators::run);
-      else if (line1 == "run2") options[pos].push_back(Operators::run2);
-      else if (line1 == "click") options[pos].push_back(Operators::click);
-      else if (line1 == "workspace_r") options[pos].push_back(Operators::workspace_r);
-      else if (line1 == "workspace") options[pos].push_back(Operators::workspace);
+	int keyNumber = stoi(token1) - 1;
+      if (line1 == "chmap") options[keyNumber].push_back(Operators::chmap);
+      else if (line1 == "key") options[keyNumber].push_back(Operators::key);
+      else if (line1 == "run") options[keyNumber].push_back(Operators::run);
+      else if (line1 == "run2") options[keyNumber].push_back(Operators::run2);
+      else if (line1 == "click") options[keyNumber].push_back(Operators::click);
+      else if (line1 == "workspace_r") options[keyNumber].push_back(Operators::workspace_r);
+      else if (line1 == "workspace") options[keyNumber].push_back(Operators::workspace);
       else if (line1 == "position") {
-	options[pos].push_back(Operators::position);
+	options[keyNumber].push_back(Operators::position);
 	std::replace(line.begin(), line.end(), ',', ' ');
       }
-      else if (line1 == "delay") options[pos].push_back(Operators::delay);
-      else if (line1 == "media") options[pos].push_back(Operators::media);
-      else if (line1 == "toggle") options[pos].push_back(Operators::toggle);
+      else if (line1 == "delay") options[keyNumber].push_back(Operators::delay);
+      else if (line1 == "media") options[keyNumber].push_back(Operators::media);
+      else if (line1 == "toggle") options[keyNumber].push_back(Operators::toggle);
       else {
 	cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
 	exit(1);
       }
-      //cerr << "b) len: " << len << " pos: " << pos << " line: " << line << " args[pos] size:" << args[pos].size() << "\n";
       clog<<"Line : "<<line<<endl;
-      args[pos].push_back(line);
-      state[pos].push_back(0); // Default state initialise
+      args[keyNumber].push_back(line);
+      state[keyNumber].push_back(0); // Default state initialise
     }
     in.close();
   }
@@ -219,6 +218,8 @@ public:
     unsigned int delay;
     string command;
     bool execution;
+    bool isMacro = options[i].size() > 1; //Is the pressing of this button a macro?
+    if(isMacro and eventCode == 0) return; //Dont do anything on macro button release
     for (unsigned int j = 0; j < options[i].size(); j++) {
       //cerr << "key: " << i << " action: " << j << " args: " << args[i][j] << "\n" ;
       execution = true;
@@ -227,9 +228,12 @@ public:
 	this->loadConf(args[i][j]);
 	execution = false;
 	break;
-      case Operators::key: //key press/release
-	if(eventCode==1)           command = keydownop + args[i][j];
-	else if(eventCode==0)      command = keyupop + args[i][j];
+      case Operators::key: //key press/release, works as key press + release if inside a macro
+	if(isMacro)                command = key + args[i][j];
+	else{
+	  if(eventCode==1)           command = keydownop + args[i][j];
+	  else if(eventCode==0)      command = keyupop + args[i][j];
+	}
 	break;
       case Operators::run:         command = "setsid " + args[i][j] + " &";if(eventCode==0) execution=false; break;
       case Operators::run2:        command = "setsid " + args[i][j] + " &"; break;

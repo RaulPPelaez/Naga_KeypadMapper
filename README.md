@@ -26,7 +26,7 @@ The configuration file `mapping_xx.txt` has the following syntax:
 
     <option>
     Switch mapping: chmap
-    Key (holds the key as long as the button is pressed) or shortcut: key
+    Key (holds the key as long as the button is pressed, or presses+releases if inside a macro) or shortcut: key
 	Toggle a key (first press will mimic a key being pressed, the second will release it): toggle
     Running system commands: run, run2(runs the command at key press and key release)	
     Mouse click: click 
@@ -64,7 +64,7 @@ If you want to test your shortcut you can use `xdotool key --window getactivewin
 ### NOTES
 If the `$HOME/.naga/mapping_01.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy example files though).
 
-For a given action multiple actions may be defined. They will be executed sequentially.
+For a given button action multiple actions may be defined. They will be executed sequentially (this is called a macro).
 
 An example `mapping_xx.txt` configuration file is the following:
 
