@@ -151,7 +151,7 @@ where [id] is the id number of the keypad returned by $ xinput.
 
     $ xinput set-button-map [id2] 1 2 3 4 5 6 7 11 10 8 9 13 14 15
 
-where [id2] is the id number of the pointer device returned by `xinput` - in case of naga 2014 you also have to check which of those two has more than 7 numbers by typing `xinput get-button-map [id2]`. Although this seems to be unnecesary in some systems (i.e CentOS 7)
+where [id2] is the id number of the pointer device returned by `xinput` - in case of naga 2014 you also have to check which of those two has more than 7 numbers by typing `xinput get-button-map [id2]`. Although this seems to be unnecessary in some systems (i.e CentOS 7)
 
 ## UNINSTALLATION
 
