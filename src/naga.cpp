@@ -39,7 +39,7 @@ class NagaDaemon {
   vector<vector<string>> args;
   vector<vector<Operators>> options;
   vector<vector<int>> state;
-    
+
   vector<pair<const char *,const char *>> devices;
 public:
   NagaDaemon(int argc, char *argv[]) {
@@ -59,7 +59,9 @@ public:
 			 "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse");            // NAGA CHROMA
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex-if01-event-kbd",
 			 "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse");               // NAGA HEX
-        
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd",
+			 "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse"); // Naga Trinity
+
     size = sizeof(struct input_event);
     //Setup check
     for (auto &device : devices) {
@@ -106,13 +108,13 @@ public:
 	//divide at =
 	pos = line.find('=');
 	line1 = line.substr(0, pos); //line1 = numbers and stull
-	
+
 	//Erase spaces before the =
 	line.erase(0, pos+1); //line = command
 	//Erase spaces before the =
 	line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end());
 	//Ignore comments
-	if (line1[0] == '#') 
+	if (line1[0] == '#')
 	  continue;
 
 	//Search option and argument
@@ -151,7 +153,7 @@ public:
   void run() {
     int rd, rd1, rd2;
     fd_set readset;
-	
+
     // Give application exclusive control over side buttons.
     ioctl(side_btn_fd, EVIOCGRAB, 1);
 
@@ -208,7 +210,7 @@ public:
   void chooseAction(int i, int eventCode /*1 for press, 0 for release*/) {
     //Only accept press or release events
     if(eventCode>1) return;
-		      
+
     const string keydownop = "xdotool keydown --window getactivewindow ";
     const string keyupop = "xdotool keyup --window getactivewindow ";
     const string clickop = "xdotool click ";
@@ -247,7 +249,7 @@ public:
 	if(eventCode==0){
 	  execution=false;
 	}
-	else{	
+	else{
 	  if (state[i][j] == 0) {
 	    command = keydownop + args[i][j];
 	    state[i][j] = 1;
@@ -260,7 +262,7 @@ public:
 	break;
       }
 
-      
+
       if (execution)
 	pid = system(command.c_str());
     }
