@@ -271,9 +271,10 @@ public:
             if(macroEvents[ii]->getType() == "chmap"){
               clog << "Switching config to : " << macroEvents[ii]->getContent() << endl;
               this->loadConf(macroEvents[ii]->getContent());//change config for macroEvents[ii]->getContent()
-              ii=macroEvents.size();
-              iii=configKeys.size();
-            }
+            }//else if(macroEvents[ii]->getType() == ""){}
+            //add other internal commands here ^ (can only run one per button tho)
+            ii=macroEvents.size();
+            iii=configKeys.size();
           }
         }
       }

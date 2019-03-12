@@ -1,6 +1,9 @@
 # Razer Key Mapper for Linux
 ..also can accept other devices they're simply untested. Contact me for adding devices.
 
+This should be easy to install just run sh install.sh from inside the directory.
+If there is an error about config files just copy it to your /home/.naga/
+
 Run in root if there is an error accessing the device, also look up naga -debug it'll give all the info you need most of the time.
 
 Map razer naga devices keys with the config file : `keyMap.txt` under `$HOME/.naga/` 

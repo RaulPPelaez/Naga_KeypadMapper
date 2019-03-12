@@ -5,6 +5,7 @@ sudo nohup killall naga > /dev/null 2>&1 &
 sudo echo "Checking requirements..."
 command -v xdotool >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require xdotool but it's not installed! Aborting."; tput sgr0; exit 1; }
 command -v xinput >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require xinput but it's not installed! Aborting."; tput sgr0; exit 1; }
+command -v g++ >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require g++ but it's not installed! Aborting."; tput sgr0; exit 1; }
 
 echo "Compiling code..."
 cd src
@@ -23,7 +24,7 @@ sudo chmod 755 /usr/local/bin/naga
 cd ..
 
 groupadd -f razer
-sudo cp nagaXinputStart.sh /usr/local/bin/
+sudo cp -f ./src/nagaXinputStart.sh /usr/local/bin/
 sudo chmod 755 /usr/local/bin/nagaXinputStart.sh
 
 for u in $(sudo awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534) print $1}' /etc/passwd)
@@ -43,6 +44,8 @@ then
 	sudo mkdir -p /root/.naga
 	sudo cp -r -n -v "keyMap.txt" "/root/.naga"
 fi
+
+sudo cp -f ./src/nagaUninstall.sh /usr/local/bin/nagaUninstall.sh
 
 echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /tmp/80-naga.rules
 
