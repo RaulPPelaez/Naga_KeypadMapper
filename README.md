@@ -20,6 +20,7 @@ Probably works with :
 - Razer Chroma (thanks to felipeacsi) in Manjaro
 - Razer Naga 2012 (RZ01-0058) (thanks to mrlinuxfish, brianfreytag) in Arch Linux, Ubuntu 16.04
 - Razer Naga Chroma (thanks to ipsod) in Linux Mint KDE 18.1
+- Razer Naga Trinity (thanks to haringsrob and ws141)
 
 Works for sure with :
 - Razer Naga 2014 (Debian)
@@ -43,26 +44,19 @@ The configuration file `keyMap.txt` has the following syntax:
     <option> decides what is going to be applied to <command>
 	
 	The possible choices are :
-		-chmap : Changes the keymap for the file <option> (example `keymap.txt` in ~/.naga) .
+		-chmap : Changes the keymap for another config inside `keymap.txt` in ~/.naga .
 		-key : Runs <command> in xdotool so the possible keys are on google ( i didn't find a list of all the keys ) .
-			The <command> is run in : **xdotool keydown** or/and **keyup --window getactivewindow <command>** so it's already 'framed'.
+			The <command> is run in : **xdotool keydown** or/and **keyup --window getactivewindow <command>** so it's already 'framed' by the program.
 			By example to play/pause music you can put **key=XF86AudioPlay**.
 			The xdotool key is released when the key is released.
 			There seems to be a list of keys on https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h but you need to remove **XK_** and they're not all there so google them if you want to be sure.
 		-run : Runs the command <command> on key press with setsid before the command.
-		-run2 : Runs the command <command> on key press and release with setsid before the command.
-		-run3 : Runs the command <command> on key press without setsid before the command (might freeze the whole daemon depending on the command, I did this in case any command might not work with setsid).
-		-run4 : Runs the command <command> on key press and release without setsid before the command. (might also freeze the whole daemon but 2 times lul)
-		-run5 : Runs the command <command> on key release with setsid.
-		-run6 : Runs the command <command> on key release without setsid(might freeze the whole daemon depending on the command).
-		-click : CLick based on xdotool click option. (Basically runs **xdotool click <command>**) (Can put numbers from 1 to 9 and options such as *--window** etc).
-		-workspace_r : Runs <command> in **xdotool set_desktop --relative -- <command>** .
-		-workspace : Runs <command> in **xdotool set_desktop <command>** .
-		-position : Runs <command> in **xdotool mousemove <command>** .
-		-delay : Sleeps for <command> milliseconds .
-		-toggle : Toggle key <command>.
-	
-		If you're not sure about the run versions use the setsid ones (run, run2, run5).
+		-runRelease : Runs a bash command when the button is released .
+		-mouseClick : CLick based on xdotool click option. (Basically runs **xdotool click <command>**) (Can put numbers from 1 to 9 and options such as *--window** etc).
+		-setWorkspace : Runs <command> in **xdotool set_desktop <command>** .
+		-mousePosition : Runs <command> in **xdotool mousemove <command>** .
+		-keyClick : Press a key once when the button is pressed .
+		-keyClickRelease : Press a key once when the button is released .
 
     		<command> is what is going to be used based on the option.
     
@@ -98,13 +92,11 @@ For a key multiple actions may be defined. They will then be executed sequential
 
 An example `keyMap.txt` configuration file is the following:
 
-    #Comments are accepted
+    #Comments should be accepted 
     config=defaultConfig
     1 - key=XF86AudioPlay
-    2 - toggle=A
     3 - chmap=420configEnemyBlazerWoW
     4 - run=notify-send 'Button # 4' 'Pressed'
-    4 - run5=notify-send 'Button # 4' 'Released'
     #etc
     configEnd
 
