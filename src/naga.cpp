@@ -118,6 +118,8 @@ public:
     "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse");            // NAGA CHROMA
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex-if01-event-kbd",
     "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse"); // NAGA HEX
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd",
+    "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse"); // Naga Trinity
 
     //modulable options list
     configKeys.emplace_back(new configKey("chmap", true, true)); //manage internals inside chooseAction method
@@ -125,6 +127,8 @@ public:
     configKeys.emplace_back(new configKey("runRelease", "", false, false));
     configKeys.emplace_back(new configKey("key", "xdotool keydown --window getactivewindow ", false, true));
     configKeys.emplace_back(new configKey("key", "xdotool keyup --window getactivewindow ", false, false));
+    configKeys.emplace_back(new configKey("keyClick", "xdotool key --window getactivewindow ", false, true));
+    configKeys.emplace_back(new configKey("keyClickRelease", "xdotool key --window getactivewindow ", false, false));
     configKeys.emplace_back(new configKey("mousePosition", "xdotool mousemove ", false, true));
     configKeys.emplace_back(new configKey("mouseClick", "xdotool click ", false, true));
     configKeys.emplace_back(new configKey("setWorkspace", "xdotool set_desktop ", false, true));
@@ -150,6 +154,7 @@ public:
       delete macroEvents[oo];
     }
     macroEvents.clear();
+    macroEvents.resize(0);
     ifstream in(conf_file.c_str(), ios::in);
     if (!in) {
       cerr << "Cannot open " << conf_file << ". Exiting." << endl;
@@ -214,7 +219,6 @@ public:
         rd1 = read(side_btn_fd, ev1, size * 64);
         if (rd1 == -1) exit(2);
         if (ev1[0].value != ' ' && ev1[1].type == EV_KEY)  //Key event (press or release)
-        //clog << "ev1[1].code"<< ev1[1].code << endl;
         switch (ev1[1].code) {
           case 2:
           case 3:
@@ -256,16 +260,19 @@ public:
     } else if (eventCode == 0){
       realKeyPressed = false;
     }
-    for (int ii = 0; ii < (macroEvents.size() - 1); ii++){ //looking for a match in keyMacros
+    for (int ii = 0; ii < macroEvents.size(); ii++){ //looking for a match in keyMacros
       if(macroEvents[ii]->getButton() == realKey){
-        clog << "Match, the command is : " << macroEvents[ii]->getType() << " " << macroEvents[ii]->getContent() << endl;
-        for (int iii = 0; iii < (configKeys.size() - 1); iii++){ //looking for a match in keyConfigs
+        clog << "Config match, the type is : " << macroEvents[ii]->getType() << " and the cmd is : " << macroEvents[ii]->getContent() << endl;
+        for (int iii = 0; iii < configKeys.size(); iii++){ //looking for a match in keyConfigs
           if(configKeys[iii]->getCode() == macroEvents[ii]->getType() && !configKeys[iii]->getInternal()){
+            clog << "Running command : " << macroEvents[ii]->getContent() << endl;
             configKeys[iii]->execute(macroEvents[ii]->getContent(), realKeyPressed);//runs the Command
           } else if (configKeys[iii]->getCode() == macroEvents[ii]->getType() && configKeys[iii]->getInternal()){
             if(macroEvents[ii]->getType() == "chmap"){
               clog << "Switching config to : " << macroEvents[ii]->getContent() << endl;
               this->loadConf(macroEvents[ii]->getContent());//change config for macroEvents[ii]->getContent()
+              ii=macroEvents.size();
+              iii=configKeys.size();
             }
           }
         }
