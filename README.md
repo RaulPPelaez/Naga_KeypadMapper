@@ -83,6 +83,12 @@ To reload the config you can simply reference itself with :
 
 or swap to another config and comeback.
 
+or you can also run `naga -start` and it should restart the daemon.
+
+TAKE NOTE : After installing I recommend rebooting if you can't get the daemon up from non root.
+
+Also if ran as root you should edit the file in /root/.naga.
+
 If the `$HOME/.naga/keyMap.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy an example file though).
 
 For a key multiple actions may be defined. They will then be executed sequentially at the key press.
