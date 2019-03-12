@@ -12,7 +12,7 @@ config=defaultConfig
 11 - key=XF86AudioPlay
 12 - key=XF86AudioNext
 13 - keyClick=a
-13 - keyClick=b
+14 - keyClick=b
 configEnd
 
 #not adding the 2 making it doing nothing
@@ -29,5 +29,5 @@ config=defaultConfig2
 11 - chmap=defaultConfig
 12 - key=XF86AudioNext
 13 - keyClick=a
-13 - keyClick=b
+14 - keyClick=b
 configEnd
