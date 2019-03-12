@@ -20,46 +20,88 @@
 * "THE BEER-WARE LICENSE" (Revision 420):
 * RaulPPelaez et. al wrote this file and lostallmymoney made a branch. As long as you retain this notice you
 * can do whatever you want with this stuff. If we meet some day, and you think
-* this stuff is worth it, you can gimme me a j in return.   lostallmymoney 2018
+* this stuff is worth it, you can hand me me a legal canadian joint in return.  lostallmymoney 2018
 * ----------------------------------------------------------------------------
 * This is lostallmymoney's branch of RaulPPelaez's original tool.
 * Modifying a lot of stuff so it might never merge with master.
 */
 
-#include <cstdio>
 #include <iostream>
-#include <string>
 #include <vector>
 #include <algorithm>
 #include <fstream>
 #include <fcntl.h>
-#include <dirent.h>
 #include <unistd.h>
 #include <linux/input.h>
-#include <sys/select.h>
 #include <cstring>
-#define DEV_NUM_KEYS 12
-#define EXTRA_BUTTONS 2
 #define OFFSET 263
 using namespace std;
 
+class configKey {
+private:
+  string code, content;
+  bool internal, onKeyPressed;
+public:
+  configKey(string tcode, string tcontent, bool tinternal = false, bool tonKeyPressed = true){
+    code = tcode;
+    content = tcontent;
+    internal = tinternal;
+    onKeyPressed = tonKeyPressed;
+  }
+  configKey(string tcode, bool tinternal = false, bool tonKeyPressed = true, string tcontent = ""){
+    code = tcode;
+    content = tcontent;
+    internal = tinternal;
+    onKeyPressed = tonKeyPressed;
+  }
+  string getCode(){
+    return code;
+  }
+  string getContent(){
+    return content;
+  }
+  bool getInternal(){
+    return internal;
+  }
+  void execute(string command, bool pressed){
+    if(pressed == onKeyPressed){
+      int pid = system(("setsid "+content+command).c_str());
+    }
+  }
+};
+
+class macroEvent{
+private:
+  int button;
+  string type, content;
+public:
+  macroEvent(int tbutton, string ttype, string  tcontent){
+    button = tbutton;
+    type = ttype;
+    content = tcontent;
+  }
+  int getButton(){
+    return button;
+  }
+  string getType(){
+    return type;
+  }
+  string getContent(){
+    return content;
+  }
+};
+
 class NagaDaemon {
-  enum class Operators{chmap, key, run, run2, run3, run4, run5, run6, click, workspace, workspace_r, position, delay, toggle};
+  std::vector<configKey *> configKeys;
+  std::vector<macroEvent *> macroEvents;
   struct input_event ev1[64], ev2[64];
   int id, side_btn_fd, extra_btn_fd, size;
-  vector<vector<string>> args;
-  vector<vector<Operators>> options;
-  vector<vector<int>> state;
   vector<pair<const char *,const char *>> devices;
   const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
-  const string keydownop = "xdotool keydown --window getactivewindow ";
-  const string keyupop = "xdotool keyup --window getactivewindow ";
-  const string clickop = "xdotool click ";
-  const string workspace_r = "xdotool set_desktop --relative -- ";
-  const string workspace = "xdotool set_desktop ";
-  const string position = "xdotool mousemove ";
 public:
   NagaDaemon(int argc, char *argv[]) {
+
+    //modulable device files list
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd",
     "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse");              // NAGA EPIC
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-if01-event-kbd",
@@ -75,11 +117,21 @@ public:
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-if02-event-kbd",
     "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse");            // NAGA CHROMA
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex-if01-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse");               // NAGA HEX
+    "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse"); // NAGA HEX
+
+    //modulable options list
+    configKeys.emplace_back(new configKey("chmap", true, true)); //manage internals inside chooseAction method
+    configKeys.emplace_back(new configKey("run", "", false, true));
+    configKeys.emplace_back(new configKey("runRelease", "", false, false));
+    configKeys.emplace_back(new configKey("key", "xdotool keydown --window getactivewindow ", false, true));
+    configKeys.emplace_back(new configKey("key", "xdotool keyup --window getactivewindow ", false, false));
+    configKeys.emplace_back(new configKey("mousePosition", "xdotool mousemove ", false, true));
+    configKeys.emplace_back(new configKey("mouseClick", "xdotool click ", false, true));
+    configKeys.emplace_back(new configKey("setWorkspace", "xdotool set_desktop ", false, true));
+    configKeys.emplace_back(new configKey("mouseClick", "xdotool click ", false, true));
 
     size = sizeof(struct input_event);
-    //Setup check
-    for (auto &device : devices) {
+    for (auto &device : devices) { //Setup check
       if ((side_btn_fd = open(device.first, O_RDONLY)) != -1 &&  (extra_btn_fd = open(device.second, O_RDONLY)) != -1) {
         cout << "Reading from: " << device.first << " and " << device.second << endl;
         break;
@@ -94,12 +146,10 @@ public:
   }
 
   void loadConf(string configName) {
-    args.clear();
-    options.clear();
-    state.clear();
-    args.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
-    options.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
-    state.resize(DEV_NUM_KEYS + EXTRA_BUTTONS);
+    for ( int oo = 0; oo < macroEvents.size(); oo++){
+      delete macroEvents[oo];
+    }
+    macroEvents.clear();
     ifstream in(conf_file.c_str(), ios::in);
     if (!in) {
       cerr << "Cannot open " << conf_file << ". Exiting." << endl;
@@ -111,14 +161,12 @@ public:
 
     while (getline(in, line) && !found2) {
       readingLine++;
-
       if(!found1 && line.find("config="+configName) != string::npos) //finding configname
       {
         configLine=readingLine;
         found1=true;
         clog << "Found config start : "<< readingLine << endl;
       }
-
       if(found1 && line.find("configEnd") != string::npos)//finding configEnd
       {
         configEndLine=readingLine;
@@ -126,55 +174,25 @@ public:
         clog << "Found config end : "<< readingLine << endl;
       }
     }
-
     if (!found1 || !found2) {
       cerr << "Error with config names and configEnd : " << configName << ". Exiting." << endl;
       exit(1);
     }
-
     in.clear();
     in.seekg(0, ios::beg); //reset file reading
-
     readingLine=1;
     while (getline(in, line) && readingLine<configEndLine){
       if (readingLine>configLine) //&& readingLine<configEndLine in the while
       {
         if (line[0] == '#' || line.find_first_not_of(' ') == std::string::npos) continue; //Ignore comments, empty lines, config= and configEnd
-
         pos = line.find('=');
         line1 = line.substr(0, pos); //line1 = numbers and stuff
-
         line.erase(0, pos+1); //line = command
-        line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end()); //Erase spaces
-
+        line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end()); //Erase spaces inside 1st part of the line
         pos = line1.find("-");
         token1 = line1.substr(0, pos); //Isolate command type
         line1 = line1.substr(pos + 1);
-        //Encode and store mapping
-        pos = stoi(token1) - 1;
-        if (line1 == "chmap") options[pos].push_back(Operators::chmap);
-        else if (line1 == "key") options[pos].push_back(Operators::key);
-        else if (line1 == "run") options[pos].push_back(Operators::run);
-        else if (line1 == "run2") options[pos].push_back(Operators::run2);
-        else if (line1 == "run3") options[pos].push_back(Operators::run3);
-        else if (line1 == "run4") options[pos].push_back(Operators::run4);
-        else if (line1 == "run5") options[pos].push_back(Operators::run5);
-        else if (line1 == "run6") options[pos].push_back(Operators::run6);
-        else if (line1 == "click") options[pos].push_back(Operators::click);
-        else if (line1 == "workspace_r") options[pos].push_back(Operators::workspace_r);
-        else if (line1 == "workspace") options[pos].push_back(Operators::workspace);
-        else if (line1 == "position") {
-          options[pos].push_back(Operators::position);
-          std::replace(line.begin(), line.end(), ',', ' ');
-        }
-        else if (line1 == "delay") options[pos].push_back(Operators::delay);
-        else if (line1 == "toggle") options[pos].push_back(Operators::toggle);
-        else {
-          cerr << "Not supported key action, check the syntax in " << conf_file << ". Exiting!" << endl;
-          exit(1);
-        }
-        args[pos].push_back(line);
-        state[pos].push_back(0); // Default state initialise
+        macroEvents.emplace_back(new macroEvent(stoi(token1), line1, line));//Encode and store mapping v2
       }
       readingLine++;
     }
@@ -184,8 +202,7 @@ public:
   void run() {
     int rd, rd1, rd2;
     fd_set readset;
-    // Give application exclusive control over side buttons.
-    ioctl(side_btn_fd, EVIOCGRAB, 1);
+    ioctl(side_btn_fd, EVIOCGRAB, 1);// Give application exclusive control over side buttons.
     while (1) {
       FD_ZERO(&readset);
       FD_SET(side_btn_fd, &readset);
@@ -232,84 +249,26 @@ public:
 
   void chooseAction(int i, int eventCode) {
     if(eventCode>1) return; //Only accept press or release events 1 for press 0 for release
-    int pid;
-    unsigned int delay;
-    string command;
-    bool execution;
-    for (unsigned int j = 0; j < options[i].size(); j++) {
-      execution = true;
-      switch (options[i][j]) {
-
-        case Operators::chmap:
-        this->loadConf(args[i][j]);
-        execution = false;
-        break;
-
-        case Operators::key:
-        if(eventCode==1)           command = keydownop + args[i][j];
-        else if(eventCode==0)      command = keyupop + args[i][j];
-        break;
-
-        case Operators::run:
-        command = "setsid " + args[i][j];
-        if(eventCode==0) execution=false;
-        break;
-
-        case Operators::run2:
-        command = "setsid " + args[i][j];
-        break;
-
-        case Operators::run3:
-        command = args[i][j];
-        if(eventCode==0) execution=false;
-        break;
-
-        case Operators::run4:
-        command = args[i][j];
-        break;
-
-        case Operators::run5:
-        command = "setsid " + args[i][j];
-        if(eventCode==1) execution=false;
-        break;
-
-        case Operators::run6:
-        command = args[i][j];
-        if(eventCode==1) execution=false;
-        break;
-
-        case Operators::click:       command = clickop + args[i][j];         if(eventCode==0) execution=false; break;
-        case Operators::workspace_r: command = workspace_r + args[i][j];	   if(eventCode==0) execution=false; break;
-        case Operators::workspace:   command = workspace + args[i][j];	   if(eventCode==0) execution=false; break;
-        case Operators::position:    command = position + args[i][j];        if(eventCode==0) execution=false; break;
-        case Operators::delay: //delay execution n milliseconds
-
-        delay = stoi(args[i][j]) * 1000;
-        usleep(delay);
-        execution = false;
-        break;
-        case Operators::toggle: // Toggle action
-        if(eventCode==0){
-          execution=false;
-        }
-        else{
-          if (state[i][j] == 0) {
-            command = keydownop + args[i][j];
-            state[i][j] = 1;
-          }
-          else if (state[i][j] == 1) {
-            command = keyupop + args[i][j];
-            state[i][j] = 0;
+    int realKey = i+1;
+    bool realKeyPressed;
+    if(eventCode == 1){
+      realKeyPressed = true;
+    } else if (eventCode == 0){
+      realKeyPressed = false;
+    }
+    for (int ii = 0; ii < (macroEvents.size() - 1); ii++){ //looking for a match in keyMacros
+      if(macroEvents[ii]->getButton() == realKey){
+        clog << "Match, the command is : " << macroEvents[ii]->getType() << " " << macroEvents[ii]->getContent() << endl;
+        for (int iii = 0; iii < (configKeys.size() - 1); iii++){ //looking for a match in keyConfigs
+          if(configKeys[iii]->getCode() == macroEvents[ii]->getType() && !configKeys[iii]->getInternal()){
+            configKeys[iii]->execute(macroEvents[ii]->getContent(), realKeyPressed);//runs the Command
+          } else if (configKeys[iii]->getCode() == macroEvents[ii]->getType() && configKeys[iii]->getInternal()){
+            if(macroEvents[ii]->getType() == "chmap"){
+              clog << "Switching config to : " << macroEvents[ii]->getContent() << endl;
+              this->loadConf(macroEvents[ii]->getContent());//change config for macroEvents[ii]->getContent()
+            }
           }
         }
-        break;
-        default: //never too safe
-        execution=false;
-        break;
-      }
-      if (execution){
-        clog << "Command : " << command << endl;
-        pid = system(command.c_str());
       }
     }
   }
