@@ -4,6 +4,7 @@ sudo nohup killall naga > /dev/null 2>&1 &
 
 sudo echo "Checking requirements..."
 command -v xdotool >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require xdotool but it's not installed! Aborting."; tput sgr0; exit 1; }
+command -v xinput >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require xinput but it's not installed! Aborting."; tput sgr0; exit 1; }
 
 echo "Compiling code..."
 cd src
