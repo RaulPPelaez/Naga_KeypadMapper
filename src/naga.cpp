@@ -34,7 +34,7 @@
 #include <unistd.h>
 #include <linux/input.h>
 #include <cstring>
-#define OFFSET 263
+#define OFFSET 262
 using namespace std;
 
 class configKey {
@@ -65,6 +65,7 @@ public:
   }
   void execute(string command, bool pressed){
     if(pressed == onKeyPressed){
+      clog << "Running command : " << "setsid " << content << command << endl;
       int pid = system(("setsid "+content+command).c_str());
     }
   }
@@ -145,8 +146,7 @@ public:
       cerr << "No naga devices found or you don't have permission to access them." << endl;
       exit(1);
     }
-    //Initialize config
-    this->loadConf("defaultConfig");
+    this->loadConf("defaultConfig");//Initialize config
   }
 
   void loadConf(string configName) {
@@ -220,40 +220,31 @@ public:
         if (rd1 == -1) exit(2);
         if (ev1[0].value != ' ' && ev1[1].type == EV_KEY)  //Key event (press or release)
         switch (ev1[1].code) {
-          case 2:
-          case 3:
-          case 4:
-          case 5:
-          case 6:
-          case 7:
-          case 8:
-          case 9:
-          case 10:
-          case 11:
-          case 12:
-          case 13:
-          chooseAction(ev1[1].code - 2, ev1[1].value); //ev1[1].value holds 1 if press event and 0 if release
+          case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
+            chooseAction(ev1[1].code - 1, ev1[1].value); //ev1[1].value holds 1 if press event and 0 if release
           break;  // do nothing on default
+          default:
+            clog << "An uncatched key was pressed ! : " << ev1[1].code << endl;
+          break;
         }
       }
       else // Extra buttons
       {
         rd2 = read(extra_btn_fd, ev2, size * 64);
         if (rd2 == -1) exit(2);
-        if (ev2[1].type == 1 && ev2[1].value == 1) //Only extra buttons
-        switch (ev2[1].code) {
-          case 275:
-          case 276:
-          chooseAction(ev2[1].code - OFFSET, 1);
-          break;
+        if (ev2[1].type == 1){ //Only extra buttons
+          switch (ev2[1].code) {
+            case 275: case 276:
+            chooseAction(ev2[1].code - OFFSET, ev2[1].value);
+            break;
+          }
         }
       }
     }
   }
 
-  void chooseAction(int i, int eventCode) {
+  void chooseAction(int realKey, int eventCode) {
     if(eventCode>1) return; //Only accept press or release events 1 for press 0 for release
-    int realKey = i+1;
     bool realKeyPressed;
     if(eventCode == 1){
       realKeyPressed = true;
@@ -263,18 +254,17 @@ public:
     for (int ii = 0; ii < macroEvents.size(); ii++){ //looking for a match in keyMacros
       if(macroEvents[ii]->getButton() == realKey){
         clog << "Config match, the type is : " << macroEvents[ii]->getType() << " and the cmd is : " << macroEvents[ii]->getContent() << endl;
-        for (int iii = 0; iii < configKeys.size(); iii++){ //looking for a match in keyConfigs
-          if(configKeys[iii]->getCode() == macroEvents[ii]->getType() && !configKeys[iii]->getInternal()){
-            clog << "Running command : " << macroEvents[ii]->getContent() << endl;
-            configKeys[iii]->execute(macroEvents[ii]->getContent(), realKeyPressed);//runs the Command
-          } else if (configKeys[iii]->getCode() == macroEvents[ii]->getType() && configKeys[iii]->getInternal()){
+        for (int ee = 0; ee < configKeys.size(); ee++){ //looking for a match in keyConfigs
+          if(configKeys[ee]->getCode() == macroEvents[ii]->getType() && !configKeys[ee]->getInternal()){
+            configKeys[ee]->execute(macroEvents[ii]->getContent(), realKeyPressed);//runs the Command
+          } else if (configKeys[ee]->getCode() == macroEvents[ii]->getType() && configKeys[ee]->getInternal()){
             if(macroEvents[ii]->getType() == "chmap"){
               clog << "Switching config to : " << macroEvents[ii]->getContent() << endl;
               this->loadConf(macroEvents[ii]->getContent());//change config for macroEvents[ii]->getContent()
             }//else if(macroEvents[ii]->getType() == ""){}
             //add other internal commands here ^ (can only run one per button tho)
             ii=macroEvents.size();
-            iii=configKeys.size();
+            ee=configKeys.size();
           }
         }
       }
