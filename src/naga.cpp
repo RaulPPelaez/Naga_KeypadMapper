@@ -57,11 +57,12 @@ public:
   bool getInternal(){
     return internal;
   }
+  bool getOnKeyPressed(){
+    return onKeyPressed;
+  }
   void execute(string command, bool pressed){
-    if(pressed == onKeyPressed){
-      clog << "Running command : " << code << " for " << command << endl;
-      int pid = system((content+command).c_str());
-    }
+    clog << "Running command : " << code << " for " << command << endl;
+    int pid = system((content+command).c_str());
   }
 };
 
@@ -149,9 +150,8 @@ public:
     }
     bool found1 = false, found2 = false;
     string line, line1, token1;
-    int pos, configLine, readingLine=0, configEndLine;
-    while (getline(in, line) && !found2) {
-      readingLine++;
+    int pos, configLine, configEndLine;
+    for (int readingLine = 1; getline(in, line) && !found2; readingLine++) {
       if(!found1 && line.find("config="+configName) != string::npos) //finding configname
       {
         configLine=readingLine;
@@ -231,9 +231,9 @@ public:
       if(macroEvents[ii]->getButton() == realKeyNb){
         clog << "Type of action is : " << macroEvents[ii]->getType() << " & the cmd is : " << macroEvents[ii]->getContent() << endl;
         for (int ee = 0; ee < configKeys.size(); ee++){ //looking for a match in keyConfigs
-          if(configKeys[ee]->getCode() == macroEvents[ii]->getType() && !configKeys[ee]->getInternal()){
+          if(configKeys[ee]->getCode() == macroEvents[ii]->getType() && !configKeys[ee]->getInternal() && configKeys[ee]->getOnKeyPressed()==realKeyIsPressed){
             configKeys[ee]->execute(macroEvents[ii]->getContent(), realKeyIsPressed);//runs the Command
-          } else if (configKeys[ee]->getCode() == macroEvents[ii]->getType() && configKeys[ee]->getInternal()){
+          } else if (configKeys[ee]->getCode() == macroEvents[ii]->getType() && configKeys[ee]->getInternal() && configKeys[ee]->getOnKeyPressed()==realKeyIsPressed){
             if(macroEvents[ii]->getType() == "chmap"){
               clog << "Switching config to : " << macroEvents[ii]->getContent() << endl;
               this->loadConf(macroEvents[ii]->getContent());//change config for macroEvents[ii]->getContent()
