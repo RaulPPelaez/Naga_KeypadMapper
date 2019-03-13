@@ -48,12 +48,6 @@ public:
     internal = tinternal;
     onKeyPressed = tonKeyPressed;
   }
-  configKey(string tcode, bool tinternal = false, bool tonKeyPressed = true, string tcontent = ""){
-    code = tcode;
-    content = tcontent;
-    internal = tinternal;
-    onKeyPressed = tonKeyPressed;
-  }
   string getCode(){
     return code;
   }
@@ -65,8 +59,8 @@ public:
   }
   void execute(string command, bool pressed){
     if(pressed == onKeyPressed){
-      clog << "Running command : " << "setsid " << content << command << endl;
-      int pid = system(("setsid "+content+command).c_str());
+      clog << "Running command : " << code << " for " << command << endl;
+      int pid = system((content+command).c_str());
     }
   }
 };
@@ -93,6 +87,7 @@ public:
 };
 
 class NagaDaemon {
+private:
   std::vector<configKey *> configKeys;
   std::vector<macroEvent *> macroEvents;
   struct input_event ev1[64], ev2[64];
@@ -103,42 +98,34 @@ public:
   NagaDaemon(int argc, char *argv[]) {
 
     //modulable device files list
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse");              // NAGA EPIC
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-if01-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-event-mouse");         // NAGA EPIC DOCK
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse");              // NAGA 2014
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga-event-mouse");                   // NAGA MOLTEN
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-event-mouse");       // NAGA EPIC CHROMA
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-if01-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-event-mouse");  // NAGA EPIC CHROMA DOCK
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-if02-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse");            // NAGA CHROMA
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex-if01-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse"); // NAGA HEX
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd",
-    "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse"); // Naga Trinity
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse");                                  // NAGA EPIC
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-event-mouse");                        // NAGA EPIC DOCK
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse");                                  // NAGA 2014
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga-event-mouse");                                            // NAGA MOLTEN
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-event-mouse");                    // NAGA EPIC CHROMA
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-event-mouse");          // NAGA EPIC CHROMA DOCK
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse");                              // NAGA CHROMA
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse");                                    // NAGA HEX
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse");  // Naga Trinity
 
     //modulable options list
-    configKeys.emplace_back(new configKey("chmap", true, true)); //manage internals inside chooseAction method
-    configKeys.emplace_back(new configKey("run", "", false, true));
-    configKeys.emplace_back(new configKey("runRelease", "", false, false));
-    configKeys.emplace_back(new configKey("key", "xdotool keydown --window getactivewindow ", false, true));
-    configKeys.emplace_back(new configKey("key", "xdotool keyup --window getactivewindow ", false, false));
-    configKeys.emplace_back(new configKey("keyClick", "xdotool key --window getactivewindow ", false, true));
-    configKeys.emplace_back(new configKey("keyClickRelease", "xdotool key --window getactivewindow ", false, false));
-    configKeys.emplace_back(new configKey("mousePosition", "xdotool mousemove ", false, true));
-    configKeys.emplace_back(new configKey("mouseClick", "xdotool click ", false, true));
-    configKeys.emplace_back(new configKey("setWorkspace", "xdotool set_desktop ", false, true));
-    configKeys.emplace_back(new configKey("mouseClick", "xdotool click ", false, true));
+    configKeys.emplace_back(new configKey("chmap", "", true, true)); //manage internals inside chooseAction method
+    configKeys.emplace_back(new configKey("run", "setsid ", false, true));
+    configKeys.emplace_back(new configKey("run2", "", false, true));
+    configKeys.emplace_back(new configKey("runRelease", "setsid ", false, false));
+    configKeys.emplace_back(new configKey("key", "setsid xdotool keydown --window getactivewindow ", false, true));
+    configKeys.emplace_back(new configKey("key", "setsid xdotool keyup --window getactivewindow ", false, false));
+    configKeys.emplace_back(new configKey("keyClick", "setsid xdotool key --window getactivewindow ", false, true));
+    configKeys.emplace_back(new configKey("keyClickRelease", "setsid xdotool key --window getactivewindow ", false, false));
+    configKeys.emplace_back(new configKey("mousePosition", "setsid xdotool mousemove ", false, true));
+    configKeys.emplace_back(new configKey("mouseClick", "setsid xdotool click ", false, true));
+    configKeys.emplace_back(new configKey("setWorkspace", "setsid xdotool set_desktop ", false, true));
+    configKeys.emplace_back(new configKey("mouseClick", "setsid xdotool click ", false, true));
 
     size = sizeof(struct input_event);
     for (auto &device : devices) { //Setup check
       if ((side_btn_fd = open(device.first, O_RDONLY)) != -1 &&  (extra_btn_fd = open(device.second, O_RDONLY)) != -1) {
-        cout << "Reading from: " << device.first << " and " << device.second << endl;
+        clog << "Reading from: " << device.first << " and " << device.second << endl;
         break;
       }
     }
@@ -163,7 +150,6 @@ public:
     bool found1 = false, found2 = false;
     string line, line1, token1;
     int pos, configLine, readingLine=0, configEndLine;
-
     while (getline(in, line) && !found2) {
       readingLine++;
       if(!found1 && line.find("config="+configName) != string::npos) //finding configname
@@ -185,8 +171,7 @@ public:
     }
     in.clear();
     in.seekg(0, ios::beg); //reset file reading
-    readingLine=1;
-    while (getline(in, line) && readingLine<configEndLine){
+    for (int readingLine = 1; getline(in, line) && readingLine<configEndLine; readingLine++){
       if (readingLine>configLine) //&& readingLine<configEndLine in the while
       {
         if (line[0] == '#' || line.find_first_not_of(' ') == std::string::npos) continue; //Ignore comments, empty lines, config= and configEnd
@@ -199,33 +184,32 @@ public:
         line1 = line1.substr(pos + 1);
         macroEvents.emplace_back(new macroEvent(stoi(token1), line1, line));//Encode and store mapping v2
       }
-      readingLine++;
     }
     in.close();
   }
 
   void run() {
-    int rd, rd1, rd2;
+    int rd1, rd2;
     fd_set readset;
     ioctl(side_btn_fd, EVIOCGRAB, 1);// Give application exclusive control over side buttons.
     while (1) {
       FD_ZERO(&readset);
       FD_SET(side_btn_fd, &readset);
       FD_SET(extra_btn_fd, &readset);
-      rd = select(FD_SETSIZE, &readset, NULL, NULL, NULL);
-      if (rd == -1) exit(2);
+      rd1 = select(FD_SETSIZE, &readset, NULL, NULL, NULL);
+      if (rd1 == -1) exit(2);
       if (FD_ISSET(side_btn_fd, &readset)) // Side buttons
       {
-        rd1 = read(side_btn_fd, ev1, size * 64);
-        if (rd1 == -1) exit(2);
+        rd2 = read(side_btn_fd, ev1, size * 64);
+        if (rd2 == -1) exit(2);
         if (ev1[0].value != ' ' && ev1[1].type == EV_KEY)  //Key event (press or release)
         switch (ev1[1].code) {
           case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
             chooseAction(ev1[1].code - 1, ev1[1].value); //ev1[1].value holds 1 if press event and 0 if release
-          break;  // do nothing on default
+          break;
         }
       }
-      else // Extra buttons
+      if (FD_ISSET(extra_btn_fd, &readset))// Extra buttons
       {
         rd2 = read(extra_btn_fd, ev2, size * 64);
         if (rd2 == -1) exit(2);
@@ -242,15 +226,10 @@ public:
 
   void chooseAction(int realKey, int eventCode) {
     if(eventCode>1) return; //Only accept press or release events 1 for press 0 for release
-    bool realKeyPressed;
-    if(eventCode == 1){
-      realKeyPressed = true;
-    } else if (eventCode == 0){
-      realKeyPressed = false;
-    }
+    bool realKeyPressed = eventCode == 1;
     for (int ii = 0; ii < macroEvents.size(); ii++){ //looking for a match in keyMacros
       if(macroEvents[ii]->getButton() == realKey){
-        clog << "Config match, the type is : " << macroEvents[ii]->getType() << " and the cmd is : " << macroEvents[ii]->getContent() << endl;
+        clog << "Type of action is : " << macroEvents[ii]->getType() << " & the cmd is : " << macroEvents[ii]->getContent() << endl;
         for (int ee = 0; ee < configKeys.size(); ee++){ //looking for a match in keyConfigs
           if(configKeys[ee]->getCode() == macroEvents[ii]->getType() && !configKeys[ee]->getInternal()){
             configKeys[ee]->execute(macroEvents[ii]->getContent(), realKeyPressed);//runs the Command
@@ -259,7 +238,7 @@ public:
               clog << "Switching config to : " << macroEvents[ii]->getContent() << endl;
               this->loadConf(macroEvents[ii]->getContent());//change config for macroEvents[ii]->getContent()
             }//else if(macroEvents[ii]->getType() == ""){}
-            //add other internal commands here ^ (can only run one per button tho)
+            //add other internal commands here ^ (can only run one per button tho) you can also use configKeys[ee]->getContent() to get content/commands from internal operator
             ii=macroEvents.size();
             ee=configKeys.size();
           }
@@ -312,7 +291,6 @@ int main(int argc, char *argv[]) {
       xinputStart();
       NagaDaemon daemon(argc, argv);
       daemon.run();
-      exit(0);
     }
   } else {
     clog << "Possible arguments : " << endl << "  -start          Starts the daemon in hidden mode. (stops it before)" << endl << "  -stop           Stops the daemon." << endl << "  -debug          Starts the daemon in the terminal," << endl << "                      --giving access to logs. (stops it before)" << endl << "  -killroot       Stops the rooted daemon if ran as root." << endl;
