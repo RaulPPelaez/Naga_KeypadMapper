@@ -114,6 +114,7 @@ public:
     configKeys.emplace_back(new configKey("run", "setsid ", false, true));
     configKeys.emplace_back(new configKey("run2", "", false, true));
     configKeys.emplace_back(new configKey("runRelease", "setsid ", false, false));
+    configKeys.emplace_back(new configKey("runRelease2", "", false, false));
     configKeys.emplace_back(new configKey("key", "setsid xdotool keydown --window getactivewindow ", false, true));
     configKeys.emplace_back(new configKey("key", "setsid xdotool keyup --window getactivewindow ", false, false));
     configKeys.emplace_back(new configKey("keyClick", "setsid xdotool key --window getactivewindow ", false, true));
@@ -238,7 +239,7 @@ public:
             if(macroEvents[ii]->getType() == "chmap"){
               clog << "Switching config to : " << macroEvents[ii]->getContent() << endl;
               this->loadConf(macroEvents[ii]->getContent());//change config for macroEvents[ii]->getContent()
-            }//else if(macroEvents[ii]->getType() == ""){} <---add other internal commands here ^ (can only run one per button tho) you can also use configKeys[ee]->getContent() to get content/commands from internal operator
+            }//else if(macroEvents[ii]->getType() == ""){} <---add other internal commands here (can only run one per button tho) you can also use configKeys[ee]->getContent() to get content/commands from internal operator
             ii=macroEvents.size();
             ee=configKeys.size();
           }
