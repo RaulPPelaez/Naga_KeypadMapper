@@ -223,9 +223,6 @@ public:
           case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
             chooseAction(ev1[1].code - 1, ev1[1].value); //ev1[1].value holds 1 if press event and 0 if release
           break;  // do nothing on default
-          default:
-            clog << "An uncatched key was pressed ! : " << ev1[1].code << endl;
-          break;
         }
       }
       else // Extra buttons
