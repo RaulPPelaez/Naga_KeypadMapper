@@ -189,7 +189,7 @@ public:
   }
 
   void run() {
-    int rd1, rd2;
+    int rd1;
     fd_set readset;
     ioctl(side_btn_fd, EVIOCGRAB, 1);// Give application exclusive control over side buttons.
     while (1) {
@@ -200,8 +200,8 @@ public:
       if (rd1 == -1) exit(2);
       if (FD_ISSET(side_btn_fd, &readset)) // Side buttons
       {
-        rd2 = read(side_btn_fd, ev1, size * 64);
-        if (rd2 == -1) exit(2);
+        rd1 = read(side_btn_fd, ev1, size * 64);
+        if (rd1 == -1) exit(2);
         if (ev1[0].value != ' ' && ev1[1].type == EV_KEY)  //Key event (press or release)
         switch (ev1[1].code) {
           case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
@@ -211,8 +211,8 @@ public:
       }
       if (FD_ISSET(extra_btn_fd, &readset))// Extra buttons
       {
-        rd2 = read(extra_btn_fd, ev2, size * 64);
-        if (rd2 == -1) exit(2);
+        rd1 = read(extra_btn_fd, ev2, size * 64);
+        if (rd1 == -1) exit(2);
         if (ev2[1].type == 1){ //Only extra buttons
           switch (ev2[1].code) {
             case 275: case 276:
