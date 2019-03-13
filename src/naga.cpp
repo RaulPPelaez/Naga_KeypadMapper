@@ -224,21 +224,20 @@ public:
     }
   }
 
-  void chooseAction(int realKey, int eventCode) {
+  void chooseAction(int realKeyNb, int eventCode) {
     if(eventCode>1) return; //Only accept press or release events 1 for press 0 for release
-    bool realKeyPressed = eventCode == 1;
+    bool realKeyIsPressed = eventCode == 1;
     for (int ii = 0; ii < macroEvents.size(); ii++){ //looking for a match in keyMacros
-      if(macroEvents[ii]->getButton() == realKey){
+      if(macroEvents[ii]->getButton() == realKeyNb){
         clog << "Type of action is : " << macroEvents[ii]->getType() << " & the cmd is : " << macroEvents[ii]->getContent() << endl;
         for (int ee = 0; ee < configKeys.size(); ee++){ //looking for a match in keyConfigs
           if(configKeys[ee]->getCode() == macroEvents[ii]->getType() && !configKeys[ee]->getInternal()){
-            configKeys[ee]->execute(macroEvents[ii]->getContent(), realKeyPressed);//runs the Command
+            configKeys[ee]->execute(macroEvents[ii]->getContent(), realKeyIsPressed);//runs the Command
           } else if (configKeys[ee]->getCode() == macroEvents[ii]->getType() && configKeys[ee]->getInternal()){
             if(macroEvents[ii]->getType() == "chmap"){
               clog << "Switching config to : " << macroEvents[ii]->getContent() << endl;
               this->loadConf(macroEvents[ii]->getContent());//change config for macroEvents[ii]->getContent()
-            }//else if(macroEvents[ii]->getType() == ""){}
-            //add other internal commands here ^ (can only run one per button tho) you can also use configKeys[ee]->getContent() to get content/commands from internal operator
+            }//else if(macroEvents[ii]->getType() == ""){} <---add other internal commands here ^ (can only run one per button tho) you can also use configKeys[ee]->getContent() to get content/commands from internal operator
             ii=macroEvents.size();
             ee=configKeys.size();
           }
