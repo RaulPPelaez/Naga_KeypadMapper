@@ -192,6 +192,7 @@ public:
     int rd1;
     fd_set readset;
     ioctl(side_btn_fd, EVIOCGRAB, 1);// Give application exclusive control over side buttons.
+    //ioctl(extra_btn_fd, EVIOCGRAB, 1); //stackoverflow please help
     while (1) {
       FD_ZERO(&readset);
       FD_SET(side_btn_fd, &readset);
@@ -266,13 +267,10 @@ int main(int argc, char *argv[]) {
       clog << "Starting naga daemon in hidden mode..." << endl;
       xinputStart();
       int pid = system("nohup naga -debug > /dev/null 2>&1 &");
-      exit(0);
     }else if(strcmp(argv[1], "-kill")==0 || strcmp(argv[1], "--kill")==0 || strcmp(argv[1], "--stop")==0 || strcmp(argv[1], "-stop")==0){
       stopD();
-      exit(0);
     }else if(strcmp(argv[1], "-killroot")==0 || strcmp(argv[1], "--killroot")==0){
       stopDroot();
-      exit(0);
     }else if(strcmp(argv[1], "-uninstall")==0 || strcmp(argv[1], "--uninstall")==0){
       string answer;
       clog << "Are you sure you want to uninstall ? y/n" << endl;
@@ -282,7 +280,6 @@ int main(int argc, char *argv[]) {
       }else{
         int pid = system("bash /usr/local/bin/nagaUninstall.sh");
       }
-      exit(0);
     }else if(strcmp(argv[1], "-debug")==0 || strcmp(argv[1], "--debug")==0){
       stopD();
       usleep(40000);
