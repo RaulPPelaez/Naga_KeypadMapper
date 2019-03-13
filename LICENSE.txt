@@ -20,7 +20,7 @@
 * "THE BEER-WARE LICENSE" (Revision 420):
 * RaulPPelaez et. al wrote this file and lostallmymoney made a branch. As long as you retain this notice you
 * can do whatever you want with this stuff. If we meet some day, and you think
-* this stuff is worth it, you can gimme me a j in return.   lostallmymoney 2018
+* this stuff is worth it, you can hand me a legal canadian joint in return.  lostallmymoney 2018
 * ----------------------------------------------------------------------------
 * This is lostallmymoney's branch of RaulPPelaez's original tool.
 * Modifying a lot of stuff so it might never merge with master.
