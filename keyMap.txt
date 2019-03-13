@@ -11,8 +11,8 @@ config=defaultConfig
 10 - key=XF86AudioPrev
 11 - key=XF86AudioPlay
 12 - key=XF86AudioNext
-13 - keyClick=a
-14 - keyClick=b
+13 - key=a
+14 - key=b
 configEnd
 
 #not adding the 2 making it doing nothing
