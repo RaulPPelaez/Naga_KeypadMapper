@@ -91,7 +91,7 @@ class NagaDaemon {
 private:
   std::vector<configKey *> configKeys;
   std::vector<macroEvent *> macroEvents;
-  struct input_event ev1[64], ev2[64];
+  struct input_event ev1[64];
   int id, side_btn_fd, extra_btn_fd, size;
   vector<pair<const char *,const char *>> devices;
   const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
@@ -212,12 +212,12 @@ public:
       }
       if (FD_ISSET(extra_btn_fd, &readset))// Extra buttons
       {
-        rd1 = read(extra_btn_fd, ev2, size * 64);
+        rd1 = read(extra_btn_fd, ev1, size * 64);
         if (rd1 == -1) exit(2);
-        if (ev2[1].type == 1){ //Only extra buttons
-          switch (ev2[1].code) {
+        if (ev1[1].type == 1){ //Only extra buttons
+          switch (ev1[1].code) {
             case 275: case 276:
-            chooseAction(ev2[1].code - OFFSET, ev2[1].value);
+            chooseAction(ev1[1].code - OFFSET, ev1[1].value);
             break;
           }
         }
