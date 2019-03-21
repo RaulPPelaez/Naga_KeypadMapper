@@ -23,7 +23,7 @@ sudo chmod 755 /usr/local/bin/naga
 
 cd ..
 
-groupadd -f razer
+sudo groupadd -f razer
 sudo cp -f ./src/nagaXinputStart.sh /usr/local/bin/
 sudo chmod 755 /usr/local/bin/nagaXinputStart.sh
 
