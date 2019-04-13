@@ -59,6 +59,8 @@ public:
 			 "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse");            // NAGA CHROMA
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex-if01-event-kbd",
 			 "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse");               // NAGA HEX
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-if02-event-kbd",
+                         "/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-event-mouse");            // NAGA HEX v2
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd",
 			 "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse"); // Naga Trinity
 
