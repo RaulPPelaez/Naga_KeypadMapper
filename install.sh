@@ -33,9 +33,19 @@ echo "Some window managers do not support ~/.config/autostart. Please add nagast
 #	echo "bash /usr/local/bin/nagastart.sh &" >> "$HOME"/.profile
 #fi
 
-mkdir -p ~/.naga
-cp -n mapping_{01,02,03}.txt ~/.naga/
-sudo chown -R $(whoami):$(id -gn $(whoami)) ~/.naga/
+#upgrade without losing configuration files
+if [ ! -d ~/.config/naga/ ]; then
+	if [ -d ~/.naga ]; then
+		echo "moving ~/.naga to ~/.config/naga"
+		mv ~/.naga ~/.config/naga
+	else
+		echo "creating ~/.config/naga for mappings"
+		mkdir -p ~/.config/naga
+		#copy existing files to new directory
+		cp -n mapping_{01,02,03}.txt ~/.config/naga/
+		sudo chown -R $(whoami):$(id -gn $(whoami)) ~/.config/naga/
+	fi
+fi
 
 echo "Creating udev rule..."
 
