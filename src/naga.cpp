@@ -62,7 +62,9 @@ public:
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-if02-event-kbd",
                          "/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-event-mouse");            // NAGA HEX v2
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd",
-			 "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse"); // Naga Trinity
+			 "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse"); // Naga Trinit
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Left_Handed_Edition-if02-event-kbd",
+			 "/dev/input/by-id/usb-Razer_Razer_Naga_Left_Handed_Edition-event-mouse");  // NAGA Left Handed
 
     size = sizeof(struct input_event);
     //Setup check
