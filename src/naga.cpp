@@ -34,6 +34,8 @@
 #include <unistd.h>
 #include <linux/input.h>
 #include <cstring>
+#include <thread>
+#include <map>
 #define OFFSET 262
 using namespace std;
 
@@ -87,17 +89,156 @@ public:
   }
 };
 
+class configSwitchScheduler{
+private:
+  bool scheduledReMap = false;
+  string scheduledReMapString="";
+public:
+  configSwitchScheduler(){  }
+
+  void scheduleReMap(string reMapString) {
+    scheduledReMapString=reMapString;
+    scheduledReMap = true;
+  }
+  bool isRemapScheduled() {
+    return scheduledReMap;
+  }
+  string getRemapString() {
+    return scheduledReMapString;
+  }
+};
+
 class NagaDaemon {
 private:
+  configSwitchScheduler configSwitcher = configSwitchScheduler();
+  string currentConfigName = "";
   std::vector<configKey *> configKeys;
-  std::vector<macroEvent *> macroEvents;
+  std::map<std::string, std::vector<macroEvent *>> macroEventsMap;
   struct input_event ev1[64];
   int id, side_btn_fd, extra_btn_fd, size;
   vector<pair<const char *,const char *>> devices;
   const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
-public:
-  NagaDaemon(int argc, char *argv[]) {
 
+  void loadConf(string configName) {
+    if(!macroEventsMap.contains(configName)){
+      ifstream in(conf_file.c_str(), ios::in);
+      if (!in) {
+        cerr << "Cannot open " << conf_file << ". Exiting." << endl;
+        exit(1);
+      }
+      bool found1 = false, found2 = false;
+      string line, line1, token1;
+      int pos, configLine, configEndLine;
+      macroEventsMap.insert(pair<std::string, std::vector<macroEvent *>>(configName, std::vector<macroEvent *>()));
+
+      for (int readingLine = 1; getline(in, line) && !found2; readingLine++) {
+        if(!found1 && line.find("config="+configName) != string::npos) //finding configname
+        {
+          configLine=readingLine;
+          found1=true;
+          clog << "Found config start : "<< readingLine << endl;
+        }
+        if(found1 && line.find("configEnd") != string::npos)//finding configEnd
+        {
+          configEndLine=readingLine;
+          found2=true;
+          clog << "Found config end : "<< readingLine << endl;
+        }
+      }
+      if (!found1 || !found2) {
+        cerr << "Error with config names and configEnd : " << configName << ". Exiting." << endl;
+        exit(1);
+      }
+      in.clear();
+      in.seekg(0, ios::beg); //reset file reading
+      for (int readingLine = 1; getline(in, line) && readingLine<configEndLine; readingLine++){
+        if (readingLine>configLine) //&& readingLine<configEndLine in the while
+        {
+          if (line[0] == '#' || line.find_first_not_of(' ') == std::string::npos) continue; //Ignore comments, empty lines, config= and configEnd
+          pos = line.find('=');
+          line1 = line.substr(0, pos); //line1 = numbers and stuff
+          line.erase(0, pos+1); //line = command
+          line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end()); //Erase spaces inside 1st part of the line
+          pos = line1.find("-");
+          token1 = line1.substr(0, pos); //Isolate command type
+          line1 = line1.substr(pos + 1);
+          macroEventsMap[configName].emplace_back(new macroEvent(stoi(token1), line1, line));//Encode and store mapping v2
+        }
+      }
+      in.close();
+    }
+    currentConfigName = configName;
+  }
+
+  void run() {
+    int rd1;
+    fd_set readset;
+    ioctl(side_btn_fd, EVIOCGRAB, 1);// Give application exclusive control over side buttons.
+    //ioctl(extra_btn_fd, EVIOCGRAB, 1); //stackoverflow please help
+    while (1) {
+      if(configSwitcher.isRemapScheduled()){ //remap
+        this->loadConf(configSwitcher.getRemapString());//change config for macroEvents[ii]->getContent()
+      }
+
+      FD_ZERO(&readset);
+      FD_SET(side_btn_fd, &readset);
+      FD_SET(extra_btn_fd, &readset);
+      rd1 = select(FD_SETSIZE, &readset, NULL, NULL, NULL);
+      if (rd1 == -1) exit(2);
+      if (FD_ISSET(side_btn_fd, &readset)) // Side buttons
+      {
+        rd1 = read(side_btn_fd, ev1, size * 64);
+        if (rd1 == -1) exit(2);
+
+        if (ev1[0].value != ' ' && ev1[1].type == EV_KEY){  //Key event (press or release)
+          switch (ev1[1].code) {
+            case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
+              std::thread actionThread(chooseAction, ev1[1].code - 1, ev1[1].value, &macroEventsMap[currentConfigName], &configKeys, &configSwitcher);
+              actionThread.detach();
+            break;
+          }
+        }
+      }else if (FD_ISSET(extra_btn_fd, &readset))// Extra buttons
+      {
+        rd1 = read(extra_btn_fd, ev1, size * 64);
+        if (rd1 == -1) exit(2);
+
+        if (ev1[1].type == 1){ //Only extra buttons
+          switch (ev1[1].code) {
+            case 275: case 276:
+            std::thread actionThread(chooseAction, ev1[1].code - OFFSET, ev1[1].value, &macroEventsMap[currentConfigName], &configKeys, &configSwitcher);
+            actionThread.detach();
+            break;
+          }
+        }
+      }
+    }
+  }
+
+
+  static void chooseAction(int realKeyNb, int eventCode, std::vector<macroEvent *> * relativeMacroEventsPointer, std::vector<configKey *> * configKeysPointer, configSwitchScheduler * congSwitcherPointer) {
+    if(eventCode>1) return; //Only accept press or release events 1 for press 0 for release
+    bool realKeyIsPressed = (eventCode == 1);
+    for (int ii = 0; ii < (*relativeMacroEventsPointer).size(); ii++){ //looking for a match in keyMacros
+      if((*relativeMacroEventsPointer)[ii]->getButton() == realKeyNb){
+        clog << "Type of action is : " << (*relativeMacroEventsPointer)[ii]->getType() << " & the cmd is : " << (*relativeMacroEventsPointer)[ii]->getContent() << endl;
+        for (int ee = 0; ee < (*configKeysPointer).size(); ee++){ //looking for a match in keyConfigs
+          if((*configKeysPointer)[ee]->getCode() == (*relativeMacroEventsPointer)[ii]->getType() && !(*configKeysPointer)[ee]->getInternal() && (*configKeysPointer)[ee]->getOnKeyPressed()==realKeyIsPressed){
+            (*configKeysPointer)[ee]->execute((*relativeMacroEventsPointer)[ii]->getContent(), realKeyIsPressed);//runs the Command
+          } else if ((*configKeysPointer)[ee]->getCode() == (*relativeMacroEventsPointer)[ii]->getType() && (*configKeysPointer)[ee]->getInternal() && (*configKeysPointer)[ee]->getOnKeyPressed()==realKeyIsPressed){
+            if((*relativeMacroEventsPointer)[ii]->getType() == "chmap"){
+              clog << "Switching config to : " << (*relativeMacroEventsPointer)[ii]->getContent() << endl;
+              (*congSwitcherPointer).scheduleReMap((*relativeMacroEventsPointer)[ii]->getContent());//schedule config switch/change
+            }//else if(macroEvents[ii]->getType() == ""){} <---add other internal commands here (can only run one per button tho) you can also use (*configKeysPointer)[ee]->getContent() to get content/commands from internal operator
+            ii=(*relativeMacroEventsPointer).size();
+            ee=(*configKeysPointer).size();
+          }
+        }
+      }
+    }
+  }
+public:
+  NagaDaemon() {
     //modulable device files list
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse");                                  // NAGA EPIC
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-event-mouse");                        // NAGA EPIC DOCK
@@ -110,8 +251,8 @@ public:
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-if02-event-kbd","/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-event-mouse");                               // NAGA HEX v2
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse");  // Naga Trinity
 
-    //modulable options list
-    configKeys.emplace_back(new configKey("chmap", "", true, true)); //manage internals inside chooseAction method
+    //modulable options list to manage internals inside chooseAction method
+    configKeys.emplace_back(new configKey("chmap", "", true, true)); //change keymap
     configKeys.emplace_back(new configKey("run", "setsid ", false, true));
     configKeys.emplace_back(new configKey("run2", "", false, true));
     configKeys.emplace_back(new configKey("runRelease", "setsid ", false, false));
@@ -137,116 +278,7 @@ public:
       exit(1);
     }
     this->loadConf("defaultConfig");//Initialize config
-  }
-
-  void loadConf(string configName) {
-    for ( int oo = 0; oo < macroEvents.size(); oo++){
-      delete macroEvents[oo];
-    }
-    macroEvents.clear();
-    macroEvents.resize(0);
-    ifstream in(conf_file.c_str(), ios::in);
-    if (!in) {
-      cerr << "Cannot open " << conf_file << ". Exiting." << endl;
-      exit(1);
-    }
-    bool found1 = false, found2 = false;
-    string line, line1, token1;
-    int pos, configLine, configEndLine;
-    for (int readingLine = 1; getline(in, line) && !found2; readingLine++) {
-      if(!found1 && line.find("config="+configName) != string::npos) //finding configname
-      {
-        configLine=readingLine;
-        found1=true;
-        clog << "Found config start : "<< readingLine << endl;
-      }
-      if(found1 && line.find("configEnd") != string::npos)//finding configEnd
-      {
-        configEndLine=readingLine;
-        found2=true;
-        clog << "Found config end : "<< readingLine << endl;
-      }
-    }
-    if (!found1 || !found2) {
-      cerr << "Error with config names and configEnd : " << configName << ". Exiting." << endl;
-      exit(1);
-    }
-    in.clear();
-    in.seekg(0, ios::beg); //reset file reading
-    for (int readingLine = 1; getline(in, line) && readingLine<configEndLine; readingLine++){
-      if (readingLine>configLine) //&& readingLine<configEndLine in the while
-      {
-        if (line[0] == '#' || line.find_first_not_of(' ') == std::string::npos) continue; //Ignore comments, empty lines, config= and configEnd
-        pos = line.find('=');
-        line1 = line.substr(0, pos); //line1 = numbers and stuff
-        line.erase(0, pos+1); //line = command
-        line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end()); //Erase spaces inside 1st part of the line
-        pos = line1.find("-");
-        token1 = line1.substr(0, pos); //Isolate command type
-        line1 = line1.substr(pos + 1);
-        macroEvents.emplace_back(new macroEvent(stoi(token1), line1, line));//Encode and store mapping v2
-      }
-    }
-    in.close();
-  }
-
-  void run() {
-    int rd1;
-    fd_set readset;
-    ioctl(side_btn_fd, EVIOCGRAB, 1);// Give application exclusive control over side buttons.
-    //ioctl(extra_btn_fd, EVIOCGRAB, 1); //stackoverflow please help
-    while (1) {
-      FD_ZERO(&readset);
-      FD_SET(side_btn_fd, &readset);
-      FD_SET(extra_btn_fd, &readset);
-      rd1 = select(FD_SETSIZE, &readset, NULL, NULL, NULL);
-      if (rd1 == -1) exit(2);
-      if (FD_ISSET(side_btn_fd, &readset)) // Side buttons
-      {
-        rd1 = read(side_btn_fd, ev1, size * 64);
-        if (rd1 == -1) exit(2);
-        if (ev1[0].value != ' ' && ev1[1].type == EV_KEY)  //Key event (press or release)
-        switch (ev1[1].code) {
-          case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
-            chooseAction(ev1[1].code - 1, ev1[1].value); //ev1[1].value holds 1 if press event and 0 if release
-          break;
-        }
-      }
-      if (FD_ISSET(extra_btn_fd, &readset))// Extra buttons
-      {
-        rd1 = read(extra_btn_fd, ev1, size * 64);
-        if (rd1 == -1) exit(2);
-        if (ev1[1].type == 1){ //Only extra buttons
-          switch (ev1[1].code) {
-            case 275: case 276:
-            chooseAction(ev1[1].code - OFFSET, ev1[1].value);
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  void chooseAction(int realKeyNb, int eventCode) {
-    if(eventCode>1) return; //Only accept press or release events 1 for press 0 for release
-    bool realKeyIsPressed = eventCode == 1;
-    for (int ii = 0; ii < macroEvents.size(); ii++){ //looking for a match in keyMacros
-      if(macroEvents[ii]->getButton() == realKeyNb){
-        clog << "Type of action is : " << macroEvents[ii]->getType() << " & the cmd is : " << macroEvents[ii]->getContent() << endl;
-        for (int ee = 0; ee < configKeys.size(); ee++){ //looking for a match in keyConfigs
-          if(configKeys[ee]->getCode() == macroEvents[ii]->getType() && !configKeys[ee]->getInternal() && configKeys[ee]->getOnKeyPressed()==realKeyIsPressed){
-            configKeys[ee]->execute(macroEvents[ii]->getContent(), realKeyIsPressed);//runs the Command
-          } else if (configKeys[ee]->getCode() == macroEvents[ii]->getType() && configKeys[ee]->getInternal() && configKeys[ee]->getOnKeyPressed()==realKeyIsPressed){
-            if(macroEvents[ii]->getType() == "chmap"){
-              clog << "Switching config to : " << macroEvents[ii]->getContent() << endl;
-              this->loadConf(macroEvents[ii]->getContent());//change config for macroEvents[ii]->getContent()
-            }//else if(macroEvents[ii]->getType() == ""){} <---add other internal commands here (can only run one per button tho) you can also use configKeys[ee]->getContent() to get content/commands from internal operator
-            ii=macroEvents.size();
-            ee=configKeys.size();
-          }
-        }
-      }
-    }
+    this->run();
   }
 };
 
@@ -287,8 +319,7 @@ int main(int argc, char *argv[]) {
       usleep(40000);
       clog << "Starting naga daemon in debug mode..." << endl;
       xinputStart();
-      NagaDaemon daemon(argc, argv);
-      daemon.run();
+      NagaDaemon d = NagaDaemon();
     }
   } else {
     clog << "Possible arguments : " << endl << "  -start          Starts the daemon in hidden mode. (stops it before)" << endl << "  -stop           Stops the daemon." << endl << "  -debug          Starts the daemon in the terminal," << endl << "                      --giving access to logs. (stops it before)" << endl << "  -killroot       Stops the rooted daemon if ran as root." << endl;
