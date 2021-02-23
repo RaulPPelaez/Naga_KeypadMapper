@@ -9,7 +9,7 @@ command -v g++ >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require g++ but it
 
 echo "Compiling code..."
 cd src
-g++ -Ofast -std=c++17 naga.cpp -o naga
+g++ -pthread -Ofast --std=c++2a naga.cpp -o naga
 
 if [ ! -f ./naga ]; then
 	tput setaf 1; echo "Error at compile! Ensure you have g++ installed. !!!Aborting!!!"
