@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#test
 sudo nohup killall naga > /dev/null 2>&1 &
 
 sudo echo "Checking requirements..."
