@@ -221,13 +221,13 @@ private:
     bool realKeyIsPressed = (eventCode == 1);
     for (int ii = 0; ii < (*relativeMacroEventsPointer).size(); ii++){ //looking for a match in keyMacros
       if((*relativeMacroEventsPointer)[ii]->getButton() == realKeyNb){
-        clog << "Type of action is : " << (*relativeMacroEventsPointer)[ii]->getType() << " & the cmd is : " << (*relativeMacroEventsPointer)[ii]->getContent() << endl;
+        //clog << "Type of action is : " << (*relativeMacroEventsPointer)[ii]->getType() << " & the cmd is : " << (*relativeMacroEventsPointer)[ii]->getContent() << endl;
         for (int ee = 0; ee < (*configKeysPointer).size(); ee++){ //looking for a match in keyConfigs
           if((*configKeysPointer)[ee]->getCode() == (*relativeMacroEventsPointer)[ii]->getType() && !(*configKeysPointer)[ee]->getInternal() && (*configKeysPointer)[ee]->getOnKeyPressed()==realKeyIsPressed){
             (*configKeysPointer)[ee]->execute((*relativeMacroEventsPointer)[ii]->getContent(), realKeyIsPressed);//runs the Command
           } else if ((*configKeysPointer)[ee]->getCode() == (*relativeMacroEventsPointer)[ii]->getType() && (*configKeysPointer)[ee]->getInternal() && (*configKeysPointer)[ee]->getOnKeyPressed()==realKeyIsPressed){
             if((*relativeMacroEventsPointer)[ii]->getType() == "chmap"){
-              clog << "Switching config to : " << (*relativeMacroEventsPointer)[ii]->getContent() << endl;
+              //clog << "Switching config to : " << (*relativeMacroEventsPointer)[ii]->getContent() << endl;
               (*congSwitcherPointer).scheduleReMap((*relativeMacroEventsPointer)[ii]->getContent());//schedule config switch/change
             }//else if(macroEvents[ii]->getType() == ""){} <---add other internal commands here (can only run one per button tho) you can also use (*configKeysPointer)[ee]->getContent() to get content/commands from internal operator
             ii=(*relativeMacroEventsPointer).size();
