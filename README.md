@@ -45,9 +45,10 @@ The configuration file `keyMap.txt` has the following syntax:
 
 	The possible choices are :
 		-chmap : Changes the keymap for another config inside `keymap.txt` in ~/.naga .
-		-key : Runs <command> in xdotool so the possible keys are on google ( i didn't find a list of all the keys ) .
+		-keyPress : Runs <command> in xdotool so the possible keys are on google ( i didn't find a list of all the keys ) .
 			The <command> is run in : **xdotool keydown** or/and **keyup --window getactivewindow <command>** so it's already 'framed' by the program.
 			By example to play/pause music you can put **key=XF86AudioPlay**.
+		-keyRelease
 			The xdotool key is released when the key is released.
 			There seems to be a list of keys on https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h but you need to remove **XK_** and they're not all there so google them if you want to be sure.
 		-run : Runs the command <command> on key press with setsid before the command.
