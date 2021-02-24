@@ -44,12 +44,7 @@ private:
   string code, content;
   bool internal, onKeyPressed;
 public:
-  configKey(string tcode, string tcontent, bool tinternal = false, bool tonKeyPressed = true){
-    code = tcode;
-    content = tcontent;
-    internal = tinternal;
-    onKeyPressed = tonKeyPressed;
-  }
+  configKey(string tcode, string tcontent, bool tinternal = false, bool tonKeyPressed = true):code(tcode), content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){}
   string getCode(){
     return code;
   }
@@ -63,8 +58,8 @@ public:
     return onKeyPressed;
   }
   void execute(string command, bool pressed){
-    clog << "Running command : " << code << " for " << command << endl;
-    int pid = system((content+command).c_str());
+    //clog << "Running command : " << code << " for " << command << endl;
+   (void)!(system((content+command).c_str()));
   }
 };
 
@@ -73,11 +68,7 @@ private:
   int button;
   string type, content;
 public:
-  macroEvent(int tbutton, string ttype, string  tcontent){
-    button = tbutton;
-    type = ttype;
-    content = tcontent;
-  }
+  macroEvent(int tbutton, string * ttype, string * tcontent):button(tbutton), type(*ttype), content(*tcontent){}
   int getButton(){
     return button;
   }
@@ -97,7 +88,7 @@ public:
   configSwitchScheduler(){  }
 
   void scheduleReMap(string reMapString) {
-    scheduledReMapString=reMapString;
+    scheduledReMapString = reMapString;
     scheduledReMap = true;
   }
   bool isRemapScheduled() {
@@ -162,7 +153,7 @@ private:
           pos = line1.find("-");
           token1 = line1.substr(0, pos); //Isolate command type
           line1 = line1.substr(pos + 1);
-          macroEventsMap[configName].emplace_back(new macroEvent(stoi(token1), line1, line));//Encode and store mapping v2
+          macroEventsMap[configName].emplace_back(new macroEvent(stoi(token1), &line1, &line));//Encode and store mapping v2
         }
       }
       in.close();
@@ -284,15 +275,15 @@ public:
 
 void stopD() {
   clog << "Stopping possible naga daemon" << endl;
-  int pid = system(("nohup kill $(ps aux | grep naga | grep debug | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str());
+ (void)!(system(("nohup kill $(ps aux | grep naga | grep debug | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str()));
 };
 
 void stopDroot() {
-  int pid = system(("nohup kill $(ps aux | grep naga | grep debug | grep root | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str());
+ (void)!(system(("nohup kill $(ps aux | grep naga | grep debug | grep root | grep -v "+ std::to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1 &").c_str()));
 };
 
 void xinputStart(){
-  int pid = system("/usr/local/bin/nagaXinputStart.sh");
+ (void)!(system("/usr/local/bin/nagaXinputStart.sh"));
 };
 
 int main(int argc, char *argv[]) {
@@ -300,7 +291,7 @@ int main(int argc, char *argv[]) {
     if(strcmp(argv[1], "-start")==0 || strcmp(argv[1], "--start")==0){
       clog << "Starting naga daemon in hidden mode..." << endl;
       xinputStart();
-      int pid = system("nohup naga -debug > /dev/null 2>&1 &");
+     (void)!(system("nohup naga -debug > /dev/null 2>&1 &"));
     }else if(strcmp(argv[1], "-kill")==0 || strcmp(argv[1], "--kill")==0 || strcmp(argv[1], "--stop")==0 || strcmp(argv[1], "-stop")==0){
       stopD();
     }else if(strcmp(argv[1], "-killroot")==0 || strcmp(argv[1], "--killroot")==0){
@@ -312,14 +303,14 @@ int main(int argc, char *argv[]) {
       if(answer.length() != 1 || ( answer[0] != 'y' &&  answer[0] != 'Y' )){
         clog << "Aborting" << endl;
       }else{
-        int pid = system("bash /usr/local/bin/nagaUninstall.sh");
+       (void)!(system("bash /usr/local/bin/nagaUninstall.sh"));
       }
     }else if(strcmp(argv[1], "-debug")==0 || strcmp(argv[1], "--debug")==0){
       stopD();
       usleep(40000);
       clog << "Starting naga daemon in debug mode..." << endl;
       xinputStart();
-      NagaDaemon d = NagaDaemon();
+      NagaDaemon();
     }
   } else {
     clog << "Possible arguments : " << endl << "  -start          Starts the daemon in hidden mode. (stops it before)" << endl << "  -stop           Stops the daemon." << endl << "  -debug          Starts the daemon in the terminal," << endl << "                      --giving access to logs. (stops it before)" << endl << "  -killroot       Stops the rooted daemon if ran as root." << endl;
