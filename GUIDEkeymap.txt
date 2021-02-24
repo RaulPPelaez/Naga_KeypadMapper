@@ -1,0 +1,50 @@
+Hi ! Here is the guide to write profiles for this utilitary :
+
+#This is the default profile
+config=defaultConfig
+
+#chmap stands for CHANGE MAP
+8 - chmap=defaultConfig2
+
+
+#keypress press a key when you press the key, here it's the key number 1
+1 - keyPress=XF86AudioMute
+#keyrelease will release a key when you release a key, 1 here
+1 - keyRelease=XF86AudioMute
+
+#You can put multiple chronological actions on one key
+
+3 - run=COMMAND
+3 - run=MORE COMMAND
+3 - run=MORE MORE COMMAND
+
+#runRelease runs on release
+5 - runRelease=gnome-terminal
+
+#keyClick presses and release the key instantly
+13 - keyClick=a
+
+#keyClickRelease presses and release the key instantly on release
+14 - keyClickRelease=b
+configEnd
+
+#mousePosition will change mouse position on screen using "xdotool mousemove ARGS"
+8 - mousePosition=69 69
+
+#mouseclick... well if you can't figure it out lol "xdotoll click"
+9 - mouseclick=
+
+#setworkspace "xdotool set_desktop"
+4 - setworkspace=WORKSPACE
+
+# To make a profile do like such :
+
+config=defaultConfig2
+13 - keyClick=a
+14 - keyClick=b
+configEnd
+
+
+extra :
+run2 will run without setsid prefix
+runrelease2 will do same but on release
