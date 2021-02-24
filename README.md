@@ -1,4 +1,4 @@
-# Razer Key Mapper for Linux
+# Razer Mouse Mapper for Linux
 ..also can accept other devices they're simply untested. Contact me for adding devices.
 
 This should be easy to install just run sh install.sh from inside the directory.
