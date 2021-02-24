@@ -58,7 +58,6 @@ public:
     return onKeyPressed;
   }
   void execute(string command, bool pressed){
-    //clog << "Running command : " << code << " for " << command << endl;
    (void)!(system((content+command).c_str()));
   }
 };
@@ -165,7 +164,6 @@ private:
     int rd1;
     fd_set readset;
     ioctl(side_btn_fd, EVIOCGRAB, 1);// Give application exclusive control over side buttons.
-    //ioctl(extra_btn_fd, EVIOCGRAB, 1); //stackoverflow please help
     while (1) {
       if(configSwitcher.isRemapScheduled()){ //remap
         this->loadConf(configSwitcher.getRemapString());//change config for macroEvents[ii]->getContent()
@@ -212,13 +210,11 @@ private:
     bool realKeyIsPressed = (eventCode == 1);
     for (int ii = 0; ii < (*relativeMacroEventsPointer).size(); ii++){ //looking for a match in keyMacros
       if((*relativeMacroEventsPointer)[ii]->getButton() == realKeyNb){
-        //clog << "Type of action is : " << (*relativeMacroEventsPointer)[ii]->getType() << " & the cmd is : " << (*relativeMacroEventsPointer)[ii]->getContent() << endl;
         for (int ee = 0; ee < (*configKeysPointer).size(); ee++){ //looking for a match in keyConfigs
           if((*configKeysPointer)[ee]->getCode() == (*relativeMacroEventsPointer)[ii]->getType() && !(*configKeysPointer)[ee]->getInternal() && (*configKeysPointer)[ee]->getOnKeyPressed()==realKeyIsPressed){
             (*configKeysPointer)[ee]->execute((*relativeMacroEventsPointer)[ii]->getContent(), realKeyIsPressed);//runs the Command
           } else if ((*configKeysPointer)[ee]->getCode() == (*relativeMacroEventsPointer)[ii]->getType() && (*configKeysPointer)[ee]->getInternal() && (*configKeysPointer)[ee]->getOnKeyPressed()==realKeyIsPressed){
             if((*relativeMacroEventsPointer)[ii]->getType() == "chmap"){
-              //clog << "Switching config to : " << (*relativeMacroEventsPointer)[ii]->getContent() << endl;
               (*congSwitcherPointer).scheduleReMap((*relativeMacroEventsPointer)[ii]->getContent());//schedule config switch/change
             }//else if(macroEvents[ii]->getType() == ""){} <---add other internal commands here (can only run one per button tho) you can also use (*configKeysPointer)[ee]->getContent() to get content/commands from internal operator
             ii=(*relativeMacroEventsPointer).size();
@@ -238,7 +234,7 @@ public:
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-event-mouse");                    // NAGA EPIC CHROMA
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-event-mouse");          // NAGA EPIC CHROMA DOCK
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse");                              // NAGA CHROMA
-    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse");                                    // NAGA HEXdevices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-if02-event-kbd",
+    devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse");                                    // NAGA HEX
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-if02-event-kbd","/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-event-mouse");                               // NAGA HEX v2
     devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse");  // Naga Trinity
 
@@ -288,15 +284,15 @@ void xinputStart(){
 
 int main(int argc, char *argv[]) {
   if(argc>1){
-    if(strcmp(argv[1], "-start")==0 || strcmp(argv[1], "--start")==0){
+    if(strstr(argv[1], "-start")!=NULL){
       clog << "Starting naga daemon in hidden mode..." << endl;
       xinputStart();
      (void)!(system("nohup naga -debug > /dev/null 2>&1 &"));
-    }else if(strcmp(argv[1], "-kill")==0 || strcmp(argv[1], "--kill")==0 || strcmp(argv[1], "--stop")==0 || strcmp(argv[1], "-stop")==0){
+   }else if(strstr(argv[1], "-kill")!=NULL || strstr(argv[1], "-stop")!=NULL){
       stopD();
-    }else if(strcmp(argv[1], "-killroot")==0 || strcmp(argv[1], "--killroot")==0){
+    }else if(strstr(argv[1], "-killroot")!=NULL){
       stopDroot();
-    }else if(strcmp(argv[1], "-uninstall")==0 || strcmp(argv[1], "--uninstall")==0){
+    }else if(strstr(argv[1], "-uninstall")!=NULL){
       string answer;
       clog << "Are you sure you want to uninstall ? y/n" << endl;
       cin >> answer;
@@ -305,7 +301,7 @@ int main(int argc, char *argv[]) {
       }else{
        (void)!(system("bash /usr/local/bin/nagaUninstall.sh"));
       }
-    }else if(strcmp(argv[1], "-debug")==0 || strcmp(argv[1], "--debug")==0){
+    }else if(strstr(argv[1], "-debug")!=NULL){
       stopD();
       usleep(40000);
       clog << "Starting naga daemon in debug mode..." << endl;
@@ -313,7 +309,9 @@ int main(int argc, char *argv[]) {
       NagaDaemon();
     }
   } else {
-    clog << "Possible arguments : " << endl << "  -start          Starts the daemon in hidden mode. (stops it before)" << endl << "  -stop           Stops the daemon." << endl << "  -debug          Starts the daemon in the terminal," << endl << "                      --giving access to logs. (stops it before)" << endl << "  -killroot       Stops the rooted daemon if ran as root." << endl;
+    clog << "Possible arguments : " << endl << "  -start          Starts the daemon in hidden mode. (stops it before)" << endl
+    << "  -stop           Stops the daemon." << endl << "  -debug          Starts the daemon in the terminal," << endl
+    << "                      --giving access to logs. (stops it before)" << endl << "  -killroot       Stops the rooted daemon if ran as root." << endl;
   }
   return 0;
 }
