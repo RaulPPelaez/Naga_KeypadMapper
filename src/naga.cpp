@@ -90,6 +90,12 @@ public:
     scheduledReMapString = reMapString;
     scheduledReMap = true;
   }
+  void notifyChange(){
+     (void)!(system(("notify-send "+scheduledReMapString).c_str()));
+  }
+  void unScheduleReMap(){
+    scheduledReMap=false;
+  }
   bool isRemapScheduled() {
     return scheduledReMap;
   }
@@ -158,6 +164,7 @@ private:
       in.close();
     }
     currentConfigName = configName;
+    (void)!(system(("notify-send -t 200 'New config :' '"+configName+"'").c_str()));
   }
 
   void run() {
@@ -167,6 +174,7 @@ private:
     while (1) {
       if(configSwitcher.isRemapScheduled()){ //remap
         this->loadConf(configSwitcher.getRemapString());//change config for macroEvents[ii]->getContent()
+        configSwitcher.unScheduleReMap();
       }
 
       FD_ZERO(&readset);
