@@ -6,7 +6,7 @@ If there is an error about config files just copy it to your /home/.naga/
 
 Run in root if there is an error accessing the device, also look up naga -debug it'll give all the info you need most of the time.
 
-Map razer naga devices keys with the config file : `keyMap.txt` under `$HOME/.naga/` 
+Map razer naga devices keys with the config file : `keyMap.txt` under `$HOME/.naga/`
 
 Requires: `xdotool`, `xinput` and `g++`
 
@@ -38,11 +38,11 @@ The configuration file `keyMap.txt` has the following syntax:
     "config="<configName> set the name of the following config. The initial loaded config will always be <configName> = defaultConfig .
 
     <keynumber> - <option>=<command>
-    
+
     <keynumber> is a number between 1-14 representing the 12 keys of the naga's keypad + two on the top of the naga.
 
     <option> decides what is going to be applied to <command>
-	
+
 	The possible choices are :
 		-chmap : Changes the keymap for another config inside `keymap.txt` in ~/.naga .
 		-key : Runs <command> in xdotool so the possible keys are on google ( i didn't find a list of all the keys ) .
@@ -59,7 +59,7 @@ The configuration file `keyMap.txt` has the following syntax:
 		-keyClickRelease : Press a key once when the button is released .
 
     		<command> is what is going to be used based on the option.
-    
+
 		To test any <command> run it in the command cited above.
 
 		"configEnd" Marks the end of <configName>.
@@ -92,7 +92,7 @@ For a key multiple actions may be defined. They will then be executed sequential
 
 An example `keyMap.txt` configuration file is the following:
 
-    #Comments should be accepted 
+    #Comments should be accepted
     config=defaultConfig
     1 - key=XF86AudioPlay
     3 - chmap=420configEnemyBlazerWoW
@@ -150,7 +150,7 @@ For all the double dashed ocd people the commands also works with 2 dashes.
 
 where [id] is the id number of the keypad returned by $ xinput.
 
-2) You may have to also run 
+2) You may have to also run
 
     $ xinput set-button-map [id2] 1 2 3 4 5 6 7 11 10 8 9 13 14 15
 
@@ -159,7 +159,3 @@ where [id2] is the id number of the pointer device returned by `xinput` - in cas
 ## UNINSTALLATION
 
 To uninstall you need to run `naga -uninstall` .
-
-
-
-
