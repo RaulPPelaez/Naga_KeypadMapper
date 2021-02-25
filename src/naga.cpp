@@ -23,34 +23,21 @@ private:
 string content;
 bool internal, onKeyPressed;
 public:
-configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(*(&tcontent)), internal(tinternal), onKeyPressed(tonKeyPressed){
-}
-string getContent(){
-	return content;
-}
-bool isInternal(){
-	return internal;
-}
-bool getOnKeyPressed(){
-	return onKeyPressed;
-}
-void execute(string&& command){
-	(void)!(system((content+*(&command)).c_str()));
+const bool& IsOnKeyPressed() const { return onKeyPressed; }
+const bool& isInternal() const { return internal; }
+configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(*(&tcontent)), internal(tinternal), onKeyPressed(tonKeyPressed){}
+void execute(string const& command){
+	(void)!(system((content+command).c_str()));
 }
 };
 
 class macroEvent {
 private:
-string type, content;
+const string type, content;
 public:
-macroEvent(string * ttype, string * tcontent) : type(*ttype), content(*tcontent){
-}
-string getType(){
-	return type;
-}
-string getContent(){
-	return content;
-}
+const string& Type() const { return type; }
+const string& Content() const { return content; }
+macroEvent(string * ttype, string * tcontent) : type(*ttype), content(*tcontent){}
 };
 
 class configSwitchScheduler {
@@ -58,37 +45,28 @@ private:
 bool scheduledReMap = false;
 string scheduledReMapString="";
 public:
-configSwitchScheduler(){
-}
-
-void scheduleReMap(string&& reMapString) {
-	scheduledReMapString = *(&reMapString);
+const string& RemapString() const { return scheduledReMapString; }
+const bool& isRemapScheduled() const { return scheduledReMap; }
+void scheduleReMap(string const& reMapString) {
+	scheduledReMapString = reMapString;
 	scheduledReMap = true;
 }
 void unScheduleReMap(){
 	scheduledReMap=false;
 }
-bool isRemapScheduled() {
-	return scheduledReMap;
-}
-string getRemapString() {
-	return scheduledReMapString;
-}
 };
 
 class NagaDaemon {
 private:
-
-configSwitchScheduler configSwitcher = configSwitchScheduler();
-string currentConfigName = "";
-
 std::map<std::string, configKey*> configKeysMap;
 std::map<std::string, std::map<int, std::vector<macroEvent *> > > macroEventsKeyMap;
+configSwitchScheduler configSwitcher = configSwitchScheduler();
 
-struct input_event ev1[64];
-int id, side_btn_fd, extra_btn_fd, size;
-vector<pair<const char *,const char *> > devices;
 const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
+string currentConfigName = "";
+struct input_event ev1[64];
+int side_btn_fd, extra_btn_fd, size;
+vector<pair<const char *,const char *> > devices;
 
 void loadConf(string configName) {
 	if(!macroEventsKeyMap.contains(configName)) {
@@ -150,19 +128,18 @@ void loadConf(string configName) {
 }
 
 void run() {
-	int rd1;
 	fd_set readset;
 	ioctl(side_btn_fd, EVIOCGRAB, 1);      // Give application exclusive control over side buttons.
 	while (1) {
 		if(configSwitcher.isRemapScheduled()) {             //remap
-			this->loadConf(configSwitcher.getRemapString());                  //change config for macroEvents[ii]->getContent()
+			this->loadConf(configSwitcher.RemapString());                  //change config for macroEvents[ii]->Content()
 			configSwitcher.unScheduleReMap();
 		}
 
 		FD_ZERO(&readset);
 		FD_SET(side_btn_fd, &readset);
 		FD_SET(extra_btn_fd, &readset);
-		rd1 = select(FD_SETSIZE, &readset, NULL, NULL, NULL);
+		int rd1 = select(FD_SETSIZE, &readset, NULL, NULL, NULL);
 		if (rd1 == -1) exit(2);
 		if (FD_ISSET(side_btn_fd, &readset))             // Side buttons
 		{
@@ -194,16 +171,17 @@ void run() {
 
 static void chooseAction(int eventCode, std::vector<macroEvent *> * relativeMacroEventsPointer, std::map<string, configKey *> * configKeysMapPointer, configSwitchScheduler * congSwitcherPointer) {
 	if(eventCode>1) return;       //Only accepts press or release events 1 for press 0 for release
-	bool realKeyIsPressed = (eventCode == 1);
 	for(int ii = 0; ii < (*relativeMacroEventsPointer).size(); ii++) {      //run all the events at Key
-		if((*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->getOnKeyPressed()==realKeyIsPressed) { //test if key state is matching
-			if(!((*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->isInternal())) {
-				(*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->execute((*relativeMacroEventsPointer)[ii]->getContent());                //runs the Command
-			} else if ((*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->isInternal()) { //INTERNAL COMMANDS
-				if((*relativeMacroEventsPointer)[ii]->getType() == "chmap" || (*relativeMacroEventsPointer)[ii]->getType() == "chmaprelease") {
-					(*congSwitcherPointer).scheduleReMap((*relativeMacroEventsPointer)[ii]->getContent());                      //schedule config switch/change
-				}else if ((*relativeMacroEventsPointer)[ii]->getType() == "sleep" || (*relativeMacroEventsPointer)[ii]->getType() == "sleeprelease") {
-					usleep(stoul((*relativeMacroEventsPointer)[ii]->getContent()) * 1000);			//microseconds make me dizzy in keymap.txt
+		macroEvent * macroEventPointer = (*relativeMacroEventsPointer)[ii];
+		configKey * configKeyPointer = (*configKeysMapPointer)[macroEventPointer->Type()];
+		if(configKeyPointer->IsOnKeyPressed()==(eventCode == 1)) { //test if key state is matching
+			if(!(configKeyPointer->isInternal())) {
+				configKeyPointer->execute(macroEventPointer->Content());                //runs the Command
+			} else { //INTERNAL COMMANDS
+				if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
+					(*congSwitcherPointer).scheduleReMap(macroEventPointer->Content());                      //schedule config switch/change
+				}else if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease") {
+					usleep(stoul(macroEventPointer->Content()) * 1000);      //microseconds make me dizzy in keymap.txt
 				}
 			}
 		}
