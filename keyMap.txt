@@ -6,7 +6,7 @@ config=defaultConfig
 
 2 - key=2
 
-4 - key=4
+4 - run2=if [ $(ps aux | grep -v grep | grep -o spotify | wc -l) -eq 0 ]; then setsid spotify; fi
 
 5 - run=gnome-terminal
 

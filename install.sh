@@ -26,6 +26,8 @@ cd ..
 sudo groupadd -f razer
 sudo cp -f ./src/nagaXinputStart.sh /usr/local/bin/
 sudo chmod 755 /usr/local/bin/nagaXinputStart.sh
+sudo cp -f ./src/killroot.sh /usr/local/bin/
+sudo chmod 755 /usr/local/bin/killroot.sh
 
 for u in $(sudo awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534) print $1}' /etc/passwd)
 do
