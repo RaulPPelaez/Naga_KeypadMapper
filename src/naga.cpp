@@ -47,7 +47,7 @@ private:
 string content;
 bool internal, onKeyPressed;
 public:
-configKey(string tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
+configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(*(&tcontent)), internal(tinternal), onKeyPressed(tonKeyPressed){
 }
 string getContent(){
 	return content;
@@ -58,8 +58,8 @@ bool isInternal(){
 bool getOnKeyPressed(){
 	return onKeyPressed;
 }
-void execute(string command){
-	(void)!(system((content+command).c_str()));
+void execute(string&& command){
+	(void)!(system((content+*(&command)).c_str()));
 }
 };
 
@@ -85,12 +85,9 @@ public:
 configSwitchScheduler(){
 }
 
-void scheduleReMap(string reMapString) {
-	scheduledReMapString = reMapString;
+void scheduleReMap(string&& reMapString) {
+	scheduledReMapString = *(&reMapString);
 	scheduledReMap = true;
-}
-void notifyChange(){
-	(void)!(system(("notify-send "+scheduledReMapString).c_str()));
 }
 void unScheduleReMap(){
 	scheduledReMap=false;
