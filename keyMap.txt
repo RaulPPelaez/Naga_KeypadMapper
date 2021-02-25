@@ -1,78 +1,71 @@
 config=defaultConfig
 
-1 - keyPress=XF86AudioMute
-1 - keyRelease=XF86AudioMute
+1 - key=XF86AudioMute
 
-3 - run=3
+3 - key=3
+
+2 - key=2
 
 4 - key=4
 
 5 - run=gnome-terminal
 
-6 - keyPress=6
-6 - keyRelease=6
+6 - key=6
 
-7 - keyPress=XF86AudioLowerVolume
-7 - keyRelease=XF86AudioLowerVolume
+7 - key=XF86AudioLowerVolume
 
 8 - chmap=defaultConfig2
 
-9 - keyPress=XF86AudioRaiseVolume
-9 - keyRelease=XF86AudioRaiseVolume
+9 - key=XF86AudioRaiseVolume
 
-10 - keyPress=XF86AudioPrev
-10 - keyRelease=XF86AudioPrev
+10 - key=XF86AudioPrev
 
-11 - keyPress=XF86AudioPlay
-11 - keyRelease=XF86AudioPlay
+11 - key=XF86AudioPlay
 
-12 - keyPress=XF86AudioNext
-12 - keyRelease=XF86AudioNext
+12 - key=XF86AudioNext
 
 13 - keyClick=a
 
 14 - keyClick=b
+
 configEnd
+
+
+
 
 config=defaultConfig2
 
-1 - keyPress=XF86AudioMute
-1 - keyRelease=XF86AudioMute
+1 - key=XF86AudioMute
 
-3 - run=3
+2 - key=2
 
-4 - key=4
+3 - key=3
+
+4 - run=gnome-terminal
+4 - sleep=1000
+4 - run=gnome-terminal
 
 5 - runRelease=gnome-terminal
+5 - sleeprelease=1000
 5 - runRelease=gnome-terminal
+5 - sleeprelease=1000
 5 - runRelease=gnome-terminal
-5 - runRelease=gnome-terminal
-5 - runRelease=gnome-terminal
-5 - runRelease=gnome-terminal
-5 - runRelease=gnome-terminal
-5 - runRelease=gnome-terminal
-5 - runRelease=gnome-terminal
+5 - sleeprelease=1000
 5 - runRelease=gnome-terminal
 
-6 - keyPress=6
-6 - keyRelease=6
+6 - key=6
 
-7 - keyPress=XF86AudioLowerVolume
-7 - keyRelease=XF86AudioLowerVolume
+7 - key=XF86AudioLowerVolume
 
-8 - keyPress=XF86AudioPlay
-8 - keyRelease=XF86AudioPlay
+8 - key=XF86AudioPlay
 
-9 - keyPress=XF86AudioRaiseVolume
-9 - keyRelease=XF86AudioRaiseVolume
+9 - key=XF86AudioRaiseVolume
 
-10 - keyPress=XF86AudioPrev
-10 - keyRelease=XF86AudioPrev
+10 - key=XF86AudioPrev
 
 11 - chmap=defaultConfig
 
-12 - keyPress=XF86AudioNext
-12 - keyRelease=XF86AudioNext
+12 - key=XF86AudioNext
 
 13 - keyClick=a
 

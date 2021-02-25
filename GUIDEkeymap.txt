@@ -21,6 +21,9 @@ config=defaultConfig
 #runRelease runs on release
 5 - runRelease=gnome-terminal
 
+#key will do a press on pressing and release on releasing
+12 - key=t
+
 #keyClick presses and release the key instantly
 13 - keyClick=a
 
@@ -36,6 +39,24 @@ configEnd
 
 #setworkspace "xdotool set_desktop"
 4 - setworkspace=WORKSPACE
+
+#sleep will sleep in between actions in milliseconds
+
+3 - run=COMMAND
+3 - sleep=1000
+3 - run=MORE COMMAND
+3 - sleep=1000
+3 - run=MORE MORE COMMAND
+
+
+#sleepRelease will sleep in between actions at release
+
+3 - runRelease=COMMAND
+3 - sleepRelease=1000
+3 - runRelease=MORE COMMAND
+3 - sleepRelease=1000
+3 - runRelease=MORE MORE COMMAND
+
 
 # To make a profile do like such :
 
