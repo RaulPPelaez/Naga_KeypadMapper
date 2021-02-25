@@ -25,7 +25,7 @@ bool internal, onKeyPressed;
 public:
 const bool& IsOnKeyPressed() const { return onKeyPressed; }
 const bool& isInternal() const { return internal; }
-configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(*(&tcontent)), internal(tinternal), onKeyPressed(tonKeyPressed){}
+configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){}
 void execute(string const& command){
 	(void)!(system((content+command).c_str()));
 }
