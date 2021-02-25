@@ -1,10 +1,9 @@
-//This is lostallmymoney's branch of RaulPPelaez's original tool.
+//This is lostallmymoney's remake of RaulPPelaez's original tool.
 //RaulPPelaez, et. al wrote the original file.  As long as you retain this notice you
 //can do whatever you want with this stuff.
 
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <fstream>
 #include <fcntl.h>
 #include <unistd.h>
@@ -20,8 +19,8 @@ string keyReleaseString = "keyrelease";
 
 class configKey {
 private:
-string content;
-bool internal, onKeyPressed;
+const string content;
+const bool internal, onKeyPressed;
 public:
 const bool& IsOnKeyPressed() const {
 	return onKeyPressed;
@@ -31,7 +30,7 @@ const bool& isInternal() const {
 }
 configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
 }
-void execute(string const& command){
+void execute(string const& command) const {
 	(void)!(system((content+command).c_str()));
 }
 };
@@ -72,12 +71,13 @@ void unScheduleReMap(){
 
 class NagaDaemon {
 private:
+const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
+
 std::map<std::string, configKey*> configKeysMap;
 std::map<std::string, std::map<int, std::vector<macroEvent *> > > macroEventsKeyMap;
 configSwitchScheduler configSwitcher = configSwitchScheduler();
 
-const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
-string currentConfigName = "";
+string currentConfigName;
 struct input_event ev1[64];
 int side_btn_fd, extra_btn_fd, size;
 vector<pair<const char *,const char *> > devices;
@@ -90,48 +90,49 @@ void loadConf(string configName) {
 			exit(1);
 		}
 		bool found1 = false, found2 = false;
-		string line, line1, token1;
 		int pos, configLine, configEndLine;
+		string commandContent;
 
-		for (int readingLine = 1; getline(in, line) && !found2; readingLine++) {
-			if(!found1 && line.find("config="+configName) != string::npos)//finding configname
+		for (int readingLine = 1; getline(in, commandContent) && !found2; readingLine++) {
+			if(!found1 && commandContent.find("config="+configName) != string::npos)//finding configname
 			{
 				configLine=readingLine;
 				found1=true;
 			}
-			if(found1 && line.find("configEnd") != string::npos)//finding configEnd
+			if(found1 && commandContent.find("configEnd") != string::npos)//finding configEnd
 			{
 				configEndLine=readingLine;
 				found2=true;
 			}
 		}
 		if (!found1 || !found2) {
-			cerr << "Error with config names and configEnd : " << configName << ". Exiting." << endl;
+			clog << "Error with config names and configEnd : " << configName << ". Exiting." << endl;
 			exit(1);
 		}
 		in.clear();
 		in.seekg(0, ios::beg);//reset file reading
-		for (int readingLine = 1; getline(in, line) && readingLine<configEndLine; readingLine++) {
-			if (readingLine>configLine)//&& readingLine<configEndLine in the while
+
+		for (int readingLine = 1; getline(in, commandContent) && readingLine<configEndLine; readingLine++) {
+			if (readingLine>configLine)
 			{
-				if (line[0] == '#' || line.find_first_not_of(' ') == std::string::npos) continue; //Ignore comments, empty lines, config= and configEnd
-				pos = line.find('=');
-				line1 = line.substr(0, pos);//line1 = numbers and stuff
-				line.erase(0, pos+1);//line = command
-				line1.erase(std::remove(line1.begin(), line1.end(), ' '), line1.end());//Erase spaces inside 1st part of the line
-				pos = line1.find("-");
-				token1 = line1.substr(0, pos);//Isolate command type
-				line1 = line1.substr(pos + 1);
-				for(auto& c : line1)
+				if (commandContent[0] == '#' || commandContent.find_first_not_of(' ') == std::string::npos) continue; //Ignore comments, empty lines
+				pos = commandContent.find('=');
+				string commandType = commandContent.substr(0, pos);//commandType = numbers + command type
+				commandContent.erase(0, pos+1);//commandContent = command content
+				commandType.erase(std::remove(commandType.begin(), commandType.end(), ' '), commandType.end());//Erase spaces inside 1st part of the line
+				pos = commandType.find("-");
+				string buttonNumber = commandType.substr(0, pos);//Isolate button number
+				commandType = commandType.substr(pos + 1);//Isolate command type
+				for(auto& c : commandType)
 				{
 					c = tolower(c);
 				}
 
-				if(line1=="key") {
-					macroEventsKeyMap[configName][stoi(token1)].emplace_back(new macroEvent(&keyPressString, &line));
-					macroEventsKeyMap[configName][stoi(token1)].emplace_back(new macroEvent(&keyReleaseString, &line));
+				if(commandType=="key") {
+					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&keyPressString, &commandContent));
+					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&keyReleaseString, &commandContent));
 				}else{
-					macroEventsKeyMap[configName][stoi(token1)].emplace_back(new macroEvent(&line1, &line));
+					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&commandType, &commandContent));
 				}//Encode and store mapping v3
 			}
 		}
@@ -186,8 +187,8 @@ void run() {
 static void chooseAction(int eventCode, std::vector<macroEvent *> * relativeMacroEventsPointer, std::map<string, configKey *> * configKeysMapPointer, configSwitchScheduler * congSwitcherPointer) {
 	if(eventCode>1) return; //Only accepts press or release events 1 for press 0 for release
 	for(int ii = 0; ii < relativeMacroEventsPointer->size(); ii++) {//run all the events at Key
-		macroEvent * macroEventPointer = (*relativeMacroEventsPointer)[ii];
-		configKey * configKeyPointer = (*configKeysMapPointer)[macroEventPointer->Type()];
+		const macroEvent * macroEventPointer = (*relativeMacroEventsPointer)[ii];
+		const configKey * configKeyPointer = (*configKeysMapPointer)[macroEventPointer->Type()];
 		if(configKeyPointer->IsOnKeyPressed()==(eventCode == 1)) {//test if key state is matching
 			if(!(configKeyPointer->isInternal())) {
 				configKeyPointer->execute(macroEventPointer->Content());//runs the Command
