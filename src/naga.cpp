@@ -1,30 +1,6 @@
-/* See https://github.com/RaulPPelaez/Naga_KeypadMapper/graphs/contributors
- * for a full list of contributors.
- * This program is free software. It comes without any warranty, to the extent
- * permitted by applicable law. You can redistribute it and/or modify it under the
- * terms of the Beer-ware license revision 42.
- * ----------------------------------------------------------------------------
- * "THE BEER-WARE LICENSE" (Revision 42):
- * RaulPPelaez, et. al wrote this file.  As long as you retain this notice you
- * can do whatever you want with this stuff. If we meet some day, and you think
- * this stuff is worth it, you can buy me a beer in return. RaulPPelaez 2016
- * ----------------------------------------------------------------------------
- */
-
-/*See https://github.com/lostallmymoney/Razer_Key_Mapper_Linux/graphs/contributors
- * for a full list of contributors of this branch.
- * This program is free software. It comes without any warranty, to the extent
- * permitted by applicable law. You can redistribute it and/or modify it under the
- * terms of the Beer-ware license revision 420.
- * ----------------------------------------------------------------------------
- * "THE BEER-WARE LICENSE" (Revision 420):
- * RaulPPelaez et. al wrote this file and lostallmymoney made a branch. As long as you retain this notice you
- * can do whatever you want with this stuff. If we meet some day, and you think
- * this stuff is worth it, you can hand me a legal canadian joint in return.  lostallmymoney 2018
- * ----------------------------------------------------------------------------
- * This is lostallmymoney's branch of RaulPPelaez's original tool.
- * Modifying a lot of stuff so it might never merge with master.
- */
+//This is lostallmymoney's branch of RaulPPelaez's original tool.
+//RaulPPelaez, et. al wrote the original file.  As long as you retain this notice you
+//can do whatever you want with this stuff.
 
 #include <iostream>
 #include <vector>
@@ -130,13 +106,11 @@ void loadConf(string configName) {
 			{
 				configLine=readingLine;
 				found1=true;
-				clog << "Found config start : "<< readingLine << endl;
 			}
 			if(found1 && line.find("configEnd") != string::npos)                  //finding configEnd
 			{
 				configEndLine=readingLine;
 				found2=true;
-				clog << "Found config end : "<< readingLine << endl;
 			}
 		}
 		if (!found1 || !found2) {
@@ -172,7 +146,7 @@ void loadConf(string configName) {
 		in.close();
 	}
 	currentConfigName = configName;
-	(void)!(system(("notify-send -t 20 'New config :' '"+configName+"'").c_str()));
+	(void)!(system(("notify-send -t 200 'New config :' '"+configName+"'").c_str()));
 }
 
 void run() {
@@ -219,7 +193,7 @@ void run() {
 }
 
 static void chooseAction(int eventCode, std::vector<macroEvent *> * relativeMacroEventsPointer, std::map<string, configKey *> * configKeysMapPointer, configSwitchScheduler * congSwitcherPointer) {
-	if(eventCode>1) return;       //Only accept press or release events 1 for press 0 for release
+	if(eventCode>1) return;       //Only accepts press or release events 1 for press 0 for release
 	bool realKeyIsPressed = (eventCode == 1);
 	for(int ii = 0; ii < (*relativeMacroEventsPointer).size(); ii++) {      //run all the events at Key
 		if((*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->getOnKeyPressed()==realKeyIsPressed) { //test if key state is matching
@@ -229,7 +203,7 @@ static void chooseAction(int eventCode, std::vector<macroEvent *> * relativeMacr
 				if((*relativeMacroEventsPointer)[ii]->getType() == "chmap" || (*relativeMacroEventsPointer)[ii]->getType() == "chmaprelease") {
 					(*congSwitcherPointer).scheduleReMap((*relativeMacroEventsPointer)[ii]->getContent());                      //schedule config switch/change
 				}else if ((*relativeMacroEventsPointer)[ii]->getType() == "sleep" || (*relativeMacroEventsPointer)[ii]->getType() == "sleeprelease") {
-					usleep(stoul((*relativeMacroEventsPointer)[ii]->getContent()) * 1000); //microseconds make me dizzy in keymap.txt
+					usleep(stoul((*relativeMacroEventsPointer)[ii]->getContent()) * 1000);			//microseconds make me dizzy in keymap.txt
 				}
 			}
 		}
