@@ -39,12 +39,15 @@
 #define OFFSET 262
 using namespace std;
 
+string keyPressString = "keypress";
+string keyReleaseString = "keyrelease";
+
 class configKey {
 private:
 string content;
 bool internal, onKeyPressed;
 public:
-configKey(string tcontent, bool tinternal = false, bool tonKeyPressed = true) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
+configKey(string tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
 }
 string getContent(){
 	return content;
@@ -102,6 +105,7 @@ string getRemapString() {
 
 class NagaDaemon {
 private:
+
 configSwitchScheduler configSwitcher = configSwitchScheduler();
 string currentConfigName = "";
 
@@ -159,7 +163,13 @@ void loadConf(string configName) {
 				{
 					c = tolower(c);
 				}
-				macroEventsKeyMap[configName][stoi(token1)].emplace_back(new macroEvent(&line1, &line));                        //Encode and store mapping v3
+
+				if(line1=="key") {
+					macroEventsKeyMap[configName][stoi(token1)].emplace_back(new macroEvent(&keyPressString, &line));
+					macroEventsKeyMap[configName][stoi(token1)].emplace_back(new macroEvent(&keyReleaseString, &line));
+				}else{
+					macroEventsKeyMap[configName][stoi(token1)].emplace_back(new macroEvent(&line1, &line));
+				}                      //Encode and store mapping v3
 			}
 		}
 		in.close();
@@ -215,13 +225,16 @@ static void chooseAction(int eventCode, std::vector<macroEvent *> * relativeMacr
 	if(eventCode>1) return;       //Only accept press or release events 1 for press 0 for release
 	bool realKeyIsPressed = (eventCode == 1);
 	for(int ii = 0; ii < (*relativeMacroEventsPointer).size(); ii++) {      //run all the events at Key
-		if(!((*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->isInternal()) && (*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->getOnKeyPressed()==realKeyIsPressed) {
-			(*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->execute((*relativeMacroEventsPointer)[ii]->getContent());                  //runs the Command
-		} else if ((*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->isInternal() && (*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->getOnKeyPressed()==realKeyIsPressed) {
-			if((*relativeMacroEventsPointer)[ii]->getType() == "chmap") {
-				(*congSwitcherPointer).scheduleReMap((*relativeMacroEventsPointer)[ii]->getContent());                        //schedule config switch/change
-			}                   //else if(macroEvents[ii]->getType() == ""){} <---add other internal commands here (can only run one per button tho) you can also use (*configKeysMapPointer)[ee]->getContent() to get content/commands from internal operator
-			ii=(*relativeMacroEventsPointer).size();                   //continue
+		if((*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->getOnKeyPressed()==realKeyIsPressed) { //test if key state is matching
+			if(!((*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->isInternal())) {
+				(*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->execute((*relativeMacroEventsPointer)[ii]->getContent());                //runs the Command
+			} else if ((*configKeysMapPointer)[(*relativeMacroEventsPointer)[ii]->getType()]->isInternal()) { //INTERNAL COMMANDS
+				if((*relativeMacroEventsPointer)[ii]->getType() == "chmap" || (*relativeMacroEventsPointer)[ii]->getType() == "chmaprelease") {
+					(*congSwitcherPointer).scheduleReMap((*relativeMacroEventsPointer)[ii]->getContent());                      //schedule config switch/change
+				}else if ((*relativeMacroEventsPointer)[ii]->getType() == "sleep" || (*relativeMacroEventsPointer)[ii]->getType() == "sleeprelease") {
+					usleep(stoul((*relativeMacroEventsPointer)[ii]->getContent()) * 1000); //microseconds make me dizzy in keymap.txt
+				}
+			}
 		}
 	}
 }
@@ -237,10 +250,14 @@ NagaDaemon() {
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Chroma-event-mouse");                                    // NAGA CHROMA
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Hex-event-mouse");                                          // NAGA HEX
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-if02-event-kbd","/dev/input/by-id/usb-Razer_Razer_Naga_Hex_V2-event-mouse");                                     // NAGA HEX v2
-	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse");        // Naga Trinity
+	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Trinity_00000000001A-event-mouse");        // NAGA Trinity
+	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Left_Handed_Edition-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Left_Handed_Edition-event-mouse");          // NAGA Left Handed
 
 	//modulable options list to manage internals inside chooseAction method arg1:COMMAND, arg2:isInternal, arg3:onKeyPressed?
 	configKeysMap.insert(std::pair<std::string, configKey*>("chmap", new configKey("", true, true)));       //change keymap
+	configKeysMap.insert(std::pair<std::string, configKey*>("chmaprelease", new configKey("", true, false)));
+	configKeysMap.insert(std::pair<std::string, configKey*>("sleep", new configKey("", true, true)));
+	configKeysMap.insert(std::pair<std::string, configKey*>("sleeprelease", new configKey("", true, false)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("run", new configKey("setsid ", false, true)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("run2", new configKey("", false, true)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("runrelease", new configKey("setsid ", false, false)));
