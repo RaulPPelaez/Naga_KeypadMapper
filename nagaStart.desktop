@@ -1,6 +1,6 @@
 [Desktop Entry]
 Comment=Custom key bindings for the side panel
-Exec=naga -start
+Exec=naga start
 Terminal=false
 Type=Application
 Name=nagastart.desktop

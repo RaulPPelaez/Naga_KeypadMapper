@@ -84,7 +84,7 @@ You can have as many configs as you want in the keyMap.txt file, just make sure 
 ### NOTES
 
 To reload the config run the command :
-	naga -start
+	naga start
 
 wich will restart the daemon
 
@@ -128,7 +128,7 @@ The config files are copied to all the users (even root) homes.
 
 ## Autorun
 
-Since autorun is a bit complicated for all the distros you can simply add nagastart.desktop or a script executing naga -start to your startup folder/configuration.
+Since autorun is a bit complicated for all the distros you can simply add nagastart.desktop or a script executing naga start to your startup folder/configuration.
 (Might have to run chmod +x on the .desktop)
 
 If you ever were to login as root then unlog and log as another user the daemon might ask you for your password to kill the rooted daemon. If the device still doesn't work after root access, unplugging and replugging the device then starting the daemon will surely work.
@@ -137,11 +137,11 @@ If you ever were to login as root then unlog and log as another user the daemon 
 
 The commands are :
 
-	`naga -stop` //stops the daemon.
-	`naga -start` //restart the daemon if there is one running and starts a hidden daemon.
-	`naga -debug` //restart the daemon if there is one running and starts one in the console for debugging.
-	`naga -uninstall` //uninstall the daemon tool
-	`naga -killroot` //kill root daemon if launched as root
+	`naga stop` or `naga kill` //stops the daemon.
+	`naga start` //restart the daemon if there is one running and starts a hidden daemon.
+	`naga debug` //restart the daemon if there is one running and starts one in the console for debugging.
+	`naga uninstall` //uninstall the daemon tool
+	`naga killroot` //kill root daemon if launched as root
 	`naga` //gives help
 
 For all the double dashed ocd people the commands also works with 2 dashes.
@@ -163,5 +163,5 @@ where [id2] is the id number of the pointer device returned by `xinput` - in cas
 
 ## UNINSTALLATION
 
-To uninstall you need to run `naga -uninstall` .
+To uninstall you need to run `naga uninstall` .
 

@@ -53,7 +53,7 @@ echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /tmp/
 
 sudo mv /tmp/80-naga.rules /etc/udev/rules.d/80-naga.rules
 
-naga --start
+naga start
 
-tput setaf 2; echo "Please add (naga.desktop or a script with naga -start) to be executed\nwhen your window manager starts."
+tput setaf 2; echo "Please add (naga.desktop or a script with naga start) to be executed\nwhen your window manager starts."
 tput sgr0;

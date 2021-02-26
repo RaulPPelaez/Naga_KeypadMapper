@@ -36,17 +36,21 @@ void execute(string const& command) const {
 }
 };
 
-class macroEvent {
+class MacroEvent {
 private:
+const configKey * keyType;
 const string type, content;
 public:
+const configKey * KeyType() const {
+	return keyType;
+}
 const string& Type() const {
 	return type;
 }
 const string& Content() const {
 	return content;
 }
-macroEvent(string * ttype, string * tcontent) : type(*ttype), content(*tcontent){
+MacroEvent(configKey * tkeyType, string * ttype, string * tcontent) : keyType(tkeyType), type(*ttype), content(*tcontent){
 }
 };
 
@@ -75,7 +79,7 @@ private:
 const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
 
 std::map<std::string, configKey*> configKeysMap;
-std::map<std::string, std::map<int, std::vector<macroEvent *> > > macroEventsKeyMap;
+std::map<std::string, std::map<int, std::vector<MacroEvent *> > > macroEventsKeyMap;
 configSwitchScheduler configSwitcher = configSwitchScheduler();
 
 string currentConfigName;
@@ -127,25 +131,21 @@ void loadConf(string configName) {
 				{
 					c = tolower(c);
 				}
-				
-				if(commandType=="key") {
-					if(commandContent.size()==1) {
-						stringstream hexedChar;
-						hexedChar << "0x00" << std::hex << (int)(commandContent[0]);
-						commandContent = hexedChar.str();
-					}
-					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&keyPressString, &commandContent));
-					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&keyReleaseString, &commandContent));
-				}else if(configKeysMap.contains(commandType)) { //filter out bad types
-					if(commandType=="string" || commandType=="stringrelease") {
-						for(int jj=0; jj<commandContent.size(); jj++) {
-							stringstream hexedChar;
-							hexedChar << "0x00" << std::hex << (int)(commandContent[jj]);
-							string commandContent2 = hexedChar.str();
-							macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&commandType, &commandContent2));
+
+				if(configKeysMap.contains(commandType)) { //filter out bad types
+					if(commandType=="key") {
+						if(commandContent.size()==1) {
+							commandContent = hexChar(commandContent[0]);
+						}
+						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new MacroEvent(configKeysMap["keypress"], &commandType, &commandContent));
+						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new MacroEvent(configKeysMap["keyrelease"], &commandType, &commandContent));
+					}else if(commandType=="string" || commandType=="stringrelease") {
+						for(long unsigned jj=0; jj<commandContent.size(); jj++) {
+							string commandContent2 = hexChar(commandContent[jj]);
+							macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent2));
 						}
 					}else{
-						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&commandType, &commandContent));
+						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
 					}//Encode and store mapping v3
 				}
 			}
@@ -154,6 +154,12 @@ void loadConf(string configName) {
 	}
 	currentConfigName = configName;
 	(void)!(system(("notify-send -t 200 'New config :' '"+configName+"'").c_str()));
+}
+
+string hexChar(char a){
+	stringstream hexedChar;
+	hexedChar << "0x00" << std::hex << (int)(a);
+	return hexedChar.str();
 }
 
 void run() {
@@ -198,14 +204,12 @@ void run() {
 	}
 }
 
-static void chooseAction(int eventCode, std::vector<macroEvent *> * relativeMacroEventsPointer, std::map<string, configKey *> * configKeysMapPointer, configSwitchScheduler * congSwitcherPointer) {
+static void chooseAction(int eventCode, std::vector<MacroEvent *> * relativeMacroEventsPointer, std::map<string, configKey *> * configKeysMapPointer, configSwitchScheduler * congSwitcherPointer) {
 	if(eventCode>1) return; //Only accepts press or release events 1 for press 0 for release
-	for(int ii = 0; ii < relativeMacroEventsPointer->size(); ii++) {//run all the events at Key
-		const macroEvent * macroEventPointer = (*relativeMacroEventsPointer)[ii];
-		const configKey * configKeyPointer = (*configKeysMapPointer)[macroEventPointer->Type()];
-		if(configKeyPointer->IsOnKeyPressed()==(eventCode == 1)) {  //test if key state is matching
-			if(!(configKeyPointer->isInternal())) {
-				configKeyPointer->execute(macroEventPointer->Content());  //runs the Command
+	for(auto & macroEventPointer : (*relativeMacroEventsPointer)) {//run all the events at Key
+		if(macroEventPointer->KeyType()->IsOnKeyPressed()==(eventCode == 1)) {  //test if key state is matching
+			if(!(macroEventPointer->KeyType()->isInternal())) {
+				macroEventPointer->KeyType()->execute(macroEventPointer->Content());  //runs the Command
 			} else {  //INTERNAL COMMANDS
 				if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
 					congSwitcherPointer->scheduleReMap(macroEventPointer->Content());  //schedule config switch/change
@@ -240,6 +244,7 @@ NagaDaemon() {
 	configKeysMap.insert(std::pair<std::string, configKey*>("run2", new configKey("", false, true)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("runrelease", new configKey("setsid ", false, false)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("runrelease2", new configKey("", false, false)));
+	configKeysMap.insert(std::pair<std::string, configKey*>("key", new configKey("", false, false)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("keypress", new configKey("setsid xdotool keydown --window getactivewindow ", false, true)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("keyrelease", new configKey("setsid xdotool keyup --window getactivewindow ", false, false)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("keyclick", new configKey("setsid xdotool key --window getactivewindow ", false, true)));
@@ -279,14 +284,14 @@ void stopDRoot() {
 //arguments manage
 int main(int argc, char *argv[]) {
 	if(argc>1) {
-		if(strstr(argv[1], "-start")!=NULL || strstr(argv[1], "-restart")!=NULL) {
+		if(strstr(argv[1], "start")!=NULL) {
 			clog << "Stopping possible naga daemon\nStarting naga daemon in hidden mode..." << endl;
-			(void)!(system("setsid naga -debug > /dev/null 2>&1 &"));
-		}else if(strstr(argv[1], "-killroot")!=NULL) {
+			(void)!(system("setsid naga debug > /dev/null 2>&1 &"));
+		}else if(strstr(argv[1], "killroot")!=NULL) {
 			stopDRoot();
-		}else if(strstr(argv[1], "-kill")!=NULL || strstr(argv[1], "-stop")!=NULL) {
+		}else if(strstr(argv[1], "kill")!=NULL || strstr(argv[1], "stop")!=NULL) {
 			stopD();
-		}else if(strstr(argv[1], "-uninstall")!=NULL) {
+		}else if(strstr(argv[1], "uninstall")!=NULL) {
 			string answer;
 			clog << "Are you sure you want to uninstall ? y/n" << endl;
 			cin >> answer;
@@ -295,7 +300,7 @@ int main(int argc, char *argv[]) {
 			}else{
 				(void)!(system("bash /usr/local/bin/nagaUninstall.sh"));
 			}
-		}else if(strstr(argv[1], "-debug")!=NULL) {
+		}else if(strstr(argv[1], "debug")!=NULL) {
 			stopD();
 			usleep(40000);
 			clog << "Starting naga daemon in debug mode..." << endl;
