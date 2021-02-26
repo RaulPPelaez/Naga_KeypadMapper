@@ -11,6 +11,7 @@
 #include <cstring>
 #include <thread>
 #include <map>
+#include <sstream>
 #define OFFSET 262
 using namespace std;
 
@@ -113,8 +114,7 @@ void loadConf(string configName) {
 		in.seekg(0, ios::beg);//reset file reading
 
 		for (int readingLine = 1; getline(in, commandContent) && readingLine<configEndLine; readingLine++) {
-			if (readingLine>configLine)
-			{
+			if (readingLine>configLine) {
 				if (commandContent[0] == '#' || commandContent.find_first_not_of(' ') == std::string::npos) continue; //Ignore comments, empty lines
 				pos = commandContent.find('=');
 				string commandType = commandContent.substr(0, pos);//commandType = numbers + command type
@@ -129,8 +129,20 @@ void loadConf(string configName) {
 				}
 
 				if(commandType=="key") {
+					if(commandContent.size()==1) {
+						stringstream hexedChar;
+						hexedChar << "0x00" << std::hex << (int)(commandContent[0]);
+						commandContent = hexedChar.str();
+					}
 					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&keyPressString, &commandContent));
 					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&keyReleaseString, &commandContent));
+				}else if(commandType=="string" || commandType=="stringrelease"){
+					for(int jj=0; jj<commandContent.size();jj++){
+							stringstream hexedChar;
+							hexedChar << "0x00" << std::hex << (int)(commandContent[jj]);
+							string commandContent2 = hexedChar.str();
+						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&commandType, &commandContent2));
+					}
 				}else{
 					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&commandType, &commandContent));
 				}//Encode and store mapping v3
@@ -207,7 +219,7 @@ NagaDaemon() {
 	//modulable device files list
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse");                                        // NAGA EPIC
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-event-mouse");                              // NAGA EPIC DOCK
-	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse");   																			// NAGA 2014
+	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_2014-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_2014-event-mouse");                                        // NAGA 2014
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga-event-mouse");                                                  // NAGA MOLTEN
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma-event-mouse");                          // NAGA EPIC CHROMA
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Chroma_Dock-event-mouse");                // NAGA EPIC CHROMA DOCK
@@ -233,6 +245,8 @@ NagaDaemon() {
 	configKeysMap.insert(std::pair<std::string, configKey*>("mouseposition", new configKey("setsid xdotool mousemove ", false, true)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("mouseclick", new configKey("setsid xdotool click ", false, true)));
 	configKeysMap.insert(std::pair<std::string, configKey*>("setworkspace", new configKey("setsid xdotool set_desktop ", false, true)));
+	configKeysMap.insert(std::pair<std::string, configKey*>("string", new configKey("setsid xdotool key --window getactivewindow ", false, true)));
+	configKeysMap.insert(std::pair<std::string, configKey*>("stringrelease", new configKey("setsid xdotool key --window getactivewindow ", false, false)));
 
 	size = sizeof(struct input_event);
 	for (auto &device : devices) {//Setup check
@@ -263,8 +277,8 @@ void stopDRoot() {
 //arguments manage
 int main(int argc, char *argv[]) {
 	if(argc>1) {
-		if(strstr(argv[1], "-start")!=NULL) {
-			clog << "Starting naga daemon in hidden mode..." << endl;
+		if(strstr(argv[1], "-start")!=NULL || strstr(argv[1], "-restart")!=NULL) {
+			clog << "Stopping possible naga daemon\nStarting naga daemon in hidden mode..." << endl;
 			(void)!(system("setsid naga -debug > /dev/null 2>&1 &"));
 		}else if(strstr(argv[1], "-killroot")!=NULL) {
 			stopDRoot();
@@ -288,7 +302,7 @@ int main(int argc, char *argv[]) {
 		}
 	} else {
 		clog << "Possible arguments : \n  -start          Starts the daemon in hidden mode. (stops it before)\n  -stop           Stops the daemon.\n  -debug          Starts the daemon in the terminal,\n" <<
-		  "			giving access to logs. (stops it before)."<< endl;
+		  "giving access to logs. (stops it before)."<< endl;
 	}
 	return 0;
 }

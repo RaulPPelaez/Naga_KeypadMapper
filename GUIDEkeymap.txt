@@ -21,8 +21,14 @@ config=defaultConfig
 #runRelease runs on release
 5 - runRelease=gnome-terminal
 
-#key will do a press on pressing and release on releasing
+
+
+#key will do a press on pressing and release on releasing (works on any character even spaces)
 12 - key=t
+
+#string and stringrelease writes a whole stringstream
+11 - string=hello
+11 - stringrelease= you suck
 
 #keyClick presses and release the key instantly
 13 - keyClick=a
