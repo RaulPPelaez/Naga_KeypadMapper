@@ -45,15 +45,24 @@ The configuration file `keyMap.txt` has the following syntax:
 
 	The possible choices are :
 		-chmap : Changes the keymap for another config inside `keymap.txt` in ~/.naga .
+		-champRelease : Changes the keymap on key release.
 		-keyPress : Runs <command> in xdotool so the possible keys are on google ( i didn't find a list of all the keys ) .
 			The <command> is run in : **xdotool keydown** or/and **keyup --window getactivewindow <command>** so it's already 'framed' by the program.
 			By example to play/pause music you can put **key=XF86AudioPlay**.
+		-sleep and sleepRelease :
+			Sleeps
+		-string and stringRelease :
+			Writes a string
+			
+		-key : does keyPress at press and keyRelease at release
+		-keyPress :
 		-keyRelease :
 			The xdotool key is released when the key is released.
 			There seems to be a list of keys on https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h but you need to remove **XK_** and they're not all there so google them if you want to be sure.
-		-key : does keyPress at press and keyRelease at release
 		-run : Runs the command <command> on key press with setsid before the command.
+		-run2 : Runs the command without setsid.
 		-runRelease : Runs a bash command when the button is released .
+		-runRelease2 : Runs the command without setsid when button released.
 		-mouseClick : CLick based on xdotool click option. (Basically runs **xdotool click <command>**) (Can put numbers from 1 to 9 and options such as *--window** etc).
 		-setWorkspace : Runs <command> in **xdotool set_desktop <command>** .
 		-mousePosition : Runs <command> in **xdotool mousemove <command>** .
@@ -74,20 +83,14 @@ You can have as many configs as you want in the keyMap.txt file, just make sure 
 
 ### NOTES
 
-To reload the config you can simply reference itself with :
+To reload the config run the command :
+	naga -start
 
-    config=defaultConfig
-    1 - chmap=defaultConfig
-    configEnd
+wich will restart the daemon
 
-or swap to another config and comeback.
+If ran as root you should edit the file in /root/.naga.
 
-or you can also run `naga -start` and it should restart the daemon.
-
-TAKE NOTE : After installing I recommend rebooting if you can't get the daemon up from non root.
-
-Also if ran as root you should edit the file in /root/.naga.
-
+!!!!!!!!!!!!!!
 If the `$HOME/.naga/keyMap.txt` file is missing the daemon won't start (the program will NOT autocreate this file, the install.sh script will copy an example file though).
 
 For a key multiple actions may be defined. They will then be executed sequentially at the key press.
@@ -161,3 +164,4 @@ where [id2] is the id number of the pointer device returned by `xinput` - in cas
 ## UNINSTALLATION
 
 To uninstall you need to run `naga -uninstall` .
+
