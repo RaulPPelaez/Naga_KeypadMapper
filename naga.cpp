@@ -15,9 +15,6 @@
 #define OFFSET 262
 using namespace std;
 
-string keyPressString = "keypress";
-string keyReleaseString = "keyrelease";
-
 class configKey {
 private:
 const string content;
@@ -29,10 +26,10 @@ const bool& IsOnKeyPressed() const {
 const bool& isInternal() const {
 	return internal;
 }
-configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
-}
-void execute(string const& command) const {
+const void execute(string const& command) const {
 	(void)!(system((content+command).c_str()));
+}
+configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
 }
 };
 
@@ -183,7 +180,7 @@ void run() {
 			if (ev1[0].value != ' ' && ev1[1].type == EV_KEY) {//Key event (press or release)
 				switch (ev1[1].code) {
 				case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
-					std::thread actionThread(chooseAction, ev1[1].value, &macroEventsKeyMap[currentConfigName][ev1[1].code - 1], &configSwitcher);//real key number = ev1[1].code - 1
+					std::thread actionThread(chooseAction, (ev1[1].value == 1), &macroEventsKeyMap[currentConfigName][ev1[1].code - 1], &configSwitcher);//real key number = ev1[1].code - 1
 					actionThread.detach();
 					break;
 				}
@@ -195,7 +192,7 @@ void run() {
 			if (ev1[1].type == 1) {//Only extra buttons
 				switch (ev1[1].code) {
 				case 275: case 276:
-					std::thread actionThread(chooseAction, ev1[1].value, &macroEventsKeyMap[currentConfigName][ev1[1].code - OFFSET], &configSwitcher);//real key number = ev1[1].code - OFFSET
+					std::thread actionThread(chooseAction, (ev1[1].value == 1), &macroEventsKeyMap[currentConfigName][ev1[1].code - OFFSET], &configSwitcher);//real key number = ev1[1].code - OFFSET
 					actionThread.detach();
 					break;
 				}
@@ -204,18 +201,17 @@ void run() {
 	}
 }
 
-static void chooseAction(int eventCode, std::vector<MacroEvent *> * relativeMacroEventsPointer, configSwitchScheduler * congSwitcherPointer) {
-	if(eventCode>1) return; //Only accepts press or release events 1 for press 0 for release
+static void chooseAction(bool pressed, std::vector<MacroEvent *> * relativeMacroEventsPointer, configSwitchScheduler * congSwitcherPointer) {
 	for(auto & macroEventPointer : (*relativeMacroEventsPointer)) {//run all the events at Key
-		if(macroEventPointer->KeyType()->IsOnKeyPressed()==(eventCode == 1)) {  //test if key state is matching
-			if(!(macroEventPointer->KeyType()->isInternal())) {
-				macroEventPointer->KeyType()->execute(macroEventPointer->Content());  //runs the Command
-			} else {  //INTERNAL COMMANDS
-				if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
-					congSwitcherPointer->scheduleReMap(macroEventPointer->Content());  //schedule config switch/change
-				}else if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease") {
+		if(macroEventPointer->KeyType()->IsOnKeyPressed() == pressed) {  //test if key state is matching
+			if((macroEventPointer->KeyType()->isInternal())) {  //INTERNAL COMMANDS
+				if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease") {
 					usleep(stoul(macroEventPointer->Content()) * 1000);  //microseconds make me dizzy in keymap.txt
+				}else if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
+					congSwitcherPointer->scheduleReMap(macroEventPointer->Content());  //schedule config switch/change
 				}
+			}else{  //CASUAL COMMANDS
+				macroEventPointer->KeyType()->execute(macroEventPointer->Content());  //runs the Command
 			}
 		}
 	}
