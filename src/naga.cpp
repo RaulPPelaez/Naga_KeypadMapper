@@ -127,7 +127,7 @@ void loadConf(string configName) {
 				{
 					c = tolower(c);
 				}
-
+				
 				if(commandType=="key") {
 					if(commandContent.size()==1) {
 						stringstream hexedChar;
@@ -136,16 +136,18 @@ void loadConf(string configName) {
 					}
 					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&keyPressString, &commandContent));
 					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&keyReleaseString, &commandContent));
-				}else if(commandType=="string" || commandType=="stringrelease"){
-					for(int jj=0; jj<commandContent.size();jj++){
+				}else if(configKeysMap.contains(commandType)) { //filter out bad types
+					if(commandType=="string" || commandType=="stringrelease") {
+						for(int jj=0; jj<commandContent.size(); jj++) {
 							stringstream hexedChar;
 							hexedChar << "0x00" << std::hex << (int)(commandContent[jj]);
 							string commandContent2 = hexedChar.str();
-						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&commandType, &commandContent2));
-					}
-				}else{
-					macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&commandType, &commandContent));
-				}//Encode and store mapping v3
+							macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&commandType, &commandContent2));
+						}
+					}else{
+						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new macroEvent(&commandType, &commandContent));
+					}//Encode and store mapping v3
+				}
 			}
 		}
 		in.close();
@@ -201,14 +203,14 @@ static void chooseAction(int eventCode, std::vector<macroEvent *> * relativeMacr
 	for(int ii = 0; ii < relativeMacroEventsPointer->size(); ii++) {//run all the events at Key
 		const macroEvent * macroEventPointer = (*relativeMacroEventsPointer)[ii];
 		const configKey * configKeyPointer = (*configKeysMapPointer)[macroEventPointer->Type()];
-		if(configKeyPointer->IsOnKeyPressed()==(eventCode == 1)) {//test if key state is matching
+		if(configKeyPointer->IsOnKeyPressed()==(eventCode == 1)) {  //test if key state is matching
 			if(!(configKeyPointer->isInternal())) {
-				configKeyPointer->execute(macroEventPointer->Content());//runs the Command
-			} else {//INTERNAL COMMANDS
+				configKeyPointer->execute(macroEventPointer->Content());  //runs the Command
+			} else {  //INTERNAL COMMANDS
 				if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
-					congSwitcherPointer->scheduleReMap(macroEventPointer->Content());//schedule config switch/change
+					congSwitcherPointer->scheduleReMap(macroEventPointer->Content());  //schedule config switch/change
 				}else if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease") {
-					usleep(stoul(macroEventPointer->Content()) * 1000);//microseconds make me dizzy in keymap.txt
+					usleep(stoul(macroEventPointer->Content()) * 1000);  //microseconds make me dizzy in keymap.txt
 				}
 			}
 		}
