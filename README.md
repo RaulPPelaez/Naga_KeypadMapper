@@ -45,6 +45,7 @@ The configuration file `keyMap.txt` has the following syntax:
 
 	The possible choices are :
 		-chmap : Changes the keymap for another config inside `keymap.txt` in ~/.naga .
+		-champRelease : Changes the keymap on key release.
 		-keyPress : Runs <command> in xdotool so the possible keys are on google ( i didn't find a list of all the keys ) .
 			The <command> is run in : **xdotool keydown** or/and **keyup --window getactivewindow <command>** so it's already 'framed' by the program.
 			By example to play/pause music you can put **key=XF86AudioPlay**.
