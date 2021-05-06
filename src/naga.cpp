@@ -133,6 +133,13 @@ void loadConf(string configName) {
 				}
 
 				if(configKeysMap.contains(commandType)) { //filter out bad types
+					int buttonNumberI;
+					try {
+						buttonNumberI = stoi(buttonNumber);
+					} catch (...) {
+						clog << "At config line " << readingLine << ": expected a number" << endl;
+						exit(1);
+					}
 					if(commandType=="key") {
 						if(commandContent.size()==1) {
 							commandContent = hexChar(commandContent[0]);
