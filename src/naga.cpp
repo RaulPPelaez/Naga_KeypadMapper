@@ -144,16 +144,16 @@ void loadConf(string configName) {
 						if(commandContent.size()==1) {
 							commandContent = hexChar(commandContent[0]);
 						}
-						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new MacroEvent(configKeysMap["keypressonpress"], &commandType, &commandContent));
-						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandType, &commandContent));
+						macroEventsKeyMap[configName][buttonNumberI].emplace_back(new MacroEvent(configKeysMap["keypressonpress"], &commandType, &commandContent));
+						macroEventsKeyMap[configName][buttonNumberI].emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandType, &commandContent));
 					}else if(commandType=="string" || commandType=="stringrelease") {
 						string commandContent2="";
 						for(long unsigned jj=0; jj<commandContent.size(); jj++) {
 							commandContent2 += " "+hexChar(commandContent[jj]);
 						}
-						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent2));
+						macroEventsKeyMap[configName][buttonNumberI].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent2));
 					}else{
-						macroEventsKeyMap[configName][stoi(buttonNumber)].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
+						macroEventsKeyMap[configName][buttonNumberI].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
 					}//Encode and store mapping v3
 				}
 			}
