@@ -63,7 +63,6 @@ The configuration file `keyMap.txt` has the following syntax:
 		-run2 : Runs the command without setsid.
 		-runRelease : Runs a bash command when the button is released .
 		-runRelease2 : Runs the command without setsid when button released.
-		-mouseClick : CLick based on xdotool click option. (Basically runs **xdotool click <command>**) (Can put numbers from 1 to 9 and options such as *--window** etc).
 		-setWorkspace : Runs <command> in **xdotool set_desktop <command>** .
 		-mousePosition : Runs <command> in **xdotool mousemove <command>** .
 		-keyClick : Press a key once when the button is pressed .
@@ -74,6 +73,8 @@ The configuration file `keyMap.txt` has the following syntax:
 		To test any <command> run it in the command cited above.
 
 		"configEnd" Marks the end of <configName>.
+		
+		For a mouseclick run xdotool click <command>) (Can put numbers from 1 to 9 and options such as *--window etc).
 
 You can have as many configs as you want in the keyMap.txt file, just make sure to give them different names and include defaultConfig.
 
