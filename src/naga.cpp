@@ -147,11 +147,11 @@ void loadConf(string configName) {
 						clog << "At config line " << readingLine << ": expected a number" << endl;
 						exit(1);
 					}
+					MacroEventVector * currentMacroEvents = &(macroEventsKeyMap[configName][buttonNumberI]);
 					if(commandType=="key") {
 						if(commandContent.size()==1) {
 							commandContent = hexChar(commandContent[0]);
 						}
-						MacroEventVector * currentMacroEvents = &(macroEventsKeyMap[configName][buttonNumberI]);
 						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap["keypressonpress"], &commandType, &commandContent));
 						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandType, &commandContent));
 					}else if(commandType=="string" || commandType=="stringrelease") {
@@ -159,9 +159,9 @@ void loadConf(string configName) {
 						for(long unsigned jj=0; jj<commandContent.size(); jj++) {
 							commandContent2 += " "+hexChar(commandContent[jj]);
 						}
-						macroEventsKeyMap[configName][buttonNumberI].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent2));
+						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent2));
 					}else{
-						macroEventsKeyMap[configName][buttonNumberI].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
+						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
 					}//Encode and store mapping v3
 				}
 			}
@@ -184,7 +184,7 @@ void run() {
 	input_event * ev11 = &ev1[1];
 	while (1) {
 		if(configSwitcher.isRemapScheduled()) {//remap
-			this->loadConf(configSwitcher.RemapString());//change config for macroEvents[ii]->Content()
+			loadConf(configSwitcher.RemapString());//change config for macroEvents[ii]->Content()
 			configSwitcher.unScheduleReMap();
 		}
 
@@ -219,9 +219,9 @@ void run() {
 }
 
 static void chooseAction(bool pressed, MacroEventVector * relativeMacroEventsPointer, configSwitchScheduler * congSwitcherPointer) {
-	for(MacroEvent * macroEventPointer : (*relativeMacroEventsPointer)) {//run all the events at Key
+	for(MacroEvent * macroEventPointer : *relativeMacroEventsPointer) {//run all the events at Key
 		if(macroEventPointer->KeyType()->IsOnKeyPressed() == pressed) {  //test if key state is matching
-			if((macroEventPointer->KeyType()->isInternal())) {  //INTERNAL COMMANDS
+			if(macroEventPointer->KeyType()->isInternal()) {  //INTERNAL COMMANDS
 				if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease") {
 					usleep(stoul(macroEventPointer->Content()) * 1000);  //microseconds make me dizzy in keymap.txt
 				}else if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
@@ -287,8 +287,8 @@ NagaDaemon() {
 		cerr << "No naga devices found or you don't have permission to access them." << endl;
 		exit(1);
 	}
-	this->loadConf("defaultConfig");//Initialize config
-	this->run();
+	loadConf("defaultConfig");//Initialize config
+	run();
 }
 };
 
