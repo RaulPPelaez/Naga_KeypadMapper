@@ -147,7 +147,7 @@ void loadConf(string configName) {
 						clog << "At config line " << readingLine << ": expected a number" << endl;
 						exit(1);
 					}
-					MacroEventVector * currentMacroEvents = &(macroEventsKeyMap[configName][buttonNumberI]);
+					MacroEventVector * currentMacroEvents = &macroEventsKeyMap[configName][buttonNumberI];
 					if(commandType=="key") {
 						if(commandContent.size()==1) {
 							commandContent = hexChar(commandContent[0]);
