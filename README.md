@@ -21,6 +21,7 @@ Probably works with :
 - Razer Naga 2012 (RZ01-0058) (thanks to mrlinuxfish, brianfreytag) in Arch Linux, Ubuntu 16.04
 - Razer Naga Chroma (thanks to ipsod) in Linux Mint KDE 18.1
 - Razer Naga Trinity (thanks to haringsrob and ws141)
+- Razer Pro Wireless (thanks to Stibax)
 
 Works for sure with :
 - Razer Naga 2014 (Debian)
