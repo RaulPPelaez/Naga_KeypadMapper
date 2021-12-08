@@ -9,7 +9,7 @@ command -v g++ >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require g++ but it
 
 echo "Compiling code..."
 cd src
-g++ -pthread -Ofast --std=c++2a naga.cpp -o naga
+g++-10 naga.cpp -o naga -pthread -Ofast --std=c++2a -lX11 -lXtst
 
 if [ ! -f ./naga ]; then
 	tput setaf 1; echo "Error at compile! Ensure you have g++ installed. !!!Aborting!!!"
@@ -26,8 +26,10 @@ cd ..
 sudo groupadd -f razer
 sudo cp -f ./src/nagaXinputStart.sh /usr/local/bin/
 sudo chmod 755 /usr/local/bin/nagaXinputStart.sh
-sudo cp -f ./src/killroot.sh /usr/local/bin/
-sudo chmod 755 /usr/local/bin/killroot.sh
+sudo cp -f ./src/nagakillroot.sh /usr/local/bin/
+sudo chmod 755 /usr/local/bin/nagakillroot.sh
+sudo cp -f ./src/nagaUninstall.sh /usr/local/bin/nagaUninstall.sh
+sudo chmod 755 /usr/local/bin/nagaUninstall.sh
 
 for u in $(sudo awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534) print $1}' /etc/passwd)
 do
@@ -46,8 +48,6 @@ then
 	sudo mkdir -p /root/.naga
 	sudo cp -r -n -v "keyMap.txt" "/root/.naga"
 fi
-
-sudo cp -f ./src/nagaUninstall.sh /usr/local/bin/nagaUninstall.sh
 
 echo 'KERNEL=="event[0-9]*",SUBSYSTEM=="input",GROUP="razer",MODE="640"' > /tmp/80-naga.rules
 
