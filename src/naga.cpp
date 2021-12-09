@@ -12,18 +12,20 @@
 #include <linux/input.h>
 #include <cstring>
 #include <thread>
+#include <mutex>
 #include <map>
 #include <sstream>
 #define OFFSET 262
 using namespace std;
 
+vector<FakeKey *> fakeKeyFollowUps;
+mutex fakeKeyFollowUpsMutex;
+int fakeKeyFollowCount = 0;
 
 class configKey {
 	private:
 	const string content;
 	const bool internal, onKeyPressed;
-	Display *display;
-	FakeKey* theKeyFaker;
 	public:
 	const bool& IsOnKeyPressed() const {
 		return onKeyPressed;
@@ -34,24 +36,30 @@ class configKey {
 	const void execute(string const& command) const {
 		(void)!(system((content+command).c_str()));
 	}
-	const void special(string const& command, string const& type) const {
-	int strSize = command.size();
-	for(int z = 0; z < strSize; z++){
-		unsigned char keyChar = command[z];
-		if(type=="special" || type=="specialrelease"){
+	const void special(Display * display, string const& command) const {
+		int strSize = command.size();
+		for(int z = 0; z < strSize; z++){
+			unsigned char keyChar = command[z];
+			FakeKey *theKeyFaker = fakekey_init(display);
 			fakekey_press(theKeyFaker, &keyChar, 8, 0);
-			fakekey_release(theKeyFaker);
-		}else if(type=="specialpressonpress" || type == "specialpressonrelease"){
-			fakekey_press(theKeyFaker, &keyChar, 8, 0);
-		}else if(type=="specialreleaseonpress" || type == "specialreleaseonrelease"){
 			fakekey_release(theKeyFaker);
 		}
+		// Clear the X buffer which actually sends the key press
+		XFlush(display);
 	}
 
-	// Clear the X buffer which actually sends the key press
-	XFlush(display);
+	const void specialPress(Display * display, string const& command, FakeKey * fFakeKeyFollowUp) const {
+		unsigned char keyChar = command[0];
+		fakekey_press(fFakeKeyFollowUp, &keyChar, 8, 0);
+		XFlush(display);
 	}
-	configKey(string&& tcontent, bool tinternal, bool tonKeyPressed, Display *tdisplay = NULL, FakeKey *ttheKeyFaker = NULL) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed), display(tdisplay), theKeyFaker(ttheKeyFaker){
+
+	const void specialReleaseFollow(Display * display, string const& command, FakeKey * fFakeKeyFollowUp) const {
+		clog << "Releasing" << endl;
+		fakekey_release(fFakeKeyFollowUp);
+		XFlush(display);
+	}
+	configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
 	}
 };
 
@@ -72,9 +80,18 @@ class MacroEvent {
 	const void execute() const {
 		keyType->execute(content);
 	}
-	const void special() const {
-		keyType->special(content, type);
+	const void special(Display *display) const {
+		keyType->special(display, content);
 	}
+
+	const void specialPress(Display *display, FakeKey * fFakeKeyFollowUp) const {
+		keyType->specialPress(display, content, fFakeKeyFollowUp);
+	}
+
+	const void specialFollowUp(Display *display, FakeKey *fFakeKeyFollowUp) const {
+		keyType->specialReleaseFollow(display, content, fFakeKeyFollowUp);
+	}
+
 	MacroEvent(configKey * tkeyType, string * ttype, string * tcontent) : keyType(tkeyType), type(*ttype), content(*tcontent){
 	}
 };
@@ -241,12 +258,31 @@ void run() {
 }
 
 static void chooseAction(bool pressed, MacroEventVector * relativeMacroEventsPointer, configSwitchScheduler * congSwitcherPointer) {
+	Display *display= XOpenDisplay(NULL);
 	for(MacroEvent * macroEventPointer : *relativeMacroEventsPointer) {//run all the events at Key
 		if(macroEventPointer->KeyType()->IsOnKeyPressed() == pressed) {  //test if key state is matching
 			if(macroEventPointer->KeyType()->isInternal()) {  //INTERNAL COMMANDS
-				if (macroEventPointer->Type().substr(0,7) == "special" ){
-					macroEventPointer->special();
-				}else if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
+				if (macroEventPointer->Type() == "special" ){
+						macroEventPointer->special(display);
+				}else if(macroEventPointer->Type()=="specialpressonpress"){
+						lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
+						FakeKey * aKeyFaker = fakekey_init(display);
+						macroEventPointer->specialPress(display, aKeyFaker);
+						fakeKeyFollowUps.emplace_back(aKeyFaker);
+						clog << "Emplaced back" << endl;
+						fakeKeyFollowCount++;
+					}else if(macroEventPointer->Type().substr(0,14)=="specialrelease"){
+						if(fakeKeyFollowCount>0){
+							lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
+							macroEventPointer->specialFollowUp(display, fakeKeyFollowUps.back());
+							fakeKeyFollowUps.pop_back();
+							fakeKeyFollowCount--;
+						}else{
+							clog << "No candidate for key release" << endl;
+						}
+					}
+
+				else if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
 					congSwitcherPointer->scheduleReMap(macroEventPointer->Content());  //schedule config switch/change
 				}else if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease") {
 					usleep(stoul(macroEventPointer->Content()) * 1000);  //microseconds make me dizzy in keymap.txt
@@ -300,18 +336,14 @@ NagaDaemon() {
 	configKeysMap.insert(stringAndConfigKey("string", new configKey("setsid xdotool key --delay 0 --window getactivewindow", false, true)));
 	configKeysMap.insert(stringAndConfigKey("stringrelease", new configKey("setsid xdotool key --delay 0 --window getactivewindow", false, false)));
 
+	configKeysMap.insert(stringAndConfigKey("special", new configKey("", true, true)));
+	configKeysMap.insert(stringAndConfigKey("specialrelease", new configKey("", true, false)));
 
-	Display *display= XOpenDisplay(NULL);
-	FakeKey *theKeyFaker = fakekey_init(display);
+	configKeysMap.insert(stringAndConfigKey("specialpressonpress", new configKey("", true, true)));
+	configKeysMap.insert(stringAndConfigKey("specialpressonrelease", new configKey("", true, false)));
 
-	configKeysMap.insert(stringAndConfigKey("special", new configKey("", true, true, display, theKeyFaker)));
-	configKeysMap.insert(stringAndConfigKey("specialrelease", new configKey("", true, false, display, theKeyFaker)));
-
-	configKeysMap.insert(stringAndConfigKey("specialpressonpress", new configKey("", true, true, display, theKeyFaker)));
-	configKeysMap.insert(stringAndConfigKey("specialpressonrelease", new configKey("", true, false, display, theKeyFaker)));
-
-	configKeysMap.insert(stringAndConfigKey("specialreleaseonpress", new configKey("", true, true, display, theKeyFaker)));
-	configKeysMap.insert(stringAndConfigKey("specialreleaseonrelease", new configKey("", true, false, display, theKeyFaker)));
+	configKeysMap.insert(stringAndConfigKey("specialreleaseonpress", new configKey("", true, true)));
+	configKeysMap.insert(stringAndConfigKey("specialreleaseonrelease", new configKey("", true, false)));
 
 	size = sizeof(struct input_event);
 	for (CharAndChar &device : devices) {//Setup check
