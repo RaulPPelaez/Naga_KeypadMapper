@@ -2,6 +2,8 @@
 //RaulPPelaez, et. al wrote the original file.  As long as you retain this notice you
 //can do whatever you want with this stuff.
 
+#include "fakeKeys.h"
+
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -16,11 +18,12 @@
 using namespace std;
 
 
-
 class configKey {
 	private:
 	const string content;
 	const bool internal, onKeyPressed;
+	Display *display;
+	FakeKey* theKeyFaker;
 	public:
 	const bool& IsOnKeyPressed() const {
 		return onKeyPressed;
@@ -31,10 +34,26 @@ class configKey {
 	const void execute(string const& command) const {
 		(void)!(system((content+command).c_str()));
 	}
-	configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
+	const void special(string const& command, string const& type) const {
+	int strSize = command.size();
+	for(int z = 0; z < strSize; z++){
+		unsigned char keyChar = command[z];
+		if(type=="special" || type=="specialrelease"){
+			fakekey_press(theKeyFaker, &keyChar, 8, 0);
+			fakekey_release(theKeyFaker);
+		}else if(type=="specialpressonpress" || type == "specialpressonrelease"){
+			fakekey_press(theKeyFaker, &keyChar, 8, 0);
+		}else if(type=="specialreleaseonpress" || type == "specialreleaseonrelease"){
+			fakekey_release(theKeyFaker);
+		}
+	}
+
+	// Clear the X buffer which actually sends the key press
+	XFlush(display);
+	}
+	configKey(string&& tcontent, bool tinternal, bool tonKeyPressed, Display *tdisplay = NULL, FakeKey *ttheKeyFaker = NULL) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed), display(tdisplay), theKeyFaker(ttheKeyFaker){
 	}
 };
-
 
 class MacroEvent {
 	private:
@@ -53,6 +72,9 @@ class MacroEvent {
 	const void execute() const {
 		keyType->execute(content);
 	}
+	const void special() const {
+		keyType->special(content, type);
+	}
 	MacroEvent(configKey * tkeyType, string * ttype, string * tcontent) : keyType(tkeyType), type(*ttype), content(*tcontent){
 	}
 };
@@ -62,23 +84,23 @@ typedef vector<MacroEvent *> MacroEventVector;
 typedef pair<const char *,const char *> CharAndChar;
 
 class configSwitchScheduler {
-private:
-bool scheduledReMap = false;
-string scheduledReMapString="";
-public:
-const string& RemapString() const {
-	return scheduledReMapString;
-}
-const bool& isRemapScheduled() const {
-	return scheduledReMap;
-}
-void scheduleReMap(string const& reMapString) {
-	scheduledReMapString = reMapString;
-	scheduledReMap = true;
-}
-void unScheduleReMap(){
-	scheduledReMap=false;
-}
+	private:
+	bool scheduledReMap = false;
+	string scheduledReMapString="";
+	public:
+	const string& RemapString() const {
+		return scheduledReMapString;
+	}
+	const bool& isRemapScheduled() const {
+		return scheduledReMap;
+	}
+	void scheduleReMap(string const& reMapString) {
+		scheduledReMapString = reMapString;
+		scheduledReMap = true;
+	}
+	void unScheduleReMap(){
+		scheduledReMap=false;
+	}
 };
 
 class NagaDaemon {
@@ -222,10 +244,12 @@ static void chooseAction(bool pressed, MacroEventVector * relativeMacroEventsPoi
 	for(MacroEvent * macroEventPointer : *relativeMacroEventsPointer) {//run all the events at Key
 		if(macroEventPointer->KeyType()->IsOnKeyPressed() == pressed) {  //test if key state is matching
 			if(macroEventPointer->KeyType()->isInternal()) {  //INTERNAL COMMANDS
-				if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease") {
-					usleep(stoul(macroEventPointer->Content()) * 1000);  //microseconds make me dizzy in keymap.txt
+				if (macroEventPointer->Type().substr(0,7) == "special" ){
+					macroEventPointer->special();
 				}else if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
 					congSwitcherPointer->scheduleReMap(macroEventPointer->Content());  //schedule config switch/change
+				}else if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease") {
+					usleep(stoul(macroEventPointer->Content()) * 1000);  //microseconds make me dizzy in keymap.txt
 				}
 			}else{  //CASUAL COMMANDS
 				macroEventPointer->execute();  //runs the Command
@@ -276,6 +300,19 @@ NagaDaemon() {
 	configKeysMap.insert(stringAndConfigKey("string", new configKey("setsid xdotool key --delay 0 --window getactivewindow", false, true)));
 	configKeysMap.insert(stringAndConfigKey("stringrelease", new configKey("setsid xdotool key --delay 0 --window getactivewindow", false, false)));
 
+
+	Display *display= XOpenDisplay(NULL);
+	FakeKey *theKeyFaker = fakekey_init(display);
+
+	configKeysMap.insert(stringAndConfigKey("special", new configKey("", true, true, display, theKeyFaker)));
+	configKeysMap.insert(stringAndConfigKey("specialrelease", new configKey("", true, false, display, theKeyFaker)));
+
+	configKeysMap.insert(stringAndConfigKey("specialpressonpress", new configKey("", true, true, display, theKeyFaker)));
+	configKeysMap.insert(stringAndConfigKey("specialpressonrelease", new configKey("", true, false, display, theKeyFaker)));
+
+	configKeysMap.insert(stringAndConfigKey("specialreleaseonpress", new configKey("", true, true, display, theKeyFaker)));
+	configKeysMap.insert(stringAndConfigKey("specialreleaseonrelease", new configKey("", true, false, display, theKeyFaker)));
+
 	size = sizeof(struct input_event);
 	for (CharAndChar &device : devices) {//Setup check
 		if ((side_btn_fd = open(device.first, O_RDONLY)) != -1 &&  (extra_btn_fd = open(device.second, O_RDONLY)) != -1) {
@@ -289,6 +326,8 @@ NagaDaemon() {
 	}
 	loadConf("defaultConfig");//Initialize config
 	run();
+	// Disconnect from X
+	//XCloseDisplay(display);
 }
 };
 

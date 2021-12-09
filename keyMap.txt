@@ -2,16 +2,19 @@ config=defaultConfig
 
 1 - key=XF86AudioMute
 
-3 - string=hello
-3 - stringRelease= you suck
+2 - specialpressonpress='
+2 - specialreleaseonrelease='
 
-2 - key=2
+3 - string=hello
+3 - special=@
+3 - string=hotmail.com
+
 
 4 - run2=if [ $(ps aux | grep -v grep | grep -o spotify | wc -l) -eq 0 ]; then setsid spotify; fi
 
 5 - run=gnome-terminal
 
-6 - key= 
+6 - keyclick=quotedbl
 
 7 - key=XF86AudioLowerVolume
 
@@ -30,8 +33,6 @@ config=defaultConfig
 14 - keyClick=b
 
 configEnd
-
-
 
 
 config=defaultConfig2
@@ -71,3 +72,4 @@ config=defaultConfig2
 14 - keyClick=b
 
 configEnd
+
