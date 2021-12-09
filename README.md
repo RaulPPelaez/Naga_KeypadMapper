@@ -70,6 +70,7 @@ The configuration file `keyMap.txt` has the following syntax:
 		-keyClickRelease : Press a key once when the button is released .
 		
 		-special : Use it to write characters not available as single keys on your keyboard.
+		-specialRelease : On release
 		-specialPressOnPress
 		-specialPressOnRelease
 		-specialReleaseOnPress
