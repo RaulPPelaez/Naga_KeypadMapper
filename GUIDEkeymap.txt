@@ -30,6 +30,12 @@ config=defaultConfig
 11 - string=hello
 11 - stringrelease= you suck
 
+#use special, specialRelease, specialPressOnPress, specialPressOnRelease, specialReleaseOnPress or specialReleaseOnRelease
+#to write special characters
+7 - string=georges
+7 - special=@
+7 - string=hotmail.com
+
 #keyClick presses and release the key instantly
 13 - keyClick=a
 
