@@ -68,6 +68,12 @@ The configuration file `keyMap.txt` has the following syntax:
 		-mousePosition : Runs <command> in **xdotool mousemove <command>** .
 		-keyClick : Press a key once when the button is pressed .
 		-keyClickRelease : Press a key once when the button is released .
+		
+		-special : Use it to write characters not available as single keys on your keyboard.
+		-specialPressOnPress
+		-specialPressOnRelease
+		-specialReleaseOnPress
+		-specialReleaseOnRelease
 
     		<command> is what is going to be used based on the option.
 
