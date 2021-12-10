@@ -4,12 +4,10 @@
 
 #include <cstring>
 #include <thread>
-#include <iostream>
 
 #ifndef FAKEKEYS_H_
 #define FAKEKEYS_H_
 #define N_MODIFIER_INDEXES (Mod5MapIndex + 1)
-using namespace std;
 
 typedef enum
 {
