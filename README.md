@@ -69,7 +69,7 @@ The configuration file `keyMap.txt` has the following syntax:
 		-keyClick : Press a key once when the button is pressed .
 		-keyClickRelease : Press a key once when the button is released .
 		
-		-special : Use it to write characters not available as single keys on your keyboard.
+		-special : Use it to write special chars that won't work using xdotool (previous functions like string or key), can accept a string like @@@@@@.
 		-specialRelease : On release
 		-specialPressOnPress
 		-specialPressOnRelease
