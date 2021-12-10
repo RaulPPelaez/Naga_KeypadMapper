@@ -160,12 +160,6 @@ void loadConf(string configName) {
 						}
 						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap["keypressonpress"], &commandType, &commandContent));
 						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandType, &commandContent));
-					}else if(commandType=="string" || commandType=="stringrelease") {
-						string commandContent2="";
-						for(long unsigned jj=0; jj<commandContent.size(); jj++) {
-							commandContent2 += " "+hexChar(commandContent[jj]);
-						}
-						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent2));
 					}else{
 						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
 					}//Encode and store mapping v3
@@ -228,52 +222,45 @@ static void chooseAction(bool pressed, MacroEventVector * relativeMacroEventsPoi
 	for(MacroEvent * macroEventPointer : *relativeMacroEventsPointer) {//run all the events at Key
 		if(macroEventPointer->KeyType()->IsOnKeyPressed() == pressed) {  //test if key state is matching
 			if(macroEventPointer->KeyType()->isInternal()) {  //INTERNAL COMMANDS
-				if(macroEventPointer->Type().substr(0,7)=="special"){
-					if (macroEventPointer->Type().size() == 7 ){ //basic special
-							int strSize = macroEventPointer->Content().size();
-							FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-							for(int z = 0; z < strSize; z++){
-								fakekey_press(aKeyFaker, (unsigned char *)(&macroEventPointer->Content()[z]), 8, 0);
-								fakekey_release(aKeyFaker);
-							}
-							XFlush(aKeyFaker->xdpy);
-							XCloseDisplay(aKeyFaker->xdpy);
-					}else {
-							lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
-							if(macroEventPointer->Type().substr(0,12)=="specialpress"){
-								FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-								fakekey_press(aKeyFaker, (unsigned char *)&macroEventPointer->Content()[0], 8, 0);
-								XFlush(aKeyFaker->xdpy);
-								fakeKeyFollowUps.emplace_back(new pair<char, FakeKey *>(macroEventPointer->Content()[0],aKeyFaker));
-								fakeKeyFollowCount++;
-							}else if(macroEventPointer->Type().substr(0,14)=="specialrelease"){
-								if(fakeKeyFollowCount>0){
-									for(int vectorId = fakeKeyFollowUps.size()-1; vectorId>=0; vectorId--){
-										pair<char, FakeKey *> * aKeyFollowUp = fakeKeyFollowUps[vectorId];
-										if(get<0>(*aKeyFollowUp) == macroEventPointer->Content()[0]){
-											FakeKey * aKeyFaker = get<1>(*aKeyFollowUp);
-											fakekey_release(aKeyFaker);
-											XFlush(aKeyFaker->xdpy);
-											XCloseDisplay(aKeyFaker->xdpy);
-											fakeKeyFollowUps.erase(fakeKeyFollowUps.begin() + vectorId);
-											fakeKeyFollowCount--;
-										}
-									}
-								}else{
-									clog << "No candidate for key release" << endl;
+				if(macroEventPointer->Type().substr(0,6)=="string"){
+					int strSize = macroEventPointer->Content().size();
+					FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
+					for(int z = 0; z < strSize; z++){
+						fakekey_press(aKeyFaker, (unsigned char *)(&macroEventPointer->Content()[z]), 8, 0);
+						fakekey_release(aKeyFaker);
+					}
+					XFlush(aKeyFaker->xdpy);
+					XCloseDisplay(aKeyFaker->xdpy);
+				}else	if(macroEventPointer->Type().substr(0,12)=="specialpress"){
+						lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
+						FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
+						fakekey_press(aKeyFaker, (unsigned char *)&macroEventPointer->Content()[0], 8, 0);
+						XFlush(aKeyFaker->xdpy);
+						fakeKeyFollowUps.emplace_back(new pair<char, FakeKey *>(macroEventPointer->Content()[0],aKeyFaker));
+						fakeKeyFollowCount++;
+				}else if(macroEventPointer->Type().substr(0,14)=="specialrelease"){
+						lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
+						if(fakeKeyFollowCount>0){
+							for(int vectorId = fakeKeyFollowUps.size()-1; vectorId>=0; vectorId--){
+								pair<char, FakeKey *> * aKeyFollowUp = fakeKeyFollowUps[vectorId];
+								if(get<0>(*aKeyFollowUp) == macroEventPointer->Content()[0]){
+									FakeKey * aKeyFaker = get<1>(*aKeyFollowUp);
+									fakekey_release(aKeyFaker);
+									XFlush(aKeyFaker->xdpy);
+									XCloseDisplay(aKeyFaker->xdpy);
+									fakeKeyFollowUps.erase(fakeKeyFollowUps.begin() + vectorId);
+									fakeKeyFollowCount--;
 								}
 							}
-						}
-					}
+						}else
+							clog << "No candidate for key release" << endl;
+					}else if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease")
+						congSwitcherPointer->scheduleReMap(macroEventPointer->Content());  //schedule config switch/change
+					else if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease")
+						usleep(stoul(macroEventPointer->Content()) * 1000);  //microseconds make me dizzy in keymap.txt
 
-				else if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease") {
-					congSwitcherPointer->scheduleReMap(macroEventPointer->Content());  //schedule config switch/change
-				}else if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease") {
-					usleep(stoul(macroEventPointer->Content()) * 1000);  //microseconds make me dizzy in keymap.txt
-				}
-			}else{  //CASUAL COMMANDS
-				macroEventPointer->execute();  //runs the Command
-			}
+				//CASUAL COMMANDS
+			}else	macroEventPointer->execute();  //runs the Command
 		}
 	}
 }
@@ -317,11 +304,8 @@ NagaDaemon() {
 	configKeysMap.insert(stringAndConfigKey("keyclick", new configKey("setsid xdotool key --window getactivewindow ", false, true)));
 	configKeysMap.insert(stringAndConfigKey("keyclickrelease", new configKey("setsid xdotool key --window getactivewindow ", false, false)));
 
-	configKeysMap.insert(stringAndConfigKey("string", new configKey("setsid xdotool key --delay 0 --window getactivewindow", false, true)));
-	configKeysMap.insert(stringAndConfigKey("stringrelease", new configKey("setsid xdotool key --delay 0 --window getactivewindow", false, false)));
-
-	configKeysMap.insert(stringAndConfigKey("special", new configKey("", true, true)));
-	configKeysMap.insert(stringAndConfigKey("specialrelease", new configKey("", true, false)));
+	configKeysMap.insert(stringAndConfigKey("string", new configKey("", true, true)));
+	configKeysMap.insert(stringAndConfigKey("stringrelease", new configKey("", true, false)));
 
 	configKeysMap.insert(stringAndConfigKey("specialpressonpress", new configKey("", true, true)));
 	configKeysMap.insert(stringAndConfigKey("specialpressonrelease", new configKey("", true, false)));
