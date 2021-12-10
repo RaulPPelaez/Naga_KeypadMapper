@@ -36,28 +36,30 @@ class configKey {
 	const void execute(string const& command) const {
 		(void)!(system((content+command).c_str()));
 	}
-	const void special(Display * display, string const& command) const {
+	const void special(string const& command) const {
 		int strSize = command.size();
+		FakeKey *theKeyFaker = fakekey_init(XOpenDisplay(NULL));
+		unsigned char * keyChar;
 		for(int z = 0; z < strSize; z++){
-			unsigned char keyChar = command[z];
-			FakeKey *theKeyFaker = fakekey_init(display);
-			fakekey_press(theKeyFaker, &keyChar, 8, 0);
+			keyChar = (unsigned char *)(&command[z]);
+			fakekey_press(theKeyFaker, keyChar, 8, 0);
 			fakekey_release(theKeyFaker);
 		}
 		// Clear the X buffer which actually sends the key press
-		XFlush(display);
+		XFlush(theKeyFaker->xdpy);
+		XCloseDisplay(theKeyFaker->xdpy);
 	}
 
-	const void specialPress(Display * display, string const& command, FakeKey * fFakeKeyFollowUp) const {
+	const void specialPress(string const& command, FakeKey * fFakeKeyFollowUp) const {
 		unsigned char keyChar = command[0];
 		fakekey_press(fFakeKeyFollowUp, &keyChar, 8, 0);
-		XFlush(display);
+		XFlush(fFakeKeyFollowUp->xdpy);
 	}
 
-	const void specialReleaseFollow(Display * display, string const& command, FakeKey * fFakeKeyFollowUp) const {
-		clog << "Releasing" << endl;
+	const void specialReleaseFollow(string const& command, FakeKey * fFakeKeyFollowUp) const {
 		fakekey_release(fFakeKeyFollowUp);
-		XFlush(display);
+		XFlush(fFakeKeyFollowUp->xdpy);
+		XCloseDisplay(fFakeKeyFollowUp->xdpy);
 	}
 	configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
 	}
@@ -80,16 +82,16 @@ class MacroEvent {
 	const void execute() const {
 		keyType->execute(content);
 	}
-	const void special(Display *display) const {
-		keyType->special(display, content);
+	const void special() const {
+		keyType->special(content);
 	}
 
-	const void specialPress(Display *display, FakeKey * fFakeKeyFollowUp) const {
-		keyType->specialPress(display, content, fFakeKeyFollowUp);
+	const void specialPress(FakeKey * fFakeKeyFollowUp) const {
+		keyType->specialPress(content, fFakeKeyFollowUp);
 	}
 
-	const void specialFollowUp(Display *display, FakeKey *fFakeKeyFollowUp) const {
-		keyType->specialReleaseFollow(display, content, fFakeKeyFollowUp);
+	const void specialFollowUp(FakeKey *fFakeKeyFollowUp) const {
+		keyType->specialReleaseFollow(content, fFakeKeyFollowUp);
 	}
 
 	MacroEvent(configKey * tkeyType, string * ttype, string * tcontent) : keyType(tkeyType), type(*ttype), content(*tcontent){
@@ -258,23 +260,21 @@ void run() {
 }
 
 static void chooseAction(bool pressed, MacroEventVector * relativeMacroEventsPointer, configSwitchScheduler * congSwitcherPointer) {
-	Display *display= XOpenDisplay(NULL);
 	for(MacroEvent * macroEventPointer : *relativeMacroEventsPointer) {//run all the events at Key
 		if(macroEventPointer->KeyType()->IsOnKeyPressed() == pressed) {  //test if key state is matching
 			if(macroEventPointer->KeyType()->isInternal()) {  //INTERNAL COMMANDS
 				if (macroEventPointer->Type() == "special" ){
-						macroEventPointer->special(display);
+						macroEventPointer->special();
 				}else if(macroEventPointer->Type()=="specialpressonpress"){
 						lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
-						FakeKey * aKeyFaker = fakekey_init(display);
-						macroEventPointer->specialPress(display, aKeyFaker);
+						FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
+						macroEventPointer->specialPress(aKeyFaker);
 						fakeKeyFollowUps.emplace_back(aKeyFaker);
-						clog << "Emplaced back" << endl;
 						fakeKeyFollowCount++;
 					}else if(macroEventPointer->Type().substr(0,14)=="specialrelease"){
 						if(fakeKeyFollowCount>0){
 							lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
-							macroEventPointer->specialFollowUp(display, fakeKeyFollowUps.back());
+							macroEventPointer->specialFollowUp(fakeKeyFollowUps.back());
 							fakeKeyFollowUps.pop_back();
 							fakeKeyFollowCount--;
 						}else{
