@@ -18,8 +18,8 @@
 #define OFFSET 262
 using namespace std;
 
-vector<FakeKey *> fakeKeyFollowUps;
 mutex fakeKeyFollowUpsMutex;
+vector<pair<char, FakeKey *> *> fakeKeyFollowUps;
 int fakeKeyFollowCount = 0;
 
 class configKey {
@@ -237,22 +237,29 @@ static void chooseAction(bool pressed, MacroEventVector * relativeMacroEventsPoi
 						}
 						XFlush(aKeyFaker->xdpy);
 						XCloseDisplay(aKeyFaker->xdpy);
-				}else if(macroEventPointer->Type()=="specialpressonpress"){
+				}else if(macroEventPointer->Type().substr(0,12)=="specialpress"){
 						lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 						FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-						fakekey_press(aKeyFaker, (unsigned char *)&macroEventPointer->Content()[0], 8, 0);
+						unsigned char * fakeChar = (unsigned char *)&macroEventPointer->Content()[0];
+						fakekey_press(aKeyFaker, fakeChar, 8, 0);
 						XFlush(aKeyFaker->xdpy);
-						fakeKeyFollowUps.emplace_back(aKeyFaker);
+						fakeKeyFollowUps.emplace_back(new pair<char, FakeKey *>(macroEventPointer->Content()[0],aKeyFaker));
 						fakeKeyFollowCount++;
 					}else if(macroEventPointer->Type().substr(0,14)=="specialrelease"){
+						lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 						if(fakeKeyFollowCount>0){
-							lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
-							FakeKey * aKeyFaker = fakeKeyFollowUps.back();
-							fakekey_release(aKeyFaker);
-							XFlush(aKeyFaker->xdpy);
-							XCloseDisplay(aKeyFaker->xdpy);
-							fakeKeyFollowUps.pop_back();
-							fakeKeyFollowCount--;
+							for(int vectorId = fakeKeyFollowUps.size()-1; vectorId>=0; vectorId--){
+								pair<char, FakeKey *> * aKeyFollowUp = fakeKeyFollowUps[vectorId];
+								if(get<0>(*aKeyFollowUp) == macroEventPointer->Content()[0]){
+									FakeKey * aKeyFaker = get<1>(*aKeyFollowUp);
+									fakekey_release(aKeyFaker);
+									XFlush(aKeyFaker->xdpy);
+									XCloseDisplay(aKeyFaker->xdpy);
+									fakeKeyFollowUps.erase(fakeKeyFollowUps.begin() + vectorId);
+									fakeKeyFollowCount--;
+								}
+							}
+
 						}else{
 							clog << "No candidate for key release" << endl;
 						}
