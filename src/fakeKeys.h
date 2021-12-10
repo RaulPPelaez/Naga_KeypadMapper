@@ -4,10 +4,12 @@
 
 #include <cstring>
 #include <thread>
+#include <iostream>
 
 #ifndef FAKEKEYS_H_
 #define FAKEKEYS_H_
 #define N_MODIFIER_INDEXES (Mod5MapIndex + 1)
+using namespace std;
 
 typedef enum
 {
@@ -107,12 +109,23 @@ FakeKey* fakekey_init(Display *xdpy)
 	int mod_key;
 	KeyCode *kp;
 
-	if (xdpy == NULL) return NULL;
+
+	clog << "Line 1" << endl;
+
+	if (xdpy == NULL) {
+		clog << "XDPY = NULL" << endl;
+		return NULL;
+	}
+
+	clog << "Line 2" << endl;
 
 	if (!XTestQueryExtension(xdpy, &event, &error, &major, &minor))
 	{
+		clog << "Error 1" << endl;
 		return NULL;
 	}
+
+	clog << "Line 3" << endl;
 
 	fk = (FakeKey*)malloc(sizeof(FakeKey));
 	memset(fk,0,sizeof(FakeKey));

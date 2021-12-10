@@ -36,31 +36,7 @@ class configKey {
 	const void execute(string const& command) const {
 		(void)!(system((content+command).c_str()));
 	}
-	const void special(string const& command) const {
-		int strSize = command.size();
-		FakeKey *theKeyFaker = fakekey_init(XOpenDisplay(NULL));
-		unsigned char * keyChar;
-		for(int z = 0; z < strSize; z++){
-			keyChar = (unsigned char *)(&command[z]);
-			fakekey_press(theKeyFaker, keyChar, 8, 0);
-			fakekey_release(theKeyFaker);
-		}
-		// Clear the X buffer which actually sends the key press
-		XFlush(theKeyFaker->xdpy);
-		XCloseDisplay(theKeyFaker->xdpy);
-	}
 
-	const void specialPress(string const& command, FakeKey * fFakeKeyFollowUp) const {
-		unsigned char keyChar = command[0];
-		fakekey_press(fFakeKeyFollowUp, &keyChar, 8, 0);
-		XFlush(fFakeKeyFollowUp->xdpy);
-	}
-
-	const void specialReleaseFollow(string const& command, FakeKey * fFakeKeyFollowUp) const {
-		fakekey_release(fFakeKeyFollowUp);
-		XFlush(fFakeKeyFollowUp->xdpy);
-		XCloseDisplay(fFakeKeyFollowUp->xdpy);
-	}
 	configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
 	}
 };
@@ -81,17 +57,6 @@ class MacroEvent {
 	}
 	const void execute() const {
 		keyType->execute(content);
-	}
-	const void special() const {
-		keyType->special(content);
-	}
-
-	const void specialPress(FakeKey * fFakeKeyFollowUp) const {
-		keyType->specialPress(content, fFakeKeyFollowUp);
-	}
-
-	const void specialFollowUp(FakeKey *fFakeKeyFollowUp) const {
-		keyType->specialReleaseFollow(content, fFakeKeyFollowUp);
 	}
 
 	MacroEvent(configKey * tkeyType, string * ttype, string * tcontent) : keyType(tkeyType), type(*ttype), content(*tcontent){
@@ -264,17 +229,28 @@ static void chooseAction(bool pressed, MacroEventVector * relativeMacroEventsPoi
 		if(macroEventPointer->KeyType()->IsOnKeyPressed() == pressed) {  //test if key state is matching
 			if(macroEventPointer->KeyType()->isInternal()) {  //INTERNAL COMMANDS
 				if (macroEventPointer->Type() == "special" ){
-						macroEventPointer->special();
+						int strSize = macroEventPointer->Content().size();
+						FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
+						for(int z = 0; z < strSize; z++){
+							fakekey_press(aKeyFaker, (unsigned char *)(&macroEventPointer->Content()[z]), 8, 0);
+							fakekey_release(aKeyFaker);
+						}
+						XFlush(aKeyFaker->xdpy);
+						XCloseDisplay(aKeyFaker->xdpy);
 				}else if(macroEventPointer->Type()=="specialpressonpress"){
 						lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 						FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-						macroEventPointer->specialPress(aKeyFaker);
+						fakekey_press(aKeyFaker, (unsigned char *)&macroEventPointer->Content()[0], 8, 0);
+						XFlush(aKeyFaker->xdpy);
 						fakeKeyFollowUps.emplace_back(aKeyFaker);
 						fakeKeyFollowCount++;
 					}else if(macroEventPointer->Type().substr(0,14)=="specialrelease"){
 						if(fakeKeyFollowCount>0){
 							lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
-							macroEventPointer->specialFollowUp(fakeKeyFollowUps.back());
+							FakeKey * aKeyFaker = fakeKeyFollowUps.back();
+							fakekey_release(aKeyFaker);
+							XFlush(aKeyFaker->xdpy);
+							XCloseDisplay(aKeyFaker->xdpy);
 							fakeKeyFollowUps.pop_back();
 							fakeKeyFollowCount--;
 						}else{
