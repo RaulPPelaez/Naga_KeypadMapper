@@ -109,23 +109,12 @@ FakeKey* fakekey_init(Display *xdpy)
 	int mod_key;
 	KeyCode *kp;
 
-
-	clog << "Line 1" << endl;
-
-	if (xdpy == NULL) {
-		clog << "XDPY = NULL" << endl;
-		return NULL;
-	}
-
-	clog << "Line 2" << endl;
+	if (xdpy == NULL) return NULL;
 
 	if (!XTestQueryExtension(xdpy, &event, &error, &major, &minor))
 	{
-		clog << "Error 1" << endl;
 		return NULL;
 	}
-
-	clog << "Line 3" << endl;
 
 	fk = (FakeKey*)malloc(sizeof(FakeKey));
 	memset(fk,0,sizeof(FakeKey));
