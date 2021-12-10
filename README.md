@@ -70,11 +70,12 @@ The configuration file `keyMap.txt` has the following syntax:
 		-keyClickRelease : Press a key once when the button is released .
 		
 		-special : Use it to write special chars that won't work using xdotool (previous functions like string or key), can accept a string like @@@@@@.
+				It is also faster than all xdotool functions. 
 		-specialRelease : On release
-		-specialPressOnPress
-		-specialPressOnRelease
-		-specialReleaseOnPress
-		-specialReleaseOnRelease
+		-specialPressOnPress : Supports 1 char only...
+		-specialPressOnRelease : 1 char
+		-specialReleaseOnPress : 1 char
+		-specialReleaseOnRelease : 1 char
 
     		<command> is what is going to be used based on the option.
 
