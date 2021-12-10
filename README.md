@@ -53,7 +53,7 @@ The configuration file `keyMap.txt` has the following syntax:
 		-sleep and sleepRelease :
 			Sleeps
 		-string and stringRelease :
-			Writes a string
+			Writes a string, doesn't use xdotool so xdotool keys won't work
 			
 		-key : does keyPress at press and keyRelease at release
 		-keyPress :
@@ -69,9 +69,7 @@ The configuration file `keyMap.txt` has the following syntax:
 		-keyClick : Press a key once when the button is pressed .
 		-keyClickRelease : Press a key once when the button is released .
 		
-		-special : Use it to write special chars that won't work using xdotool (previous functions like string or key), can accept a string like @@@@@@.
-				It is also faster than all xdotool functions. 
-		-specialRelease : On release
+		#Use theses to press/unpress special chars that won't work using xdotool
 		-specialPressOnPress : Supports 1 char only...
 		-specialPressOnRelease : 1 char
 		-specialReleaseOnPress : 1 char
