@@ -2,11 +2,7 @@ config=defaultConfig
 
 1 - key=XF86AudioMute
 
-2 - specialPressOnPress=;
-2 - specialReleaseOnRelease=;
-
-3 - special=hello@hotmail.com
-
+3 - string=hello@hotmail.com
 
 4 - run2=if [ $(ps aux | grep -v grep | grep -o spotify | wc -l) -eq 0 ]; then setsid spotify; fi
 
