@@ -18,26 +18,23 @@
 #define OFFSET 262
 using namespace std;
 
-mutex fakeKeyFollowUpsMutex;
+mutex fakeKeyFollowUpsMutex, configSwitcherMutex;
 vector<pair<char, FakeKey *> *> fakeKeyFollowUps;
 int fakeKeyFollowCount = 0;
 
 class configKey {
 	private:
-	const string content;
+	const string prefix;
 	const bool internal, onKeyPressed;
+	void (*internalFunction)(string * c);
 	public:
-	const bool& IsOnKeyPressed() const {
-		return onKeyPressed;
+	const bool& IsOnKeyPressed() const { return onKeyPressed; }
+	const bool& isInternal() const { return internal; }
+	const void runInternal(string * content) const {
+		internalFunction(content);
 	}
-	const bool& isInternal() const {
-		return internal;
-	}
-	const void execute(string const& command) const {
-		(void)!(system((content+command).c_str()));
-	}
-
-	configKey(string&& tcontent, bool tinternal, bool tonKeyPressed) : content(tcontent), internal(tinternal), onKeyPressed(tonKeyPressed){
+	const string& Prefix() const { return prefix; }
+	configKey(string&& tcontent, bool tonKeyPressed, void (*tinternalF)(string *cc) = NULL) : prefix(tcontent), internal(tinternalF!=NULL), onKeyPressed(tonKeyPressed), internalFunction(tinternalF){
 	}
 };
 
@@ -46,17 +43,11 @@ class MacroEvent {
 	const configKey * keyType;
 	const string type, content;
 	public:
-	const configKey * KeyType() const {
-		return keyType;
-	}
-	const string& Type() const {
-		return type;
-	}
-	const string& Content() const {
-		return content;
-	}
+	const configKey * KeyType() const { return keyType; }
+	const string& Type() const { return type; }
+	const string& Content() const { return content; }
 	const void execute() const {
-		keyType->execute(content);
+		(void)!(system((keyType->Prefix()+content).c_str()));
 	}
 
 	MacroEvent(configKey * tkeyType, string * ttype, string * tcontent) : keyType(tkeyType), type(*ttype), content(*tcontent){
@@ -87,13 +78,14 @@ class configSwitchScheduler {
 	}
 };
 
+configSwitchScheduler configSwitcher = configSwitchScheduler();
+
 class NagaDaemon {
 private:
 const string conf_file = string(getenv("HOME")) + "/.naga/keyMap.txt";
 
 map<string, configKey*> configKeysMap;
-map<string, map<int, MacroEventVector > > macroEventsKeyMap;
-configSwitchScheduler configSwitcher = configSwitchScheduler();
+map<string, map<int, map<bool, MacroEventVector > > > macroEventsKeyMaps;
 
 string currentConfigName;
 struct input_event ev1[64];
@@ -101,7 +93,7 @@ int side_btn_fd, extra_btn_fd, size;
 vector<CharAndChar > devices;
 
 void loadConf(string configName) {
-	if(!macroEventsKeyMap.contains(configName)) {
+	if(!macroEventsKeyMaps.contains(configName)) {
 		ifstream in(conf_file.c_str(), ios::in);
 		if (!in) {
 			cerr << "Cannot open " << conf_file << ". Exiting." << endl;
@@ -141,9 +133,7 @@ void loadConf(string configName) {
 				string buttonNumber = commandType.substr(0, pos);//Isolate button number
 				commandType = commandType.substr(pos + 1);//Isolate command type
 				for(char & c : commandType)
-				{
 					c = tolower(c);
-				}
 
 				if(configKeysMap.contains(commandType)) { //filter out bad types
 					int buttonNumberI;
@@ -153,15 +143,15 @@ void loadConf(string configName) {
 						clog << "At config line " << readingLine << ": expected a number" << endl;
 						exit(1);
 					}
-					MacroEventVector * currentMacroEvents = &macroEventsKeyMap[configName][buttonNumberI];
+
 					if(commandType=="key") {
-						if(commandContent.size()==1) {
+						if(commandContent.size()==1){
 							commandContent = hexChar(commandContent[0]);
 						}
-						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap["keypressonpress"], &commandType, &commandContent));
-						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandType, &commandContent));
+						macroEventsKeyMaps[configName][buttonNumberI][true].emplace_back(new MacroEvent(configKeysMap["keypressonpress"], &commandType, &commandContent));
+						macroEventsKeyMaps[configName][buttonNumberI][false].emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandType, &commandContent));
 					}else{
-						currentMacroEvents->emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
+						macroEventsKeyMaps[configName][buttonNumberI][configKeysMap[commandType]->IsOnKeyPressed()].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
 					}//Encode and store mapping v3
 				}
 			}
@@ -198,7 +188,7 @@ void run() {
 			if (ev1[0].value != ' ' && ev11->type == EV_KEY) {//Key event (press or release)
 				switch (ev11->code) {
 				case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
-					thread actionThread(chooseAction, (ev11->value == 1), &macroEventsKeyMap[currentConfigName][ev11->code - 1], &configSwitcher);//real key number = ev11->code - 1
+					thread actionThread(chooseAction, &macroEventsKeyMaps[currentConfigName][ev11->code - 1][ev11->value == 1]);//real key number = ev11->code - 1
 					actionThread.detach();
 					break;
 				}
@@ -209,7 +199,7 @@ void run() {
 			if (ev11->type == 1) {//Only extra buttons
 				switch (ev11->code) {
 				case 275: case 276:
-					thread actionThread(chooseAction, (ev11->value == 1), &macroEventsKeyMap[currentConfigName][ev11->code - OFFSET], &configSwitcher);//real key number = ev11->code - OFFSET
+					thread actionThread(chooseAction, &macroEventsKeyMaps[currentConfigName][ev11->code - OFFSET][ev11->value == 1]);//real key number = ev11->code - OFFSET
 					actionThread.detach();
 					break;
 				}
@@ -218,50 +208,60 @@ void run() {
 	}
 }
 
-static void chooseAction(bool pressed, MacroEventVector * relativeMacroEventsPointer, configSwitchScheduler * congSwitcherPointer) {
-	for(MacroEvent * macroEventPointer : *relativeMacroEventsPointer) {//run all the events at Key
-		if(macroEventPointer->KeyType()->IsOnKeyPressed() == pressed) {  //test if key state is matching
-			if(macroEventPointer->KeyType()->isInternal()) {  //INTERNAL COMMANDS
-				if(macroEventPointer->Type().substr(0,6)=="string"){
-					int strSize = macroEventPointer->Content().size();
-					FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-					for(int z = 0; z < strSize; z++){
-						fakekey_press(aKeyFaker, (unsigned char *)(&macroEventPointer->Content()[z]), 8, 0);
-						fakekey_release(aKeyFaker);
-					}
-					XFlush(aKeyFaker->xdpy);
-					XCloseDisplay(aKeyFaker->xdpy);
-				}else	if(macroEventPointer->Type().substr(0,12)=="specialpress"){
-						lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
-						FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-						fakekey_press(aKeyFaker, (unsigned char *)&macroEventPointer->Content()[0], 8, 0);
-						XFlush(aKeyFaker->xdpy);
-						fakeKeyFollowUps.emplace_back(new pair<char, FakeKey *>(macroEventPointer->Content()[0],aKeyFaker));
-						fakeKeyFollowCount++;
-				}else if(macroEventPointer->Type().substr(0,14)=="specialrelease"){
-						lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
-						if(fakeKeyFollowCount>0){
-							for(int vectorId = fakeKeyFollowUps.size()-1; vectorId>=0; vectorId--){
-								pair<char, FakeKey *> * aKeyFollowUp = fakeKeyFollowUps[vectorId];
-								if(get<0>(*aKeyFollowUp) == macroEventPointer->Content()[0]){
-									FakeKey * aKeyFaker = get<1>(*aKeyFollowUp);
-									fakekey_release(aKeyFaker);
-									XFlush(aKeyFaker->xdpy);
-									XCloseDisplay(aKeyFaker->xdpy);
-									fakeKeyFollowUps.erase(fakeKeyFollowUps.begin() + vectorId);
-									fakeKeyFollowCount--;
-								}
-							}
-						}else
-							clog << "No candidate for key release" << endl;
-					}else if(macroEventPointer->Type() == "chmap" || macroEventPointer->Type() == "chmaprelease")
-						congSwitcherPointer->scheduleReMap(macroEventPointer->Content());  //schedule config switch/change
-					else if (macroEventPointer->Type() == "sleep" || macroEventPointer->Type() == "sleeprelease")
-						usleep(stoul(macroEventPointer->Content()) * 1000);  //microseconds make me dizzy in keymap.txt
+//Functions that can be given to configKeys
+static void writeString(string *macroContent){
+	int strSize = (*macroContent).size();
+	FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
+	for(int z = 0; z < strSize; z++){
+		fakekey_press(aKeyFaker, (unsigned char *)&(*macroContent)[z], 8, 0);
+		fakekey_release(aKeyFaker);
+	}
+	XFlush(aKeyFaker->xdpy);
+	XCloseDisplay(aKeyFaker->xdpy);
+}
 
-				//CASUAL COMMANDS
-			}else	macroEventPointer->execute();  //runs the Command
+static void specialPress(string *macroContent){
+	lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
+	FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
+	fakekey_press(aKeyFaker, (unsigned char *)&(*macroContent)[0], 8, 0);
+	XFlush(aKeyFaker->xdpy);
+	fakeKeyFollowUps.emplace_back(new pair<char, FakeKey *>((*macroContent)[0],aKeyFaker));
+	fakeKeyFollowCount++;
+}
+
+static void specialRelease(string *macroContent){
+	lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
+	if(fakeKeyFollowCount>0){
+		for(int vectorId = fakeKeyFollowUps.size()-1; vectorId>=0; vectorId--){
+			pair<char, FakeKey *> * aKeyFollowUp = fakeKeyFollowUps[vectorId];
+			if(get<0>(*aKeyFollowUp) == (*macroContent)[0]){
+				FakeKey * aKeyFaker = get<1>(*aKeyFollowUp);
+				fakekey_release(aKeyFaker);
+				XFlush(aKeyFaker->xdpy);
+				XCloseDisplay(aKeyFaker->xdpy);
+				fakeKeyFollowUps.erase(fakeKeyFollowUps.begin() + vectorId);
+				fakeKeyFollowCount--;
+			}
 		}
+	}else
+		clog << "No candidate for key release" << endl;
+}
+
+static void chmapNow(string *macroContent){
+	lock_guard<mutex> guard(configSwitcherMutex);
+	configSwitcher.scheduleReMap(*macroContent);  //schedule config switch/change
+}
+
+static void sleepNow(string *macroContent){
+	usleep(stoul(*macroContent) * 1000);  //microseconds make me dizzy in keymap.txt
+}
+//end of configKeys functions
+
+static void chooseAction(MacroEventVector * relativeMacroEventsPointer) {
+	for(MacroEvent * macroEventPointer : *relativeMacroEventsPointer) {//run all the events at Key
+		if(macroEventPointer->KeyType()->isInternal()) {  //INTERNAL COMMANDS
+			macroEventPointer->KeyType()->runInternal((string *)&macroEventPointer->Content());
+		}else	macroEventPointer->execute();  //runs the Command
 	}
 }
 public:
@@ -280,39 +280,39 @@ NagaDaemon() {
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Left_Handed_Edition-if02-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Left_Handed_Edition-event-mouse");          // NAGA Left Handed
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Pro_000000000000-if02-event-kbd" , "/dev/input/by-id/usb-Razer_Razer_Naga_Pro_000000000000-event-mouse"); 							// NAGA PRO WIRELESS
 	devices.emplace_back("/dev/input/by-id/usb-1532_Razer_Naga_Pro_000000000000-if02-event-kbd" , "/dev/input/by-id/usb-1532_Razer_Naga_Pro_000000000000-event-mouse"); // NAGA PRO
-	
+
 	//modulable options list to manage internals inside chooseAction method arg1:COMMAND, arg2:isInternal, arg3:onKeyPressed?
 	configKeysMap.insert(stringAndConfigKey("key", NULL));//special one
 
-	configKeysMap.insert(stringAndConfigKey("chmap", new configKey("", true, true)));//change keymap
-	configKeysMap.insert(stringAndConfigKey("chmaprelease", new configKey("", true, false)));
+	configKeysMap.insert(stringAndConfigKey("chmap", new configKey("", true, chmapNow)));//change keymap
+	configKeysMap.insert(stringAndConfigKey("chmaprelease", new configKey("", false, chmapNow)));
 
-	configKeysMap.insert(stringAndConfigKey("sleep", new configKey("", true, true)));
-	configKeysMap.insert(stringAndConfigKey("sleeprelease", new configKey("", true, false)));
+	configKeysMap.insert(stringAndConfigKey("sleep", new configKey("", true, sleepNow)));
+	configKeysMap.insert(stringAndConfigKey("sleeprelease", new configKey("", false, sleepNow)));
 
-	configKeysMap.insert(stringAndConfigKey("run", new configKey("setsid ", false, true)));
-	configKeysMap.insert(stringAndConfigKey("run2", new configKey("", false, true)));
+	configKeysMap.insert(stringAndConfigKey("run", new configKey("setsid ", true)));
+	configKeysMap.insert(stringAndConfigKey("run2", new configKey("", true)));
 
-	configKeysMap.insert(stringAndConfigKey("runrelease", new configKey("setsid ", false, false)));
-	configKeysMap.insert(stringAndConfigKey("runrelease2", new configKey("", false, false)));
+	configKeysMap.insert(stringAndConfigKey("runrelease", new configKey("setsid ", false)));
+	configKeysMap.insert(stringAndConfigKey("runrelease2", new configKey("", false)));
 
-	configKeysMap.insert(stringAndConfigKey("keypressonpress", new configKey("setsid xdotool keydown --window getactivewindow ", false, true)));
-	configKeysMap.insert(stringAndConfigKey("keypressonrelease", new configKey("setsid xdotool keydown --window getactivewindow ", false, false)));
+	configKeysMap.insert(stringAndConfigKey("keypressonpress", new configKey("setsid xdotool keydown --window getactivewindow ", true)));
+	configKeysMap.insert(stringAndConfigKey("keypressonrelease", new configKey("setsid xdotool keydown --window getactivewindow ", false)));
 
-	configKeysMap.insert(stringAndConfigKey("keyreleaseonpress", new configKey("setsid xdotool keyup --window getactivewindow ", false, true)));
-	configKeysMap.insert(stringAndConfigKey("keyreleaseonrelease", new configKey("setsid xdotool keyup --window getactivewindow ", false, false)));
+	configKeysMap.insert(stringAndConfigKey("keyreleaseonpress", new configKey("setsid xdotool keyup --window getactivewindow ", true)));
+	configKeysMap.insert(stringAndConfigKey("keyreleaseonrelease", new configKey("setsid xdotool keyup --window getactivewindow ", false)));
 
-	configKeysMap.insert(stringAndConfigKey("keyclick", new configKey("setsid xdotool key --window getactivewindow ", false, true)));
-	configKeysMap.insert(stringAndConfigKey("keyclickrelease", new configKey("setsid xdotool key --window getactivewindow ", false, false)));
+	configKeysMap.insert(stringAndConfigKey("keyclick", new configKey("setsid xdotool key --window getactivewindow ", true)));
+	configKeysMap.insert(stringAndConfigKey("keyclickrelease", new configKey("setsid xdotool key --window getactivewindow ", false)));
 
-	configKeysMap.insert(stringAndConfigKey("string", new configKey("", true, true)));
-	configKeysMap.insert(stringAndConfigKey("stringrelease", new configKey("", true, false)));
+	configKeysMap.insert(stringAndConfigKey("string", new configKey("", true, writeString)));
+	configKeysMap.insert(stringAndConfigKey("stringrelease", new configKey("", false, writeString)));
 
-	configKeysMap.insert(stringAndConfigKey("specialpressonpress", new configKey("", true, true)));
-	configKeysMap.insert(stringAndConfigKey("specialpressonrelease", new configKey("", true, false)));
+	configKeysMap.insert(stringAndConfigKey("specialpressonpress", new configKey("", true, specialPress)));
+	configKeysMap.insert(stringAndConfigKey("specialpressonrelease", new configKey("", false, specialPress)));
 
-	configKeysMap.insert(stringAndConfigKey("specialreleaseonpress", new configKey("", true, true)));
-	configKeysMap.insert(stringAndConfigKey("specialreleaseonrelease", new configKey("", true, false)));
+	configKeysMap.insert(stringAndConfigKey("specialreleaseonpress", new configKey("", true, specialRelease)));
+	configKeysMap.insert(stringAndConfigKey("specialreleaseonrelease", new configKey("", false, specialRelease)));
 
 	size = sizeof(struct input_event);
 	for (CharAndChar &device : devices) {//Setup check
