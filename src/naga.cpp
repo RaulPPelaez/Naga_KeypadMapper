@@ -30,9 +30,7 @@ class configKey {
 	public:
 	const bool& IsOnKeyPressed() const { return onKeyPressed; }
 	const bool& isInternal() const { return internal; }
-	const void runInternal(string * content) const {
-		internalFunction(content);
-	}
+	const void runInternal(string * content) const { internalFunction(content); }
 	const string& Prefix() const { return prefix; }
 	configKey(string&& tcontent, bool tonKeyPressed, void (*tinternalF)(string *cc) = NULL) : prefix(tcontent), internal(tinternalF!=NULL), onKeyPressed(tonKeyPressed), internalFunction(tinternalF){
 	}
@@ -69,8 +67,8 @@ class configSwitchScheduler {
 	const bool& isRemapScheduled() const {
 		return scheduledReMap;
 	}
-	void scheduleReMap(string const& reMapString) {
-		scheduledReMapString = reMapString;
+	void scheduleReMap(string * reMapString) {
+		scheduledReMapString = *reMapString;
 		scheduledReMap = true;
 	}
 	void unScheduleReMap(){
@@ -89,7 +87,6 @@ map<string, map<int, map<bool, MacroEventVector > > > macroEventsKeyMaps;
 
 string currentConfigName;
 struct input_event ev1[64];
-int side_btn_fd, extra_btn_fd, size;
 vector<CharAndChar > devices;
 
 void loadConf(string configName) {
@@ -168,10 +165,13 @@ string hexChar(char a){
 	return hexedChar.str();
 }
 
+int side_btn_fd, extra_btn_fd, size;
+input_event * ev11;
+fd_set readset;
+
 void run() {
-	fd_set readset;
 	ioctl(side_btn_fd, EVIOCGRAB, 1);// Give application exclusive control over side buttons.
-	input_event * ev11 = &ev1[1];
+	ev11 = &ev1[1];
 	while (1) {
 		if(configSwitcher.isRemapScheduled()) {//remap
 			loadConf(configSwitcher.RemapString());//change config for macroEvents[ii]->Content()
@@ -188,8 +188,7 @@ void run() {
 			if (ev1[0].value != ' ' && ev11->type == EV_KEY) {//Key event (press or release)
 				switch (ev11->code) {
 				case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
-					thread actionThread(chooseAction, &macroEventsKeyMaps[currentConfigName][ev11->code - 1][ev11->value == 1]);//real key number = ev11->code - 1
-					actionThread.detach();
+					thread(chooseAction, &macroEventsKeyMaps[currentConfigName][ev11->code - 1][ev11->value == 1]).detach();//real key number = ev11->code - 1
 					break;
 				}
 			}
@@ -199,8 +198,7 @@ void run() {
 			if (ev11->type == 1) {//Only extra buttons
 				switch (ev11->code) {
 				case 275: case 276:
-					thread actionThread(chooseAction, &macroEventsKeyMaps[currentConfigName][ev11->code - OFFSET][ev11->value == 1]);//real key number = ev11->code - OFFSET
-					actionThread.detach();
+					thread(chooseAction, &macroEventsKeyMaps[currentConfigName][ev11->code - OFFSET][ev11->value == 1]).detach();//real key number = ev11->code - OFFSET
 					break;
 				}
 			}
@@ -242,6 +240,7 @@ static void specialRelease(string *macroContent){
 				fakeKeyFollowUps.erase(fakeKeyFollowUps.begin() + vectorId);
 				fakeKeyFollowCount--;
 			}
+			delete aKeyFollowUp;
 		}
 	}else
 		clog << "No candidate for key release" << endl;
@@ -249,13 +248,15 @@ static void specialRelease(string *macroContent){
 
 static void chmapNow(string *macroContent){
 	lock_guard<mutex> guard(configSwitcherMutex);
-	configSwitcher.scheduleReMap(*macroContent);  //schedule config switch/change
+	configSwitcher.scheduleReMap(macroContent);  //schedule config switch/change
 }
 
 static void sleepNow(string *macroContent){
 	usleep(stoul(*macroContent) * 1000);  //microseconds make me dizzy in keymap.txt
 }
 //end of configKeys functions
+
+
 
 static void chooseAction(MacroEventVector * relativeMacroEventsPointer) {
 	for(MacroEvent * macroEventPointer : *relativeMacroEventsPointer) {//run all the events at Key
