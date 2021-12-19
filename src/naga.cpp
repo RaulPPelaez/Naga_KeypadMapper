@@ -342,7 +342,7 @@ NagaDaemon() {
 void stopD() {
 	clog << "Stopping possible naga daemon" << endl;
 	(void)!(system(("kill $(ps aux | grep naga | grep debug | grep -v "+ to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1").c_str()));
-	(void)!(system(("/usr/local/bin/nagaKillroot.sh")));
+	(void)!(system(("/usr/local/bin/Naga_Linux/nagaKillroot.sh")));
 };
 
 void stopDRoot() {
@@ -366,13 +366,13 @@ int main(int argc, char *argv[]) {
 			if(answer.length() != 1 || ( answer[0] != 'y' &&  answer[0] != 'Y' )) {
 				clog << "Aborting" << endl;
 			}else{
-				(void)!(system("bash /usr/local/bin/nagaUninstall.sh"));
+				(void)!(system("bash /usr/local/bin/Naga_Linux/nagaUninstall.sh"));
 			}
 		}else if(strstr(argv[1], "debug")!=NULL) {
 			stopD();
 			usleep(40000);
 			clog << "Starting naga daemon in debug mode..." << endl;
-			(void)!(system("/usr/local/bin/nagaXinputStart.sh"));
+			(void)!(system("/usr/local/bin/Naga_Linux/nagaXinputStart.sh"));
 			NagaDaemon();
 		}
 	} else {

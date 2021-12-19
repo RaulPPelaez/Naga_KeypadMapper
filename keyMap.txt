@@ -1,6 +1,9 @@
 config=defaultConfig
 
-1 - key=XF86AudioMute
+1 - key=a
+
+2 - specialPressOnPress=;
+2 - specialReleaseOnRelease=;
 
 3 - string=hello@hotmail.com
 
@@ -8,7 +11,8 @@ config=defaultConfig
 
 5 - run=gnome-terminal
 
-6 - keyclick=quotedbl
+6 - specialPressOnPress=È
+6 - specialReleaseOnRelease=È
 
 7 - key=XF86AudioLowerVolume
 

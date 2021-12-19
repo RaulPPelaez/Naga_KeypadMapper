@@ -24,12 +24,17 @@ sudo chmod 755 /usr/local/bin/naga
 cd ..
 
 sudo groupadd -f razer
-sudo cp -f ./src/nagaXinputStart.sh /usr/local/bin/
-sudo chmod 755 /usr/local/bin/nagaXinputStart.sh
-sudo cp -f ./src/nagaKillroot.sh /usr/local/bin/
-sudo chmod 755 /usr/local/bin/nagaKillroot.sh
-sudo cp -f ./src/nagaUninstall.sh /usr/local/bin/nagaUninstall.sh
-sudo chmod 755 /usr/local/bin/nagaUninstall.sh
+
+sudo mkdir -p /usr/local/bin/Naga_Linux
+
+sudo cp -f ./src/nagaXinputStart.sh /usr/local/bin/Naga_Linux/
+sudo chmod 755 /usr/local/bin/Naga_Linux/nagaXinputStart.sh
+
+sudo cp -f ./src/nagaKillroot.sh /usr/local/bin/Naga_Linux/
+sudo chmod 755 /usr/local/bin/Naga_Linux/nagaKillroot.sh
+
+sudo cp -f ./src/nagaUninstall.sh /usr/local/bin/Naga_Linux/
+sudo chmod 755 /usr/local/bin/Naga_Linux/nagaUninstall.sh
 
 for u in $(sudo awk -F'[/:]' '{if ($3 >= 1000 && $3 != 65534) print $1}' /etc/passwd)
 do
