@@ -342,7 +342,7 @@ NagaDaemon() {
 void stopD() {
 	clog << "Stopping possible naga daemon" << endl;
 	(void)!(system(("kill $(ps aux | grep naga | grep debug | grep -v "+ to_string((int)getpid()) +" | awk '{print $2}') > /dev/null 2>&1").c_str()));
-	(void)!(system(("/usr/local/bin/killroot.sh")));
+	(void)!(system(("/usr/local/bin/nagaKillroot.sh")));
 };
 
 void stopDRoot() {

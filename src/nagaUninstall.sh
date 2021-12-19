@@ -5,4 +5,5 @@ echo "Deleting files"
 sudo rm -f /usr/local/bin/naga
 sudo rm -f /usr/local/bin/nagaXinputStart.sh
 sudo rm -f /etc/udev/rules.d/80-naga.rules
+sudo rm -f /usr/local/bin/nagaKillroot.sh
 sudo rm -f /usr/local/bin/nagaUninstall.sh
