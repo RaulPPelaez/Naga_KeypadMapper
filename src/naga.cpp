@@ -223,7 +223,6 @@ const static void writeString(const string *macroContent){
 const static void specialPress(const string *macroContent){
 	lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 	FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-	clog << "R here" << endl;
 	fakekey_press(aKeyFaker, (unsigned char *)&(*macroContent)[0], 8, 0);
 	XFlush(aKeyFaker->xdpy);
 	fakeKeyFollowUps.emplace_back(new pair<char, FakeKey *>((*macroContent)[0],aKeyFaker));

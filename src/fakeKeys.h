@@ -32,7 +32,7 @@ struct FakeKey
 
 static void deleteFakeKey(FakeKey * aKeyFaker){
 	XFree(aKeyFaker->keysyms);
-	delete aKeyFaker;
+	free(aKeyFaker);
 }
 
 static int utf8_to_ucs4 (const unsigned char *src_orig, unsigned int *dst, int len)
