@@ -26,13 +26,13 @@ class configKey {
 	private:
 	const string prefix;
 	const bool onKeyPressed;
-	void (*internalFunction)(const string * c);
+	const void (*internalFunction)(const string * c);
 	public:
 	const bool& IsOnKeyPressed() const { return onKeyPressed; }
 	const void runInternal(const string * content) const { internalFunction(content); }
 	const string& Prefix() const { return prefix; }
 
-	configKey(string&& tcontent, bool tonKeyPressed, void (*tinternalF)(const string *cc) = NULL) : prefix(tcontent), onKeyPressed(tonKeyPressed), internalFunction(tinternalF){
+	configKey(string&& tcontent, bool tonKeyPressed, const void (*tinternalF)(const string *cc) = NULL) : prefix(tcontent), onKeyPressed(tonKeyPressed), internalFunction(tinternalF){
 	}
 };
 
@@ -208,7 +208,7 @@ void run() {
 }
 
 //Functions that can be given to configKeys
-static void writeString(const string *macroContent){
+const static void writeString(const string *macroContent){
 	int strSize = macroContent->size();
 	FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
 	for(int z = 0; z < strSize; z++){
@@ -220,16 +220,17 @@ static void writeString(const string *macroContent){
 	deleteFakeKey(aKeyFaker);
 }
 
-static void specialPress(const string *macroContent){
+const static void specialPress(const string *macroContent){
 	lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 	FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-	fakekey_press(aKeyFaker, (unsigned char *)&macroContent[0], 8, 0);
+	clog << "R here" << endl;
+	fakekey_press(aKeyFaker, (unsigned char *)&(*macroContent)[0], 8, 0);
 	XFlush(aKeyFaker->xdpy);
 	fakeKeyFollowUps.emplace_back(new pair<char, FakeKey *>((*macroContent)[0],aKeyFaker));
 	fakeKeyFollowCount++;
 }
 
-static void specialRelease(const string *macroContent){
+const static void specialRelease(const string *macroContent){
 	lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 	if(fakeKeyFollowCount>0){
 		for(int vectorId = fakeKeyFollowUps.size()-1; vectorId>=0; vectorId--){
@@ -249,16 +250,16 @@ static void specialRelease(const string *macroContent){
 		clog << "No candidate for key release" << endl;
 }
 
-static void chmapNow(const string *macroContent){
+const static void chmapNow(const string *macroContent){
 	lock_guard<mutex> guard(configSwitcherMutex);
 	configSwitcher.scheduleReMap(macroContent);  //schedule config switch/change
 }
 
-static void sleepNow(const string *macroContent){
+const static void sleepNow(const string *macroContent){
 	usleep(stoul(*macroContent) * 1000);  //microseconds make me dizzy in keymap.txt
 }
 
-static void executeNow(const string *macroContent){
+const static void executeNow(const string *macroContent){
 	(void)!(system(macroContent->c_str()));
 }
 //end of configKeys functions
