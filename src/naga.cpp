@@ -25,14 +25,14 @@ int fakeKeyFollowCount = 0;
 class configKey {
 	private:
 	const string prefix;
-	const bool internal, onKeyPressed;
-	void (*internalFunction)(string * c);
+	const bool onKeyPressed;
+	void (*internalFunction)(const string * c);
 	public:
 	const bool& IsOnKeyPressed() const { return onKeyPressed; }
-	const bool& isInternal() const { return internal; }
-	const void runInternal(string * content) const { internalFunction(content); }
+	const void runInternal(const string * content) const { internalFunction(content); }
 	const string& Prefix() const { return prefix; }
-	configKey(string&& tcontent, bool tonKeyPressed, void (*tinternalF)(string *cc) = NULL) : prefix(tcontent), internal(tinternalF!=NULL), onKeyPressed(tonKeyPressed), internalFunction(tinternalF){
+
+	configKey(string&& tcontent, bool tonKeyPressed, void (*tinternalF)(const string *cc) = NULL) : prefix(tcontent), onKeyPressed(tonKeyPressed), internalFunction(tinternalF){
 	}
 };
 
@@ -44,9 +44,6 @@ class MacroEvent {
 	const configKey * KeyType() const { return keyType; }
 	const string& Type() const { return type; }
 	const string& Content() const { return content; }
-	const void execute() const {
-		(void)!(system((keyType->Prefix()+content).c_str()));
-	}
 
 	MacroEvent(configKey * tkeyType, string * ttype, string * tcontent) : keyType(tkeyType), type(*ttype), content(*tcontent){
 	}
@@ -67,11 +64,11 @@ class configSwitchScheduler {
 	const bool& isRemapScheduled() const {
 		return scheduledReMap;
 	}
-	void scheduleReMap(string * reMapString) {
+	const void scheduleReMap(const string * reMapString) {
 		scheduledReMapString = *reMapString;
 		scheduledReMap = true;
 	}
-	void unScheduleReMap(){
+	const void unScheduleReMap(){
 		scheduledReMap=false;
 	}
 };
@@ -145,9 +142,13 @@ void loadConf(string configName) {
 						if(commandContent.size()==1){
 							commandContent = hexChar(commandContent[0]);
 						}
+						string commandContent2 = configKeysMap["keyreleaseonrelease"]->Prefix() + commandContent;
+						commandContent = configKeysMap["keypressonpress"]->Prefix() + commandContent;
 						macroEventsKeyMaps[configName][buttonNumberI][true].emplace_back(new MacroEvent(configKeysMap["keypressonpress"], &commandType, &commandContent));
-						macroEventsKeyMaps[configName][buttonNumberI][false].emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandType, &commandContent));
+						macroEventsKeyMaps[configName][buttonNumberI][false].emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandType, &commandContent2));
 					}else{
+						if(configKeysMap[commandType]->Prefix()!="")
+							commandContent = configKeysMap[commandType]->Prefix() + commandContent;
 						macroEventsKeyMaps[configName][buttonNumberI][configKeysMap[commandType]->IsOnKeyPressed()].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
 					}//Encode and store mapping v3
 				}
@@ -188,7 +189,7 @@ void run() {
 			if (ev1[0].value != ' ' && ev11->type == EV_KEY) {//Key event (press or release)
 				switch (ev11->code) {
 				case 2: case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10:  case 11:  case 12:  case 13:
-					thread(chooseAction, &macroEventsKeyMaps[currentConfigName][ev11->code - 1][ev11->value == 1]).detach();//real key number = ev11->code - 1
+					thread(runActions, &macroEventsKeyMaps[currentConfigName][ev11->code - 1][ev11->value == 1]).detach();//real key number = ev11->code - 1
 					break;
 				}
 			}
@@ -198,7 +199,7 @@ void run() {
 			if (ev11->type == 1) {//Only extra buttons
 				switch (ev11->code) {
 				case 275: case 276:
-					thread(chooseAction, &macroEventsKeyMaps[currentConfigName][ev11->code - OFFSET][ev11->value == 1]).detach();//real key number = ev11->code - OFFSET
+					thread(runActions, &macroEventsKeyMaps[currentConfigName][ev11->code - OFFSET][ev11->value == 1]).detach();//real key number = ev11->code - OFFSET
 					break;
 				}
 			}
@@ -207,8 +208,8 @@ void run() {
 }
 
 //Functions that can be given to configKeys
-static void writeString(string *macroContent){
-	int strSize = (*macroContent).size();
+static void writeString(const string *macroContent){
+	int strSize = macroContent->size();
 	FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
 	for(int z = 0; z < strSize; z++){
 		fakekey_press(aKeyFaker, (unsigned char *)&(*macroContent)[z], 8, 0);
@@ -216,18 +217,19 @@ static void writeString(string *macroContent){
 	}
 	XFlush(aKeyFaker->xdpy);
 	XCloseDisplay(aKeyFaker->xdpy);
+	deleteFakeKey(aKeyFaker);
 }
 
-static void specialPress(string *macroContent){
+static void specialPress(const string *macroContent){
 	lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 	FakeKey * aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-	fakekey_press(aKeyFaker, (unsigned char *)&(*macroContent)[0], 8, 0);
+	fakekey_press(aKeyFaker, (unsigned char *)&macroContent[0], 8, 0);
 	XFlush(aKeyFaker->xdpy);
 	fakeKeyFollowUps.emplace_back(new pair<char, FakeKey *>((*macroContent)[0],aKeyFaker));
 	fakeKeyFollowCount++;
 }
 
-static void specialRelease(string *macroContent){
+static void specialRelease(const string *macroContent){
 	lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 	if(fakeKeyFollowCount>0){
 		for(int vectorId = fakeKeyFollowUps.size()-1; vectorId>=0; vectorId--){
@@ -239,6 +241,7 @@ static void specialRelease(string *macroContent){
 				XCloseDisplay(aKeyFaker->xdpy);
 				fakeKeyFollowUps.erase(fakeKeyFollowUps.begin() + vectorId);
 				fakeKeyFollowCount--;
+				deleteFakeKey(aKeyFaker);
 			}
 			delete aKeyFollowUp;
 		}
@@ -246,23 +249,25 @@ static void specialRelease(string *macroContent){
 		clog << "No candidate for key release" << endl;
 }
 
-static void chmapNow(string *macroContent){
+static void chmapNow(const string *macroContent){
 	lock_guard<mutex> guard(configSwitcherMutex);
 	configSwitcher.scheduleReMap(macroContent);  //schedule config switch/change
 }
 
-static void sleepNow(string *macroContent){
+static void sleepNow(const string *macroContent){
 	usleep(stoul(*macroContent) * 1000);  //microseconds make me dizzy in keymap.txt
+}
+
+static void executeNow(const string *macroContent){
+	(void)!(system(macroContent->c_str()));
 }
 //end of configKeys functions
 
 
 
-static void chooseAction(MacroEventVector * relativeMacroEventsPointer) {
+static void runActions(MacroEventVector * relativeMacroEventsPointer) {
 	for(MacroEvent * macroEventPointer : *relativeMacroEventsPointer) {//run all the events at Key
-		if(macroEventPointer->KeyType()->isInternal()) {  //INTERNAL COMMANDS
-			macroEventPointer->KeyType()->runInternal((string *)&macroEventPointer->Content());
-		}else	macroEventPointer->execute();  //runs the Command
+		macroEventPointer->KeyType()->runInternal(&macroEventPointer->Content());
 	}
 }
 public:
@@ -282,29 +287,30 @@ NagaDaemon() {
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Pro_000000000000-if02-event-kbd" , "/dev/input/by-id/usb-Razer_Razer_Naga_Pro_000000000000-event-mouse"); 							// NAGA PRO WIRELESS
 	devices.emplace_back("/dev/input/by-id/usb-1532_Razer_Naga_Pro_000000000000-if02-event-kbd" , "/dev/input/by-id/usb-1532_Razer_Naga_Pro_000000000000-event-mouse"); // NAGA PRO
 
-	//modulable options list to manage internals inside chooseAction method arg1:COMMAND, arg2:isInternal, arg3:onKeyPressed?
+	//modulable options list to manage internals inside runActions method arg1:COMMAND, arg2:onKeyPressed?, arg3:function to send prefix+config content.
 	configKeysMap.insert(stringAndConfigKey("key", NULL));//special one
 
+	//Leave prefix empty "" if you're not using the executeNow function
 	configKeysMap.insert(stringAndConfigKey("chmap", new configKey("", true, chmapNow)));//change keymap
 	configKeysMap.insert(stringAndConfigKey("chmaprelease", new configKey("", false, chmapNow)));
 
 	configKeysMap.insert(stringAndConfigKey("sleep", new configKey("", true, sleepNow)));
 	configKeysMap.insert(stringAndConfigKey("sleeprelease", new configKey("", false, sleepNow)));
 
-	configKeysMap.insert(stringAndConfigKey("run", new configKey("setsid ", true)));
-	configKeysMap.insert(stringAndConfigKey("run2", new configKey("", true)));
+	configKeysMap.insert(stringAndConfigKey("run", new configKey("setsid ", true, executeNow)));
+	configKeysMap.insert(stringAndConfigKey("run2", new configKey("", true, executeNow)));
 
-	configKeysMap.insert(stringAndConfigKey("runrelease", new configKey("setsid ", false)));
-	configKeysMap.insert(stringAndConfigKey("runrelease2", new configKey("", false)));
+	configKeysMap.insert(stringAndConfigKey("runrelease", new configKey("setsid ", false, executeNow)));
+	configKeysMap.insert(stringAndConfigKey("runrelease2", new configKey("", false, executeNow)));
 
-	configKeysMap.insert(stringAndConfigKey("keypressonpress", new configKey("setsid xdotool keydown --window getactivewindow ", true)));
-	configKeysMap.insert(stringAndConfigKey("keypressonrelease", new configKey("setsid xdotool keydown --window getactivewindow ", false)));
+	configKeysMap.insert(stringAndConfigKey("keypressonpress", new configKey("setsid xdotool keydown --window getactivewindow ", true, executeNow)));
+	configKeysMap.insert(stringAndConfigKey("keypressonrelease", new configKey("setsid xdotool keydown --window getactivewindow ", false, executeNow)));
 
-	configKeysMap.insert(stringAndConfigKey("keyreleaseonpress", new configKey("setsid xdotool keyup --window getactivewindow ", true)));
-	configKeysMap.insert(stringAndConfigKey("keyreleaseonrelease", new configKey("setsid xdotool keyup --window getactivewindow ", false)));
+	configKeysMap.insert(stringAndConfigKey("keyreleaseonpress", new configKey("setsid xdotool keyup --window getactivewindow ", true, executeNow)));
+	configKeysMap.insert(stringAndConfigKey("keyreleaseonrelease", new configKey("setsid xdotool keyup --window getactivewindow ", false, executeNow)));
 
-	configKeysMap.insert(stringAndConfigKey("keyclick", new configKey("setsid xdotool key --window getactivewindow ", true)));
-	configKeysMap.insert(stringAndConfigKey("keyclickrelease", new configKey("setsid xdotool key --window getactivewindow ", false)));
+	configKeysMap.insert(stringAndConfigKey("keyclick", new configKey("setsid xdotool key --window getactivewindow ", true, executeNow)));
+	configKeysMap.insert(stringAndConfigKey("keyclickrelease", new configKey("setsid xdotool key --window getactivewindow ", false, executeNow)));
 
 	configKeysMap.insert(stringAndConfigKey("string", new configKey("", true, writeString)));
 	configKeysMap.insert(stringAndConfigKey("stringrelease", new configKey("", false, writeString)));

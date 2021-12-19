@@ -30,6 +30,11 @@ struct FakeKey
 	int shift_mod_index, alt_mod_index, meta_mod_index;
 };
 
+static void deleteFakeKey(FakeKey * aKeyFaker){
+	XFree(aKeyFaker->keysyms);
+	delete aKeyFaker;
+}
+
 static int utf8_to_ucs4 (const unsigned char *src_orig, unsigned int *dst, int len)
 {
 	const unsigned char *src = src_orig;
@@ -166,10 +171,10 @@ FakeKey* fakekey_init(Display *xdpy)
 			KeySym ks = XKeycodeToKeysym(fk->xdpy,
 			                             fk->modifier_table[mod_index], 0);
 
-			/*
-			 * Note: ControlMapIndex is already defined by xlib
-			 * ShiftMapIndex
-			 */
+
+			 //Note: ControlMapIndex is already defined by xlib
+			 //ShiftMapIndex
+
 
 			switch (ks)
 			{
