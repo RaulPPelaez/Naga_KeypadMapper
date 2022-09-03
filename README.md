@@ -146,8 +146,8 @@ If you ever were to login as root then unlog and log as another user the daemon 
 The commands are :
 
 	`naga stop` or `naga kill` //stops the daemon.
-	`naga start` //restart the daemon if there is one running and starts a hidden daemon.
-	`naga debug` //restart the daemon if there is one running and starts one in the console for debugging.
+	`naga start <optional:selectedMapping>` //restart the daemon if there is one running and starts a hidden daemon with the optional key mapping passed as the default config.
+	`naga debug <optional:selectedMapping>` //restart the daemon if there is one running and starts one in the console for debugging with the optional key mapping passed as the default config.
 	`naga uninstall` //uninstall the daemon tool
 	`naga killroot` //kill root daemon if launched as root
 	`naga` //gives help

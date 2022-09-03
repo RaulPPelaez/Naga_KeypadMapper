@@ -271,7 +271,7 @@ static void runActions(MacroEventVector * relativeMacroEventsPointer) {
 	}
 }
 public:
-NagaDaemon() {
+NagaDaemon(const string mapConfig = "defaultConfig") {
 	//modulable device files list
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic-event-mouse");                                        // NAGA EPIC
 	devices.emplace_back("/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-if01-event-kbd", "/dev/input/by-id/usb-Razer_Razer_Naga_Epic_Dock-event-mouse");                              // NAGA EPIC DOCK
@@ -332,7 +332,7 @@ NagaDaemon() {
 		cerr << "No naga devices found or you don't have permission to access them." << endl;
 		exit(1);
 	}
-	loadConf("defaultConfig");//Initialize config
+	loadConf(mapConfig);//Initialize config
 	run();
 	// Disconnect from X
 	//XCloseDisplay(display);
@@ -354,7 +354,16 @@ int main(int argc, char *argv[]) {
 	if(argc>1) {
 		if(strstr(argv[1], "start")!=NULL) {
 			clog << "Stopping possible naga daemon\nStarting naga daemon in hidden mode..." << endl;
-			(void)!(system("setsid naga debug > /dev/null 2>&1 &"));
+			string command;
+			if (argc>2)
+			{
+				command = "setsid naga debug " + string(argv[2]) + "> /dev/null 2>&1 &";
+			}
+			else
+			{
+				command = "setsid naga debug > /dev/null 2>&1 &";
+			}
+			(void)!(system(command.c_str()));
 		}else if(strstr(argv[1], "killroot")!=NULL) {
 			stopDRoot();
 		}else if(strstr(argv[1], "kill")!=NULL || strstr(argv[1], "stop")!=NULL) {
@@ -373,7 +382,14 @@ int main(int argc, char *argv[]) {
 			usleep(40000);
 			clog << "Starting naga daemon in debug mode..." << endl;
 			(void)!(system("/usr/local/bin/Naga_Linux/nagaXinputStart.sh"));
-			NagaDaemon();
+			if (argc>2)
+			{
+				NagaDaemon(string(argv[2]));
+			}
+			else
+			{
+				NagaDaemon();
+			}
 		}
 	} else {
 		clog << "Possible arguments : \n  -start          Starts the daemon in hidden mode. (stops it before)\n  -stop           Stops the daemon.\n  -debug          Starts the daemon in the terminal,\n" <<
