@@ -1,5 +1,6 @@
 //EXPERIMENTAL
 #include <X11/keysym.h>
+#include <X11/XKBlib.h>
 #include <X11/extensions/XTest.h>
 
 #include <cstring>
@@ -168,8 +169,8 @@ FakeKey* fakekey_init(Display *xdpy)
 	{
 		if (fk->modifier_table[mod_index])
 		{
-			KeySym ks = XKeycodeToKeysym(fk->xdpy,
-			                             fk->modifier_table[mod_index], 0);
+			KeySym ks = XkbKeycodeToKeysym(fk->xdpy,
+			                             fk->modifier_table[mod_index], 0, 0);
 
 
 			 //Note: ControlMapIndex is already defined by xlib
@@ -237,10 +238,10 @@ int fakekey_press_keysym(FakeKey *fk, KeySym keysym, int flags)
 	{
 		/* we already have a keycode for this keysym */
 		/* Does it need a shift key though ? */
-		if (XKeycodeToKeysym(fk->xdpy, code, 0) != keysym)
+		if (XkbKeycodeToKeysym(fk->xdpy, code, 0, 0) != keysym)
 		{
 			/* TODO: Assumes 1st modifier is shifted */
-			if (XKeycodeToKeysym(fk->xdpy, code, 1) == keysym)
+			if (XkbKeycodeToKeysym(fk->xdpy, code, 0, 1) == keysym)
 				flags |= FAKEKEYMOD_SHIFT; /* can get at it via shift */
 			else
 				code = 0; /* urg, some other modifier do it the heavy way */
@@ -299,10 +300,10 @@ int fakekey_press_keysym(FakeKey *fk, KeySym keysym, int flags)
 		 * Probably better to try and grab the mapping notify *here* ?
 		 */
 
-		if (XKeycodeToKeysym(fk->xdpy, code, 0) != keysym)
+		if (XkbKeycodeToKeysym(fk->xdpy, code, 0, 0) != keysym)
 		{
 			/* TODO: Assumes 1st modifier is shifted */
-			if (XKeycodeToKeysym(fk->xdpy, code, 1) == keysym)
+			if (XkbKeycodeToKeysym(fk->xdpy, code, 0, 1) == keysym)
 				flags |= FAKEKEYMOD_SHIFT; /* can get at it via shift */
 		}
 	}
