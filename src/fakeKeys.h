@@ -4,7 +4,7 @@
 #include <X11/extensions/XTest.h>
 
 #include <cstring>
-#include <thread>
+#include <stdlib.h>  
 
 #ifndef FAKEKEYS_H_
 #define FAKEKEYS_H_
