@@ -4,6 +4,8 @@
 
 #include "fakeKeys.h"
 
+
+#include <algorithm>
 #include <iostream>
 #include <vector>
 #include <fstream>
