@@ -211,9 +211,9 @@ void run() {
 
 //Functions that can be given to configKeys
 const static void writeString(const string *macroContent){
-	int strSize = macroContent->size();
+	lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 	FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
-	for(int z = 0; z < strSize; z++){
+	for(int strSize = macroContent->size(),z = 0; z < strSize; z++){
 		fakekey_press(aKeyFaker, (unsigned char *)&(*macroContent)[z], 8, 0);
 		fakekey_release(aKeyFaker);
 	}
