@@ -1,5 +1,5 @@
 # Razer Mouse Mapper for Linux
-..also can accept other devices they're simply untested. Contact me for adding devices.
+..also can accept other devices by adding the files. Contact me to add devices.
 
 !!! ONE LINE INSTALL !!! :
 
@@ -7,7 +7,8 @@
 
 (requires unzip)
 
-This should be easy to install just run sh install.sh from inside the directory.
+Run sh install.sh from the directory to install.
+
 If there is an error about config files just copy it to your /home/.naga/
 
 Run in root if there is an error accessing the device, also look up naga debug it'll give all the info you need most of the time.
@@ -89,7 +90,7 @@ The configuration file `keyMap.txt` has the following syntax:
 		
 		For a mouseclick run xdotool click <command>) (Can put numbers from 1 to 9 and options such as *--window etc).
 
-You can have as many configs as you want in the keyMap.txt file, just make sure to give them different names and include defaultConfig.
+You may have as many configs as you want in the keyMap.txt file, just make sure to give them different names and include defaultConfig.
 
 [Link for Keys](https://cgit.freedesktop.org/xorg/proto/x11proto/plain/keysymdef.h)
 
@@ -100,7 +101,7 @@ You can have as many configs as you want in the keyMap.txt file, just make sure 
 To reload the config run the command :
 	naga start
 
-wich will restart the daemon
+which will restart the daemon
 
 If ran as root you should edit the file in /root/.naga.
 
