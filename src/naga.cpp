@@ -33,14 +33,14 @@ private:
 	const void (*internalFunction)(const string *c);
 
 public:
-	const bool *IsOnKeyPressed() const { return &onKeyPressed; }
+	const bool &IsOnKeyPressed() const { return onKeyPressed; }
 	const void runInternal(const string *content) const { internalFunction(content); }
 	const string &Prefix() const { return prefix; }
 
 	configKey(const string &&tcontent, const bool tonKeyPressed, const void (*tinternalF)(const string *cc) = NULL) : prefix(tcontent), onKeyPressed(tonKeyPressed), internalFunction(tinternalF)
 	{
 	}
-	configKey(const bool tonKeyPressed, const void (*tinternalF)(const string *cc) = NULL) : onKeyPressed(tonKeyPressed), internalFunction(tinternalF)
+	configKey(const bool tonKeyPressed, const void (*tinternalF)(const string *cc) = NULL) : prefix(""), onKeyPressed(tonKeyPressed), internalFunction(tinternalF)
 	{
 	}
 };
@@ -188,7 +188,7 @@ private:
 						}
 						else
 						{
-							if (!configKeysMap[commandType]->Prefix().empty())
+							if (configKeysMap[commandType]->Prefix()=="")
 								commandContent = configKeysMap[commandType]->Prefix() + commandContent;
 							macroEventsKeyMaps[configName][buttonNumberI][configKeysMap[commandType]->IsOnKeyPressed()].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
 						} // Encode and store mapping v3
