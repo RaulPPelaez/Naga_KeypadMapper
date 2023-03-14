@@ -7,7 +7,7 @@ config=defaultConfig
 
 3 - string=hello@hotmail.com
 
-4 - run2=if [ $(ps aux | grep -v grep | grep -o spotify | wc -l) -eq 0 ]; then setsid spotify; fi
+4 - run2=if [ $(pgrep -v grep | grep -o spotify | wc -l) -eq 0 ]; then setsid spotify; fi
 
 5 - run=gnome-terminal
 

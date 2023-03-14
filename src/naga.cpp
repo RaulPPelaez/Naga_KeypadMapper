@@ -421,13 +421,13 @@ public:
 void stopD()
 {
 	clog << "Stopping possible naga daemon" << endl;
-	(void)!(system(("kill $(ps aux | grep naga | grep debug | grep -v " + to_string((int)getpid()) + " | awk '{print $2}') > /dev/null 2>&1").c_str()));
-	(void)!(system(("/usr/local/bin/Naga_Linux/nagaKillroot.sh")));
+	(void)!(system(("/usr/local/bin/Naga_Linux/nagaKillroot.sh " + to_string((int)getpid())).c_str()));
 };
 
-void stopDRoot()
+void daemonise()
 {
-	(void)!(system(("kill $(ps aux | grep naga | grep debug | grep root | grep -v " + to_string((int)getpid()) + " | awk '{print $2}') > /dev/null 2>&1").c_str()));
+	if (daemon(0, 1))
+		perror("Couldn't daemonise from unistd");
 };
 
 // arguments manage
@@ -437,21 +437,21 @@ int main(int argc, char *argv[])
 	{
 		if (strstr(argv[1], "start") != NULL)
 		{
-			clog << "Stopping possible naga daemon\nStarting naga daemon in hidden mode..." << endl;
-			string command;
+			stopD();
+			clog << "Starting naga daemon in hidden mode, keep the window for the logs..." << endl;
+			(void)!(system("/usr/local/bin/Naga_Linux/nagaXinputStart.sh"));
+			usleep(40000);
+			daemonise();
 			if (argc > 2)
-			{
-				command = "setsid naga debug " + string(argv[2]) + "> /dev/null 2>&1 &";
-			}
+				NagaDaemon(string(argv[2]).c_str());
 			else
 			{
-				command = "setsid naga debug > /dev/null 2>&1 &";
+				NagaDaemon();
 			}
-			(void)!(system(command.c_str()));
 		}
 		else if (strstr(argv[1], "killroot") != NULL)
 		{
-			stopDRoot();
+			(void)!(system(("/usr/local/bin/Naga_Linux/nagaKillroot.sh " + to_string((int)getpid())).c_str()));
 		}
 		else if (strstr(argv[1], "kill") != NULL || strstr(argv[1], "stop") != NULL)
 		{
@@ -471,26 +471,10 @@ int main(int argc, char *argv[])
 				(void)!(system("bash /usr/local/bin/Naga_Linux/nagaUninstall.sh"));
 			}
 		}
-		else if (strstr(argv[1], "debug") != NULL)
-		{
-			stopD();
-			usleep(40000);
-			clog << "Starting naga daemon in debug mode..." << endl;
-			(void)!(system("/usr/local/bin/Naga_Linux/nagaXinputStart.sh"));
-			if (argc > 2)
-			{
-				NagaDaemon(string(argv[2]));
-			}
-			else
-			{
-				NagaDaemon();
-			}
-		}
 	}
 	else
 	{
-		clog << "Possible arguments : \n  -start          Starts the daemon in hidden mode. (stops it before)\n  -stop           Stops the daemon.\n  -debug          Starts the daemon in the terminal,\n"
-			 << "giving access to logs. (stops it before)." << endl;
+		clog << "Possible arguments : \n  -start          Starts the daemon in hidden mode. (stops it before)\n  -stop           Stops the daemon."<< endl;
 	}
 	return 0;
 }

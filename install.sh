@@ -11,6 +11,8 @@ command -v xdotool >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require xdotoo
 command -v xinput >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require xinput but it's not installed! Aborting."; tput sgr0; exit 1; }
 command -v g++ >/dev/null 2>&1 || { tput setaf 1; echo >&2 "I require g++ but it's not installed! Aborting."; tput sgr0; exit 1; }
 
+reset
+
 echo "Compiling code..."
 cd src
 g++ naga.cpp -o naga -pthread -Ofast --std=c++2a -lX11 -lXtst
