@@ -439,8 +439,8 @@ int main(int argc, char *argv[])
 		{
 			stopD();
 			clog << "Starting naga daemon in hidden mode, keep the window for the logs..." << endl;
-			(void)!(system("/usr/local/bin/Naga_Linux/nagaXinputStart.sh"));
 			usleep(40000);
+			(void)!(system("/usr/local/bin/Naga_Linux/nagaXinputStart.sh"));
 			daemonise();
 			if (argc > 2)
 				NagaDaemon(string(argv[2]).c_str());
