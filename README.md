@@ -3,7 +3,7 @@
 
 !!! ONE LINE INSTALL !!! :
 
-`wget https://codeload.github.com/lostallmymoney/Razer_Mouse_Linux/zip/refs/heads/master -O Razer_Mouse_Linux.zip && unzip Razer_Mouse_Linux.zip && rm Razer_Mouse_Linux.zip && cd Razer_Mouse_Linux-master && sh install.sh && echo "If the install was successful you may remove this folder."`
+`wget https://codeload.github.com/lostallmymoney/Razer_Mouse_Linux/zip/refs/heads/master -c -O Razer_Mouse_Linux.zip && unzip Razer_Mouse_Linux.zip && rm Razer_Mouse_Linux.zip && cd Razer_Mouse_Linux-master && sh install.sh && echo "If the install was successful you may remove this folder."`
 
 (requires unzip)
 
