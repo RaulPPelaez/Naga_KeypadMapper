@@ -1,9 +1,8 @@
 # Razer Mouse Mapper for Linux
 ..also can accept other devices they're simply untested. Contact me for adding devices.
 
-!!! ONE LINE INSTALL !!! :
+!!! ONE LINE INSTALL !!! :\n
 `wget https://codeload.github.com/lostallmymoney/Razer_Mouse_Linux/zip/refs/heads/master -O Razer_Mouse_Linux.zip && unzip Razer_Mouse_Linux.zip && rm Razer_Mouse_Linux.zip && cd Razer_Mouse_Linux-master && sh install.sh && echo "If the install was successful you may remove this folder."`
-
 (requires unzip)
 
 This should be easy to install just run sh install.sh from inside the directory.
