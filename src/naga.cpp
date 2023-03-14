@@ -28,7 +28,7 @@ int fakeKeyFollowCount = 0;
 class configKey
 {
 private:
-	const string prefix;
+	const string prefix = "";
 	const bool onKeyPressed;
 	const void (*internalFunction)(const string *c);
 
@@ -38,11 +38,9 @@ public:
 	const string &Prefix() const { return prefix; }
 
 	configKey(const string &&tcontent, const bool tonKeyPressed, const void (*tinternalF)(const string *cc) = NULL) : prefix(tcontent), onKeyPressed(tonKeyPressed), internalFunction(tinternalF)
-	{
-	}
-	configKey(const bool tonKeyPressed, const void (*tinternalF)(const string *cc) = NULL) : prefix(""), onKeyPressed(tonKeyPressed), internalFunction(tinternalF)
-	{
-	}
+	{	}
+	configKey(const bool tonKeyPressed, const void (*tinternalF)(const string *cc) = NULL) : onKeyPressed(tonKeyPressed), internalFunction(tinternalF)
+	{	}
 };
 
 typedef pair<string, configKey *> stringAndConfigKey;
@@ -55,10 +53,9 @@ private:
 
 public:
 	const configKey *KeyType() const { return keyType; }
-	const string *Type() const { return &type; }
 	const string *Content() const { return &content; }
 
-	MacroEvent(const configKey *tkeyType, const string *ttype, const string *tcontent) : keyType(tkeyType), type(*ttype), content(*tcontent)
+	MacroEvent(const configKey *tkeyType, const string *tcontent) : keyType(tkeyType), content(*tcontent)
 	{
 	}
 };
@@ -91,7 +88,7 @@ public:
 	}
 };
 
-configSwitchScheduler configSwitcher = configSwitchScheduler();
+configSwitchScheduler * configSwitcher = new configSwitchScheduler();
 
 class NagaDaemon
 {
@@ -183,14 +180,14 @@ private:
 							}
 							const string commandContent2 = configKeysMap["keyreleaseonrelease"]->Prefix() + commandContent;
 							commandContent = configKeysMap["keypressonpress"]->Prefix() + commandContent;
-							macroEventsKeyMaps[configName][buttonNumberI][true].emplace_back(new MacroEvent(configKeysMap["keypressonpress"], &commandType, &commandContent));
-							macroEventsKeyMaps[configName][buttonNumberI][false].emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandType, &commandContent2));
+							macroEventsKeyMaps[configName][buttonNumberI][true].emplace_back(new MacroEvent(configKeysMap["keypressonpress"], &commandContent));
+							macroEventsKeyMaps[configName][buttonNumberI][false].emplace_back(new MacroEvent(configKeysMap["keyreleaseonrelease"], &commandContent2));
 						}
 						else
 						{
 							if (configKeysMap[commandType]->Prefix()=="")
 								commandContent = configKeysMap[commandType]->Prefix() + commandContent;
-							macroEventsKeyMaps[configName][buttonNumberI][configKeysMap[commandType]->IsOnKeyPressed()].emplace_back(new MacroEvent(configKeysMap[commandType], &commandType, &commandContent));
+							macroEventsKeyMaps[configName][buttonNumberI][configKeysMap[commandType]->IsOnKeyPressed()].emplace_back(new MacroEvent(configKeysMap[commandType], &commandContent));
 						} // Encode and store mapping v3
 					}
 				}
@@ -218,10 +215,10 @@ private:
 		ev11 = &ev1[1];
 		while (1)
 		{
-			if (configSwitcher.isRemapScheduled())
+			if (configSwitcher->isRemapScheduled())
 			{											// remap
-				loadConf(configSwitcher.RemapString()); // change config for macroEvents[ii]->Content()
-				configSwitcher.unScheduleReMap();
+				loadConf(configSwitcher->RemapString()); // change config for macroEvents[ii]->Content()
+				configSwitcher->unScheduleReMap();
 			}
 
 			FD_ZERO(&readset);
@@ -273,7 +270,7 @@ private:
 	}
 
 	// Functions that can be given to configKeys
-	const static void writeString(const string *macroContent)
+	const static void writeStringNow(const string *macroContent)
 	{
 		lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 		FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
@@ -288,7 +285,7 @@ private:
 		deleteFakeKey(aKeyFaker);
 	}
 
-	const static void specialPress(const string *macroContent)
+	const static void specialPressNow(const string *macroContent)
 	{
 		lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 		FakeKey *aKeyFaker = fakekey_init(XOpenDisplay(NULL));
@@ -298,7 +295,7 @@ private:
 		fakeKeyFollowCount++;
 	}
 
-	const static void specialRelease(const string *macroContent)
+	const static void specialReleaseNow(const string *macroContent)
 	{
 		lock_guard<mutex> guard(fakeKeyFollowUpsMutex);
 		if (fakeKeyFollowCount > 0)
@@ -326,7 +323,7 @@ private:
 	const static void chmapNow(const string *macroContent)
 	{
 		lock_guard<mutex> guard(configSwitcherMutex);
-		configSwitcher.scheduleReMap(macroContent); // schedule config switch/change
+		configSwitcher->scheduleReMap(macroContent); // schedule config switch/change
 	}
 
 	const static void sleepNow(const string *macroContent)
@@ -390,14 +387,14 @@ public:
 		configKeysMap.insert(stringAndConfigKey("keyclick", new configKey("setsid xdotool key --window getactivewindow ", true, executeNow)));
 		configKeysMap.insert(stringAndConfigKey("keyclickrelease", new configKey("setsid xdotool key --window getactivewindow ", false, executeNow)));
 
-		configKeysMap.insert(stringAndConfigKey("string", new configKey(true, writeString)));
-		configKeysMap.insert(stringAndConfigKey("stringrelease", new configKey(false, writeString)));
+		configKeysMap.insert(stringAndConfigKey("string", new configKey(true, writeStringNow)));
+		configKeysMap.insert(stringAndConfigKey("stringrelease", new configKey(false, writeStringNow)));
 
-		configKeysMap.insert(stringAndConfigKey("specialpressonpress", new configKey(true, specialPress)));
-		configKeysMap.insert(stringAndConfigKey("specialpressonrelease", new configKey(false, specialPress)));
+		configKeysMap.insert(stringAndConfigKey("specialpressonpress", new configKey(true, specialPressNow)));
+		configKeysMap.insert(stringAndConfigKey("specialpressonrelease", new configKey(false, specialPressNow)));
 
-		configKeysMap.insert(stringAndConfigKey("specialreleaseonpress", new configKey(true, specialRelease)));
-		configKeysMap.insert(stringAndConfigKey("specialreleaseonrelease", new configKey(false, specialRelease)));
+		configKeysMap.insert(stringAndConfigKey("specialreleaseonpress", new configKey(true, specialReleaseNow)));
+		configKeysMap.insert(stringAndConfigKey("specialreleaseonrelease", new configKey(false, specialReleaseNow)));
 
 		size = sizeof(struct input_event);
 		for (CharAndChar &device : devices)
@@ -448,10 +445,6 @@ int main(int argc, char *argv[])
 			{
 				NagaDaemon();
 			}
-		}
-		else if (strstr(argv[1], "killroot") != NULL)
-		{
-			(void)!(system(("/usr/local/bin/Naga_Linux/nagaKillroot.sh " + to_string((int)getpid())).c_str()));
 		}
 		else if (strstr(argv[1], "kill") != NULL || strstr(argv[1], "stop") != NULL)
 		{

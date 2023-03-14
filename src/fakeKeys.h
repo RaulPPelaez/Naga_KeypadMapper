@@ -1,10 +1,10 @@
-//EXPERIMENTAL
+// EXPERIMENTAL
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
 #include <X11/extensions/XTest.h>
 
 #include <cstring>
-#include <stdlib.h>  
+#include <stdlib.h>
 
 #ifndef FAKEKEYS_H_
 #define FAKEKEYS_H_
@@ -12,10 +12,10 @@
 
 typedef enum
 {
-	FAKEKEYMOD_SHIFT = (1<<1),
-	FAKEKEYMOD_CONTROL = (1<<2),
-	FAKEKEYMOD_ALT = (1<<3),
-	FAKEKEYMOD_META = (1<<4)
+	FAKEKEYMOD_SHIFT = (1 << 1),
+	FAKEKEYMOD_CONTROL = (1 << 2),
+	FAKEKEYMOD_ALT = (1 << 3),
+	FAKEKEYMOD_META = (1 << 4)
 
 } FakeKeyModifier;
 
@@ -31,12 +31,13 @@ struct FakeKey
 	int shift_mod_index, alt_mod_index, meta_mod_index;
 };
 
-static void deleteFakeKey(FakeKey * aKeyFaker){
+static void deleteFakeKey(FakeKey *aKeyFaker)
+{
 	XFree(aKeyFaker->keysyms);
 	free(aKeyFaker);
 }
 
-static int utf8_to_ucs4 (const unsigned char *src_orig, unsigned int *dst, int len)
+static int utf8_to_ucs4(const unsigned char *src_orig, unsigned int *dst, int len)
 {
 	const unsigned char *src = src_orig;
 	unsigned char s;
@@ -78,7 +79,7 @@ static int utf8_to_ucs4 (const unsigned char *src_orig, unsigned int *dst, int l
 		result = s & 0x03;
 		extra = 4;
 	}
-	else if ( !(s & 0x02))
+	else if (!(s & 0x02))
 	{
 		result = s & 0x01;
 		extra = 5;
@@ -104,7 +105,7 @@ static int utf8_to_ucs4 (const unsigned char *src_orig, unsigned int *dst, int l
 	return src - src_orig;
 }
 
-FakeKey* fakekey_init(Display *xdpy)
+FakeKey *fakekey_init(Display *xdpy)
 {
 	FakeKey *fk = NULL;
 	int event, error, major, minor;
@@ -113,15 +114,16 @@ FakeKey* fakekey_init(Display *xdpy)
 	int mod_key;
 	KeyCode *kp;
 
-	if (xdpy == NULL) return NULL;
+	if (xdpy == NULL)
+		return NULL;
 
 	if (!XTestQueryExtension(xdpy, &event, &error, &major, &minor))
 	{
 		return NULL;
 	}
 
-	fk = (FakeKey*)malloc(sizeof(FakeKey));
-	memset(fk,0,sizeof(FakeKey));
+	fk = (FakeKey *)malloc(sizeof(FakeKey));
+	memset(fk, 0, sizeof(FakeKey));
 
 	fk->xdpy = xdpy;
 
@@ -139,11 +141,7 @@ FakeKey* fakekey_init(Display *xdpy)
 	 *
 	 */
 
-	fk->keysyms = XGetKeyboardMapping(fk->xdpy,
-	                                  fk->min_keycode,
-	                                  fk->max_keycode - fk->min_keycode + 1,
-	                                  &fk->n_keysyms_per_keycode);
-
+	fk->keysyms = XGetKeyboardMapping(fk->xdpy, fk->min_keycode, fk->max_keycode - fk->min_keycode + 1, &fk->n_keysyms_per_keycode);
 
 	modifiers = XGetModifierMapping(fk->xdpy);
 
@@ -169,13 +167,7 @@ FakeKey* fakekey_init(Display *xdpy)
 	{
 		if (fk->modifier_table[mod_index])
 		{
-			KeySym ks = XkbKeycodeToKeysym(fk->xdpy,
-			                             fk->modifier_table[mod_index], 0, 0);
-
-
-			 //Note: ControlMapIndex is already defined by xlib
-			 //ShiftMapIndex
-
+			KeySym ks = XkbKeycodeToKeysym(fk->xdpy, fk->modifier_table[mod_index], 0, 0);
 
 			switch (ks)
 			{
@@ -209,15 +201,15 @@ int fakekey_send_keyevent(FakeKey *fk, KeyCode keycode, Bool is_press, int flags
 	{
 		if (flags & FAKEKEYMOD_SHIFT)
 			XTestFakeKeyEvent(fk->xdpy, fk->modifier_table[ShiftMapIndex],
-			                  is_press, CurrentTime);
+							  is_press, CurrentTime);
 
 		if (flags & FAKEKEYMOD_CONTROL)
 			XTestFakeKeyEvent(fk->xdpy, fk->modifier_table[ControlMapIndex],
-			                  is_press, CurrentTime);
+							  is_press, CurrentTime);
 
 		if (flags & FAKEKEYMOD_ALT)
 			XTestFakeKeyEvent(fk->xdpy, fk->modifier_table[fk->alt_mod_index],
-			                  is_press, CurrentTime);
+							  is_press, CurrentTime);
 
 		XSync(fk->xdpy, False);
 	}
@@ -264,7 +256,7 @@ int fakekey_press_keysym(FakeKey *fk, KeySym keysym, int flags)
 		 * TODO: probably safer to check for this.
 		 */
 
-		modifiedkey = (modifiedkey+1) % 10;
+		modifiedkey = (modifiedkey + 1) % 10;
 
 		/* Point at the end of keysyms, modifier 0 */
 
@@ -273,10 +265,10 @@ int fakekey_press_keysym(FakeKey *fk, KeySym keysym, int flags)
 		fk->keysyms[index] = keysym;
 
 		XChangeKeyboardMapping(fk->xdpy,
-		                       fk->min_keycode,
-		                       fk->n_keysyms_per_keycode,
-		                       fk->keysyms,
-		                       (fk->max_keycode-fk->min_keycode));
+							   fk->min_keycode,
+							   fk->n_keysyms_per_keycode,
+							   fk->keysyms,
+							   (fk->max_keycode - fk->min_keycode));
 
 		XSync(fk->xdpy, False);
 
@@ -339,10 +331,10 @@ int fakekey_press(FakeKey *fk, const unsigned char *utf8_char_in, int len_bytes,
 		   unsigned char *p = utf8_char_in;
 		   while (*p != '\0') { len_bytes++; p++; }
 		 */
-		len_bytes = strlen((const char*)utf8_char_in); /* OK ? */
+		len_bytes = strlen((const char *)utf8_char_in); /* OK ? */
 	}
 
-	if (utf8_to_ucs4 (utf8_char_in, &ucs4_out, len_bytes) < 1)
+	if (utf8_to_ucs4(utf8_char_in, &ucs4_out, len_bytes) < 1)
 	{
 		return 0;
 	}
@@ -353,7 +345,7 @@ int fakekey_press(FakeKey *fk, const unsigned char *utf8_char_in, int len_bytes,
 	   return keysym;
 	 */
 
-	if (ucs4_out > 0x00ff) /* < 0xff assume Latin-1 1:1 mapping */
+	if (ucs4_out > 0x00ff)				  /* < 0xff assume Latin-1 1:1 mapping */
 		ucs4_out = ucs4_out | 0x01000000; /* This gives us the magic X keysym */
 
 	return fakekey_press_keysym(fk, (KeySym)ucs4_out, flags);
